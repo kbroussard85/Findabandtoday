@@ -1,27 +1,9 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --background: #121212; /* "Black Pearl" / Charcoal as per research */
+  --foreground: #ffffff;
+  --accent-band: #A855F7; /* Electric Purple */
+  --accent-venue: #3B82F6; /* Deep Sea Blue */
+  --font-family-header: 'Inter Tight', 'Inter', sans-serif;
 }
 
 * {
@@ -30,13 +12,85 @@ body {
   margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-header);
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.btn-band {
+  background-color: var(--accent-band);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.btn-venue {
+  background-color: var(--accent-venue);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+/* 50/50 Split Landing Page */
+.split-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.split-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.split-side::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1;
+  transition: background 0.3s ease;
+}
+
+.split-side:hover::after {
+  background: rgba(0,0,0,0.2);
+}
+
+.split-content {
+  z-index: 2;
+  text-align: center;
+}
+
+.side-band {
+  background: linear-gradient(135deg, #1a1a1a, var(--accent-band));
+}
+
+.side-venue {
+  background: linear-gradient(135deg, #1a1a1a, var(--accent-venue));
 }
