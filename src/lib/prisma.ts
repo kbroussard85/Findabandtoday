@@ -6,7 +6,7 @@ const prismaClientSingleton = () => {
       band: {
         async findNearby(lat: number, lng: number, radiusMeters: number) {
           return prisma.$queryRaw`
-            SELECT id, name, lat, lng, "audioUrlPreview"
+            SELECT id, name, lat, lng, bio, media, availability, "negotiationPrefs", "audioUrlPreview"
             FROM "Band"
             WHERE ST_DWithin(
               location,
@@ -19,7 +19,7 @@ const prismaClientSingleton = () => {
       venue: {
         async findNearby(lat: number, lng: number, radiusMeters: number) {
           return prisma.$queryRaw`
-            SELECT id, name, lat, lng, capacity
+            SELECT id, name, lat, lng, capacity, bio, media, availability, "negotiationPrefs"
             FROM "Venue"
             WHERE ST_DWithin(
               location,

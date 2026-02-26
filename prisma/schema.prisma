@@ -12,45 +12,54 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  auth0Id          String   @unique
-  email            String   @unique
-  role             UserRole
-  stripeCustomerId String?  @unique
-  isPaid           Boolean  @default(false)
-  subscriptionTier String?
-  createdAt        DateTime @default(now())
-  bandProfile      Band?
-  venueProfile     Venue?
+  id                 String   @id @default(cuid())
+  auth0Id            String   @unique
+  email              String   @unique
+  role               UserRole
+  stripeCustomerId   String?  @unique
+  isPaid             Boolean  @default(false)
+  subscriptionTier   String?
+  subscriptionStatus String? // "active", "canceled", "past_due", "none"
+  createdAt          DateTime @default(now())
+  bandProfile        Band?
+  venueProfile       Venue?
 }
 
 model Band {
-  id              String                    @id @default(cuid())
-  userId          String                    @unique
-  name            String
-  lat             Float?
-  lng             Float?
-  location        Unsupported("geography")?
-  searchRadius    Int                       @default(50)
-  audioUrlPreview String?
-  audioUrlFull    String?
-  taxStatus       Boolean                   @default(false)
-  user            User                      @relation(fields: [userId], references: [id])
-  gigs            Gig[]
+  id               String                    @id @default(cuid())
+  userId           String                    @unique
+  name             String
+  bio              String?
+  lat              Float?
+  lng              Float?
+  location         Unsupported("geography")?
+  searchRadius     Int                       @default(50)
+  media            Json? // Array of {url, type: "mp3"|"mp4", title}
+  availability     Json? // {bookedDates: string[], blockedDates: string[]}
+  negotiationPrefs Json? // {minRate, currency, openToNegotiate}
+  audioUrlPreview  String?
+  audioUrlFull     String?
+  taxStatus        Boolean                   @default(false)
+  user             User                      @relation(fields: [userId], references: [id])
+  gigs             Gig[]
 
   @@index([location], type: Gist)
 }
 
 model Venue {
-  id       String                    @id @default(cuid())
-  userId   String                    @unique
-  name     String
-  lat      Float?
-  lng      Float?
-  location Unsupported("geography")?
-  capacity Int?
-  gigs     Gig[]
-  user     User                      @relation(fields: [userId], references: [id])
+  id               String                    @id @default(cuid())
+  userId           String                    @unique
+  name             String
+  bio              String?
+  lat              Float?
+  lng              Float?
+  location         Unsupported("geography")?
+  capacity         Int?
+  media            Json? // Array of {url, type: "image"|"video", title}
+  availability     Json? // {bookedDates: string[], blockedDates: string[]}
+  negotiationPrefs Json? // {minRate, currency, openToNegotiate}
+  gigs             Gig[]
+  user             User                      @relation(fields: [userId], references: [id])
 
   @@index([location], type: Gist)
 }
