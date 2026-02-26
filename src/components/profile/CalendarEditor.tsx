@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { format } from 'date-fns';
 
 interface CalendarEditorProps {
   initialDates: string[];
@@ -29,7 +28,7 @@ export function CalendarEditor({ initialDates }: CalendarEditorProps) {
 
       if (!response.ok) throw new Error('Failed to save calendar');
       setMessage('Calendar updated!');
-    } catch (err) {
+    } catch {
       setMessage('Error saving calendar');
     } finally {
       setSaving(false);

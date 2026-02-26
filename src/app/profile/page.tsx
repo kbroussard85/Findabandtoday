@@ -27,6 +27,7 @@ export default async function ProfilePage() {
   }
 
   const profile = dbUser.role === 'BAND' ? dbUser.bandProfile : dbUser.venueProfile;
+  const availability = profile?.availability as { bookedDates?: string[] } | null;
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', color: 'white' }}>
@@ -38,12 +39,13 @@ export default async function ProfilePage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '3rem' }}>
         <section>
           <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>Public Details</h2>
-          <ProfileEditor initialData={profile} role={dbUser.role} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <ProfileEditor initialData={profile as any} role={dbUser.role} />
         </section>
 
         <aside>
           <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>Availability</h2>
-          <CalendarEditor initialDates={(profile as any)?.availability?.bookedDates || []} />
+          <CalendarEditor initialDates={availability?.bookedDates || []} />
           
           <div style={{ marginTop: '2rem', padding: '1rem', background: '#111', borderRadius: '8px', border: '1px solid #333' }}>
             <h4 style={{ margin: 0, color: '#A855F7' }}>Pro Tip</h4>

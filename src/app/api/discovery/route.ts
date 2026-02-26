@@ -37,21 +37,29 @@ export async function GET(req: Request) {
   const radiusInMeters = radiusMiles * 1609.34;
 
   try {
-    let results: any[];
+    let results: Array<{
+      id: string;
+      name: string;
+      bio?: string;
+      media?: unknown;
+      availability?: unknown;
+      negotiationPrefs?: unknown;
+      audioUrlPreview?: string;
+    }>;
+
     if (roleParam.toUpperCase() === 'BAND') {
-      results = await prisma.band.findNearby(lat, lng, radiusInMeters);
+      results = await prisma.band.findNearby(lat, lng, radiusInMeters) as typeof results;
     } else {
-      results = await prisma.venue.findNearby(lat, lng, radiusInMeters);
+      results = await prisma.venue.findNearby(lat, lng, radiusInMeters) as typeof results;
     }
 
     // GATING LOGIC: If not premium, strip sensitive data before sending
     const gatedResults = results.map(item => {
-      const sanitized = { ...item };
+      const sanitized = { ...item } as Record<string, unknown>;
       if (!isPremium) {
         // Strip sensitive fields
         delete sanitized.availability;
         delete sanitized.negotiationPrefs;
-        // Obfuscate contact logic could go here if we had direct contact fields
       }
       return sanitized;
     });

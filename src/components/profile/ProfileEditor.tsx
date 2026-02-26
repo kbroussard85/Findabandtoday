@@ -3,8 +3,23 @@
 import React, { useState } from 'react';
 import { UploadDropzone } from '@/lib/uploadthing';
 
+interface MediaItem {
+  url: string;
+  type: string;
+  name?: string;
+}
+
+interface ProfileData {
+  bio?: string | null;
+  negotiationPrefs?: {
+    minRate?: number | string;
+    openToNegotiate?: boolean;
+  } | null;
+  media?: MediaItem[] | null;
+}
+
 interface ProfileEditorProps {
-  initialData: any;
+  initialData: ProfileData | null;
   role: 'BAND' | 'VENUE';
 }
 
@@ -12,7 +27,7 @@ export function ProfileEditor({ initialData, role }: ProfileEditorProps) {
   const [bio, setBio] = useState(initialData?.bio || '');
   const [minRate, setMinRate] = useState(initialData?.negotiationPrefs?.minRate || '');
   const [openToNegotiate, setOpenToNegotiate] = useState(initialData?.negotiationPrefs?.openToNegotiate ?? true);
-  const [media, setMedia] = useState<any[]>(initialData?.media || []);
+  const [media, setMedia] = useState<MediaItem[]>(initialData?.media || []);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -37,7 +52,7 @@ export function ProfileEditor({ initialData, role }: ProfileEditorProps) {
 
       if (!response.ok) throw new Error('Failed to save profile');
       setMessage('Profile updated successfully!');
-    } catch (err) {
+    } catch {
       setMessage('Error saving profile');
     } finally {
       setSaving(false);

@@ -24,9 +24,9 @@ interface ArtistCardProps {
 export function ArtistCard({ artist, isPremium }: ArtistCardProps) {
   const mediaRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [activeMedia, setActiveMedia] = useState<MediaItem | null>(
-    artist.audioUrlPreview ? { url: artist.audioUrlPreview, type: 'audio' } : (artist.media?.[0] || null)
-  );
+  const activeMedia = React.useMemo(() => artist.audioUrlPreview 
+    ? { url: artist.audioUrlPreview, type: 'audio' } 
+    : (artist.media?.[0] || null), [artist.audioUrlPreview, artist.media]);
 
   useEffect(() => {
     const media = mediaRef.current;

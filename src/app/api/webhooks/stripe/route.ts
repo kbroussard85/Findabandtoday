@@ -2,13 +2,20 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia' as any,
-});
+export const dynamic = 'force-dynamic';
+
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion,
+    })
+  : null;
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
+  if (!stripe) {
+    return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 });
+  }
   const body = await req.text();
   const sig = req.headers.get('stripe-signature')!;
 
@@ -16,9 +23,10 @@ export async function POST(req: Request) {
 
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-  } catch (err: any) {
-    console.error(`Webhook Error: ${err.message}`);
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`Webhook Error: ${message}`);
+    return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 });
   }
 
   // Handle the event
