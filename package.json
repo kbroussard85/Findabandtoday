@@ -11,9 +11,9 @@
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.8.0",
     "@prisma/client": "^6.4.1",
-    "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "next": "15.2.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
