@@ -1,121 +1,52 @@
-// src/app/onboarding/band/page.tsx
+'use client';
 
-"use client";
+import React from 'react';
+import Link from 'next/link';
+import { Music, Star, CheckCircle } from 'lucide-react';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import '../../globals.css';
-
-export default function BandOnboarding() {
-  const router = useRouter();
-  const [name, setName] = useState('');
-  const [searchRadius, setSearchRadius] = useState(50);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/onboarding/band', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, searchRadius }),
-      });
-
-      if (res.ok) {
-        router.push('/dashboard/band'); // Route to the band dashboard
-      } else {
-        console.error("Failed to complete onboarding.");
-      }
-    } catch (error) {
-      console.error("Error during onboarding:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function ArtistOnboarding() {
   return (
-    <div className="onboarding-container">
-      <style jsx>{`
-        .onboarding-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 100vh;
-          background: #121212;
-          color: white;
-          padding: 2rem;
-        }
-        form {
-          width: 100%;
-          max-width: 400px;
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-        label {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          text-transform: uppercase;
-          font-weight: bold;
-          font-size: 0.8rem;
-          color: var(--accent-band);
-        }
-        input, select {
-          padding: 0.8rem;
-          background: #1a1a1a;
-          border: 1px solid #333;
-          color: white;
-          font-family: inherit;
-        }
-        .skip-btn {
-          background: none;
-          border: none;
-          color: #666;
-          cursor: pointer;
-          text-decoration: underline;
-          margin-top: 1rem;
-        }
-      `}</style>
-      <h1>Artist Profile</h1>
-      <p>Setting up your stage plot.</p>
-      
-      <form onSubmit={handleSubmit}>
-        <label>
-          Band Name
-          <input 
-            type="text" 
-            placeholder="e.g., The Midnight Echo" 
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required 
-          />
-        </label>
-        
-        <label>
-          Search Radius (Miles)
-          <input 
-            type="range" 
-            min="5" 
-            max="500" 
-            step="5" 
-            value={searchRadius}
-            onChange={(e) => setSearchRadius(Number(e.target.value))}
-          />
-          <span style={{ textAlign: 'center' }}>{searchRadius} miles</span>
-        </label>
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-purple-500 flex flex-col items-center justify-center p-8">
+      <div className="max-w-2xl w-full space-y-8 text-center">
+        <div className="inline-block p-4 rounded-full bg-purple-900/30 border border-purple-500/50 mb-4 animate-bounce">
+          <Music className="w-12 h-12 text-purple-400" />
+        </div>
 
-        <button type="submit" className="btn-band" disabled={loading}>
-          {loading ? 'Creating...' : 'Enter the Show'}
-        </button>
-      </form>
+        <h1 className="text-5xl font-black tracking-tighter uppercase italic">
+          Welcome to the <span className="text-purple-500 text-6xl block mt-2 font-black">Inner Circle</span>
+        </h1>
 
-      <button className="skip-btn" onClick={() => router.push('/dashboard/band')}>
-        Skip for now (get me to the directory)
-      </button>
+        <p className="text-xl text-zinc-400 font-medium leading-relaxed">
+          Your account is confirmed. Let&apos;s get your profile ready to blow some doors off.
+          Venues across the country are waiting for talent like yours.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12 text-left">
+          <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 space-y-3">
+            <div className="flex items-center gap-2 text-purple-400 font-bold uppercase italic">
+              <Star className="w-5 h-5" /> Step 1
+            </div>
+            <h3 className="text-xl font-bold">Build Your EPK</h3>
+            <p className="text-zinc-500 text-sm">Upload your best tracks and high-res stage shots.</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 space-y-3 opacity-50">
+            <div className="flex items-center gap-2 text-zinc-500 font-bold uppercase italic">
+              <CheckCircle className="w-5 h-5" /> Step 2
+            </div>
+            <h3 className="text-xl font-bold text-zinc-600">Sync Calendar</h3>
+            <p className="text-zinc-600 text-sm">Coming soon: Automated scheduling.</p>
+          </div>
+        </div>
+
+        <div className="pt-8">
+          <Link
+            href="/profile"
+            className="inline-block bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 text-xl font-black uppercase italic transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-purple-900/40"
+          >
+            Go to Profile
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

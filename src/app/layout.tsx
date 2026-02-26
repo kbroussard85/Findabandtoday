@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TaskBar } from "@/components/layout/TaskBar";
+import { Navbar } from "@/components/layout/Navbar";
+import { UserProvider } from '@auth0/nextjs-auth0/client';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,12 +27,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <main style={{ paddingBottom: '8rem' }}>
-          {children}
-        </main>
-        <TaskBar />
-      </body>
+      <UserProvider>
+        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+          <Navbar />
+          <main style={{ paddingBottom: '8rem' }}>
+            {children}
+          </main>
+          <TaskBar />
+        </body>
+      </UserProvider>
     </html>
   );
 }
