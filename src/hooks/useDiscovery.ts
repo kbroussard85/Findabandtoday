@@ -7,8 +7,14 @@ interface DiscoveryParams {
   role: 'BAND' | 'VENUE';
 }
 
+interface Artist {
+  id: string;
+  name: string;
+  audioUrlPreview?: string | null;
+}
+
 export function useDiscovery({ lat, lng, radius, role }: DiscoveryParams) {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,8 +31,8 @@ export function useDiscovery({ lat, lng, radius, role }: DiscoveryParams) {
         }
         const result = await response.json();
         setData(result.data || []);
-      } catch (err: any) {
-        setError(err.message || 'Unknown error');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }

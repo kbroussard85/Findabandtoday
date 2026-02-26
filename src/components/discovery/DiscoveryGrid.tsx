@@ -2,8 +2,14 @@
 import React from 'react';
 import { ArtistCard } from './ArtistCard';
 
+interface Artist {
+  id: string;
+  name: string;
+  audioUrlPreview?: string | null;
+}
+
 interface DiscoveryGridProps {
-  items: any[];
+  items: Artist[];
   isPremium: boolean;
 }
 

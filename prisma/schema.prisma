@@ -1,73 +1,81 @@
-// prisma/schema.prisma
-
-datasource db {  
-  provider = "postgresql"  
-  extensions = [postgis]
-}
-
-generator client {  
-  provider = "prisma-client-js"  
-  engineType = "library"
+generator client {
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
+  engineType      = "library"
 }
 
-enum UserRole {  
-  BAND  
-  VENUE  
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [postgis, uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
-model User {  
-  id               String    @id @default(cuid())  
-  auth0Id          String    @unique  
-  email            String    @unique  
-  role             UserRole  
-  stripeCustomerId String?   @unique  
-  isPaid           Boolean   @default(false)  
-  subscriptionTier String?   // "ARTIST_BIZ", "VENUE_COMMAND", "MAXIMIZER"  
-  createdAt        DateTime  @default(now())
-
-  bandProfile      Band?  
-  venueProfile     Venue?  
+model User {
+  id               String   @id @default(cuid())
+  auth0Id          String   @unique
+  email            String   @unique
+  role             UserRole
+  stripeCustomerId String?  @unique
+  isPaid           Boolean  @default(false)
+  subscriptionTier String?
+  createdAt        DateTime @default(now())
+  bandProfile      Band?
+  venueProfile     Venue?
 }
 
-model Band {  
-  id               String   @id @default(cuid())  
-  userId           String   @unique  
-  user             User     @relation(fields: [userId], references: [id])  
-  name             String  
-  lat              Float?  
-  lng              Float?  
-  location         Unsupported("geography(Point, 4326)")? 
-  searchRadius     Int      @default(50) // 5 to 500 miles  
-  audioUrlPreview  String?  // 15s snippet  
-  audioUrlFull     String?  // Gated behind isPaid  
-  taxStatus        Boolean  @default(false) // Verified I-9  
-  gigs             Gig[]  
+model Band {
+  id              String                    @id @default(cuid())
+  userId          String                    @unique
+  name            String
+  lat             Float?
+  lng             Float?
+  location        Unsupported("geography")?
+  searchRadius    Int                       @default(50)
+  audioUrlPreview String?
+  audioUrlFull    String?
+  taxStatus       Boolean                   @default(false)
+  user            User                      @relation(fields: [userId], references: [id])
+  gigs            Gig[]
 
   @@index([location], type: Gist)
 }
 
-model Venue {  
-  id               String   @id @default(cuid())  
-  userId           String   @unique  
-  user             User     @relation(fields: [userId], references: [id])  
-  name             String  
-  lat              Float?  
-  lng              Float?  
-  location         Unsupported("geography(Point, 4326)")?
-  capacity         Int?  
-  gigs             Gig[]  
+model Venue {
+  id       String                    @id @default(cuid())
+  userId   String                    @unique
+  name     String
+  lat      Float?
+  lng      Float?
+  location Unsupported("geography")?
+  capacity Int?
+  gigs     Gig[]
+  user     User                      @relation(fields: [userId], references: [id])
 
   @@index([location], type: Gist)
 }
 
-model Gig {  
-  id             String    @id @default(cuid())  
-  status         String    @default("PENDING") // PENDING, DEPOSIT_HELD, COMPLETED  
-  payout         Float  
-  contractUrl    String?   // AI-Generated PDF Link  
-  bandId         String  
-  band           Band      @relation(fields: [bandId], references: [id])  
-  venueId        String  
-  venue          Venue     @relation(fields: [venueId], references: [id])  
+model Gig {
+  id          String  @id @default(cuid())
+  status      String  @default("PENDING")
+  payout      Float
+  contractUrl String?
+  bandId      String
+  venueId     String
+  band        Band    @relation(fields: [bandId], references: [id])
+  venue       Venue   @relation(fields: [venueId], references: [id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+enum UserRole {
+  BAND
+  VENUE
 }

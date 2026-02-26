@@ -2,8 +2,14 @@
 import React, { useRef, useState } from 'react';
 import { BlurredField } from '../ui/BlurredField';
 
+interface Artist {
+  id: string;
+  name: string;
+  audioUrlPreview?: string | null;
+}
+
 interface ArtistCardProps {
-  artist: any;
+  artist: Artist;
   isPremium: boolean;
 }
 

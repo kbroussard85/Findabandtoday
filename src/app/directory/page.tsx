@@ -5,8 +5,8 @@ import { DiscoveryGrid } from '@/components/discovery/DiscoveryGrid';
 
 export default function DirectoryPage() {
   // Defaulting to NYC for demonstration
-  const [lat, setLat] = useState<number>(40.7128); 
-  const [lng, setLng] = useState<number>(-74.0060);
+  const lat = 40.7128; 
+  const lng = -74.0060;
   const [radius, setRadius] = useState<number>(50);
   const [role, setRole] = useState<'BAND' | 'VENUE'>('BAND');
 
