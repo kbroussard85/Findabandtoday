@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TaskBar } from "@/components/layout/TaskBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
 const geistMono = Geist_Mono({
@@ -28,9 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <UserProvider>
-        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <body className={`${montserrat.variable} ${geistMono.variable} antialiased`}>
           <Navbar />
-          <main style={{ paddingBottom: '8rem' }}>
+          <main>
             {children}
           </main>
           <TaskBar />
