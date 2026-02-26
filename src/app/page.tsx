@@ -1,6 +1,6 @@
-'use client';
-
 import React from 'react';
+import Link from 'next/link';
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-purple-500 antialiased">

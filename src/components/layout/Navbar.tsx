@@ -3,8 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { Search } from 'lucide-react';
-
 import { Search, Menu, X } from 'lucide-react';
 
 export function Navbar() {
