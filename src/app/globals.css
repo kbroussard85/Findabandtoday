@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --background: #000000;
@@ -9,7 +7,15 @@
   --accent-venue: #3B82F6; /* Deep Sea Blue */
 }
 
+@theme {
+  --color-purple-500: #A855F7;
+  --color-purple-600: #9333EA;
+  --color-blue-500: #3B82F6;
+  --color-blue-600: #2563EB;
+}
+
 body {
   background-color: #000;
   color: white;
+  font-family: ui-sans-serif, system-ui, sans-serif;
 }
