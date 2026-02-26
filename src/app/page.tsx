@@ -21,7 +21,7 @@ export default function LandingPage() {
             <h2 className="text-5xl lg:text-7xl font-black uppercase italic leading-none">
               I Need <br /> <span className="text-purple-500">A Gig</span>
             </h2>
-            <p className="text-zinc-300 text-lg max-w-md leading-relaxed font-medium">
+            <p className="text-zinc-300 text-lg max-w-md leading-relaxed">
               Book your next local gig or national tour today! We handle your I-9s, contracts, technical riders and payouts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -41,14 +41,14 @@ export default function LandingPage() {
 
         {/* Right Side: VENUES */}
         <section className="relative flex-1 group overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514525253361-bee8718a340b?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-40 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"></div>
+          <div className="absolute inset-0 bg-[url('/images/venue_stage_band.png')] bg-cover bg-center opacity-40 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
 
           <div className="relative h-full flex flex-col justify-end p-12 lg:p-20 space-y-6">
             <h2 className="text-5xl lg:text-7xl font-black uppercase italic leading-none">
               I Need <br /> <span className="text-blue-500">A Band</span>
             </h2>
-            <p className="text-zinc-300 text-lg max-w-md leading-relaxed font-medium">
+            <p className="text-zinc-300 text-lg max-w-md leading-relaxed">
               Fill your empty dates with matched talent. Zero paperwork. Verified stage plots. Day-of-show automated payouts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -67,8 +67,8 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Trust Bar */}
-      <div className="bg-zinc-900/50 py-12 px-8 grid grid-cols-1 md:grid-cols-3 gap-8 text-center border-t border-zinc-800">
+      {/* Trust Bar (IOTM Functionality) */}
+      <div className="bg-zinc-900/50 py-12 px-8 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
         <div>
           <h4 className="text-purple-400 font-bold uppercase tracking-widest mb-2">Automated Compliance</h4>
           <p className="text-zinc-500 text-sm italic">&quot;Automated I-9 tax forms and performance contracts for every match.&quot;</p>

@@ -1,0 +1,24 @@
+﻿
+> fabt@0.1.0 lint
+> eslint
+
+
+C:\Users\kbrou\Documents\FABT\fabt\docs\auth\POST_REGISTRATION_ACTION.js
+   9:55  warning  'api' is defined but never used          @typescript-eslint/no-unused-vars
+  10:17  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\kbrou\Documents\FABT\fabt\docs\auth\POST_REGISTRATION_ACTION_FINAL.js
+   9:55  warning  'api' is defined but never used          @typescript-eslint/no-unused-vars
+  10:19  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\kbrou\Documents\FABT\fabt\prisma\seed.ts
+  15:9  warning  'bandUser' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  46:9  warning  'bandUser2' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  68:9  warning  'venueUser' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\kbrou\Documents\FABT\fabt\src\components\layout\Navbar.tsx
+  45:16  warning  Unused eslint-disable directive (no problems were reported from '@next/next/no-html-link-for-pages')
+
+Γ£û 8 problems (2 errors, 6 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

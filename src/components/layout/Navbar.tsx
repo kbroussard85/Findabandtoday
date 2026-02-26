@@ -29,8 +29,9 @@ export function Navbar() {
       {/* Nav Links */}
       <div className="hidden md:flex gap-8 text-sm font-medium uppercase tracking-widest text-zinc-400 shrink-0">
         <Link href="/directory" className="hover:text-purple-400 transition-colors">Discover</Link>
-        <Link href="/about" className="hover:text-white transition-colors">About</Link>
-        <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
+        <Link href="/features" className="hover:text-blue-400 transition-colors">Features</Link>
+        <Link href="/how" className="hover:text-white transition-colors">How it works</Link>
+        <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
       </div>
 
       {/* Auth */}
