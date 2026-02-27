@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Montserrat, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { TaskBar } from "@/components/layout/TaskBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 
@@ -34,7 +33,6 @@ export default function RootLayout({
           <main>
             {children}
           </main>
-          <TaskBar />
         </body>
       </UserProvider>
     </html>

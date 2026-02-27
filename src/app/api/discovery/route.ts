@@ -8,6 +8,7 @@ export async function GET(req: Request) {
   const lngParam = searchParams.get('lng');
   const radiusParam = searchParams.get('radius') || '50';
   const roleParam = searchParams.get('role') || 'BAND';
+  const queryParam = searchParams.get('q');
 
   if (!latParam || !lngParam) {
     return NextResponse.json({ error: 'Missing lat or lng' }, { status: 400 });
@@ -54,7 +55,7 @@ export async function GET(req: Request) {
     }
 
     // GATING LOGIC: If not premium, strip sensitive data before sending
-    const gatedResults = results.map(item => {
+    let gatedResults = results.map(item => {
       const sanitized = { ...item } as Record<string, unknown>;
       if (!isPremium) {
         // Strip sensitive fields
@@ -63,6 +64,15 @@ export async function GET(req: Request) {
       }
       return sanitized;
     });
+
+    // TEXT SEARCH FILTER: 
+    if (queryParam) {
+      const q = queryParam.toLowerCase();
+      gatedResults = gatedResults.filter(item => 
+        (item.name as string).toLowerCase().includes(q) || 
+        (item.bio as string | undefined)?.toLowerCase().includes(q)
+      );
+    }
 
     return NextResponse.json({ data: gatedResults });
   } catch (error) {

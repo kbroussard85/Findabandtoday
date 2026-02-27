@@ -1,20 +1,7 @@
 'use client';
 import React from 'react';
 import { ArtistCard } from './ArtistCard';
-
-interface MediaItem {
-  url: string;
-  type: string;
-  name?: string;
-}
-
-interface Artist {
-  id: string;
-  name: string;
-  bio?: string;
-  audioUrlPreview?: string | null;
-  media?: MediaItem[] | null;
-}
+import { Artist } from '@/types';
 
 interface DiscoveryGridProps {
   items: Artist[];

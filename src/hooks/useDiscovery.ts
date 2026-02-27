@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
+import { Artist } from '@/types';
 
 interface DiscoveryParams {
   lat: number | null;
   lng: number | null;
   radius: number;
   role: 'BAND' | 'VENUE';
-}
-
-interface Artist {
-  id: string;
-  name: string;
-  audioUrlPreview?: string | null;
 }
 
 export function useDiscovery({ lat, lng, radius, role }: DiscoveryParams) {
