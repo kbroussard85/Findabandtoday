@@ -9,7 +9,7 @@
 exports.onExecutePostUserRegistration = async (event, api) => {
   const axios = require("axios");
 
-  const syncEndpoint = "https://YOUR_DOMAIN.com/api/auth/sync"; // Replace with your actual endpoint
+  const syncEndpoint = "https://fabt.vercel.app/api/auth/sync"; 
   const syncSecret = event.secrets.SYNC_SECRET; // Set this in your Auth0 secrets
 
   const { user } = event;
