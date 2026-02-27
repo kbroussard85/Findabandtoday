@@ -25,13 +25,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const isBand = role.toUpperCase() === 'BAND';
+
     const user = await prisma.user.upsert({
       where: { auth0Id },
-      update: { email }, // Update email in case it changed
+      update: { email }, 
       create: {
         auth0Id,
         email,
-        role: role.toUpperCase() === 'BAND' ? 'BAND' : 'VENUE',
+        role: isBand ? 'BAND' : 'VENUE',
+        // Automatically create the linked profile record
+        ...(isBand 
+          ? { bandProfile: { create: { name: email.split('@')[0] } } } 
+          : { venueProfile: { create: { name: email.split('@')[0] } } }
+        )
       },
     });
 

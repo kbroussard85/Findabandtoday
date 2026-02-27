@@ -1,9 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
+import { Navbar } from '@/components/layout/Navbar';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-purple-500 antialiased">
+      <Navbar />
 
       {/* Main Hero Section */}
       <main className="relative flex flex-col md:flex-row min-h-[calc(100vh-80px)]">
@@ -22,7 +24,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/api/auth/login"
+                href="/api/auth/login?returnTo=/onboarding/band"
                 className="bg-purple-600 hover:bg-purple-500 text-white px-6 lg:px-8 py-4 text-lg lg:text-xl font-black uppercase italic transition-all transform hover:-translate-y-1 shadow-xl shadow-purple-900/20 text-center"
               >
                 Book Your Next Gig
@@ -37,7 +39,7 @@ export default function LandingPage() {
 
         {/* Right Side: VENUES */}
         <section className="relative flex-1 group overflow-hidden min-h-[50vh] md:min-h-0">
-          <div className="absolute inset-0 bg-[url('/images/venue_stage_band.png')] bg-cover bg-center opacity-40 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"></div>
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514525253361-bee8718a340b?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-40 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
 
           <div className="relative h-full flex flex-col justify-end p-8 lg:p-20 space-y-6">
@@ -49,7 +51,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/api/auth/login"
+                href="/api/auth/login?returnTo=/onboarding/venue"
                 className="bg-blue-600 hover:bg-blue-500 text-white px-6 lg:px-8 py-4 text-lg lg:text-xl font-black uppercase italic transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-900/20 text-center"
               >
                 Fill Your Calendar
