@@ -17,7 +17,7 @@ export default function AboutPage() {
           <div className="space-y-4">
             <h3 className="text-2xl font-black uppercase italic tracking-tight text-purple-400">Automated Agency</h3>
             <p className="text-zinc-500 leading-relaxed">
-              We handle the "Boring Logistics" so you can focus on the performance. From I-9 tax compliance to legally binding contracts, FABT automates the heavy lifting of live music.
+              We handle the &quot;Boring Logistics&quot; so you can focus on the performance. From I-9 tax compliance to legally binding contracts, FABT automates the heavy lifting of live music.
             </p>
           </div>
           <div className="space-y-4">
@@ -31,7 +31,7 @@ export default function AboutPage() {
         <div className="bg-zinc-900/50 border border-zinc-800 p-8 lg:p-12 rounded-3xl space-y-6">
           <h2 className="text-3xl font-black uppercase italic tracking-tighter">Zero-Knowledge Identity</h2>
           <p className="text-zinc-400 font-medium">
-            We prioritize your privacy. By utilizing Auth0 "Blinded Identity" patterns, we never persist your sensitive PII in our local database. You own your data; we just facilitate the connection.
+            We prioritize your privacy. By utilizing Auth0 &quot;Blinded Identity&quot; patterns, we never persist your sensitive PII in our local database. You own your data; we just facilitate the connection.
           </p>
         </div>
 
