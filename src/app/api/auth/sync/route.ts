@@ -20,8 +20,10 @@ export async function POST(req: Request) {
     }
 
     const { auth0Id, email, role } = await req.json();
+    console.log(`[SYNC] Attempting to sync user: ${email} with role: ${role}`);
 
     if (!auth0Id || !email || !role) {
+      console.error('[SYNC] Missing required fields in payload');
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -42,6 +44,7 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log(`[SYNC] Successfully synced user ${user.id} and created ${isBand ? 'Band' : 'Venue'} profile.`);
     return NextResponse.json({ success: true, user });
   } catch (error) {
     console.error('Sync Error:', error);
