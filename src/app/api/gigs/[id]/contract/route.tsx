@@ -5,6 +5,7 @@ import { renderToStream } from '@react-pdf/renderer';
 import { PerformanceContract } from '@/lib/pdf/contract-generator';
 import React from 'react';
 
+// Build trigger comment
 export const dynamic = 'force-dynamic';
 
 export async function GET(
