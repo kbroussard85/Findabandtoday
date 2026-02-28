@@ -53,6 +53,15 @@ export async function POST(req: Request) {
         data: { isPaid: false, subscriptionStatus: 'canceled' },
       });
       break;
+    case 'account.updated':
+      const account = event.data.object as Stripe.Account;
+      if (account.details_submitted) {
+        await prisma.user.update({
+          where: { stripeCustomerId: account.id },
+          data: { isPaid: true }, // Mark as verified for business
+        });
+      }
+      break;
     default:
       console.log(`Unhandled event type ${event.type}`);
   }

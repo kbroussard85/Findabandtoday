@@ -8,7 +8,7 @@ datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   directUrl  = env("DIRECT_URL")
-  extensions = [postgis, uuid_ossp(map: "uuid-ossp", schema: "extensions")]
+  extensions = [postgis, uuid_ossp(map: "uuid-ossp")]
 }
 
 model User {
@@ -65,23 +65,55 @@ model Venue {
 }
 
 model Gig {
-  id          String  @id @default(cuid())
-  status      String  @default("PENDING")
-  payout      Float
-  contractUrl String?
-  bandId      String
-  venueId     String
-  band        Band    @relation(fields: [bandId], references: [id])
-  venue       Venue   @relation(fields: [venueId], references: [id])
+  id           String         @id @default(cuid())
+  title        String
+  description  String?
+  venueId      String
+  bandId       String
+  status       GigStatus      @default(DRAFT)
+  date         DateTime
+  totalAmount  Float
+  platformFee  Float          @default(0)
+  contractUrl  String?
+  payoutStatus String?        @default("PENDING") // "PENDING", "PAID", "DISPUTED"
+  band         Band           @relation(fields: [bandId], references: [id])
+  venue        Venue          @relation(fields: [venueId], references: [id])
+  offers       Offer[]
+  history      OfferHistory[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model spatial_ref_sys {
-  srid      Int     @id
-  auth_name String? @db.VarChar(256)
-  auth_srid Int?
-  srtext    String? @db.VarChar(2048)
-  proj4text String? @db.VarChar(2048)
+model Offer {
+  id          String   @id @default(cuid())
+  gigId       String
+  amount      Float
+  message     String?
+  createdById String // Auth0 ID of the user who made the offer
+  createdAt   DateTime @default(now())
+  gig         Gig      @relation(fields: [gigId], references: [id])
+}
+
+model OfferHistory {
+  id           String    @id @default(cuid())
+  gigId        String
+  fromStatus   GigStatus
+  toStatus     GigStatus
+  changedById  String // Auth0 ID
+  changeReason String?
+  timestamp    DateTime  @default(now())
+  gig          Gig       @relation(fields: [gigId], references: [id])
+}
+
+enum GigStatus {
+  DRAFT
+  OFFER_SENT
+  COUNTER_OFFER
+  ACCEPTED
+  REJECTED
+  BOOKED
+  COMPLETED
+  CANCELLED
 }
 
 enum UserRole {
