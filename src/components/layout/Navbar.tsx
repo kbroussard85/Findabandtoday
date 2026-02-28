@@ -73,7 +73,7 @@ export function Navbar() {
               </div>
             ) : (
               <Link
-                href="/api/auth/login"
+                href="/api/auth/login?role=BAND"
                 className="bg-white text-black px-6 py-2 text-[10px] font-black uppercase italic tracking-widest hover:bg-purple-500 hover:text-white transition-all duration-300 shadow-lg shadow-white/5 rounded-full"
               >
                 Login

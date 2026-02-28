@@ -24,7 +24,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/api/auth/login?returnTo=/onboarding/band"
+                href="/api/auth/login?returnTo=/onboarding/band&role=BAND"
                 className="bg-purple-600 hover:bg-purple-500 text-white px-6 lg:px-8 py-4 text-lg lg:text-xl font-black uppercase italic transition-all transform hover:-translate-y-1 shadow-xl shadow-purple-900/20 text-center"
               >
                 Book Your Next Gig
@@ -51,7 +51,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/api/auth/login?returnTo=/onboarding/venue"
+                href="/api/auth/login?returnTo=/onboarding/venue&role=VENUE"
                 className="bg-blue-600 hover:bg-blue-500 text-white px-6 lg:px-8 py-4 text-lg lg:text-xl font-black uppercase italic transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-900/20 text-center"
               >
                 Fill Your Calendar
