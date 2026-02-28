@@ -23,12 +23,13 @@ export default function LandingPage() {
               Book your next local gig or national tour today! We handle your I-9s, contracts, technical riders and payouts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a
                 href="/api/auth/login?returnTo=/onboarding/band&role=BAND"
                 className="bg-purple-600 hover:bg-purple-500 text-white px-6 lg:px-8 py-4 text-lg lg:text-xl font-black uppercase italic transition-all transform hover:-translate-y-1 shadow-xl shadow-purple-900/20 text-center"
               >
                 Book Your Next Gig
-              </Link>
+              </a>
               <div className="flex flex-col justify-center">
                 <span className="text-[10px] lg:text-xs text-zinc-500 uppercase tracking-widest font-bold">Artist Tier</span>
                 <span className="text-xs lg:text-sm font-mono text-zinc-400">$9.99 / month</span>
@@ -50,12 +51,13 @@ export default function LandingPage() {
               Fill your empty dates with matched talent. Zero paperwork. Verified stage plots. Day-of-show automated payouts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a
                 href="/api/auth/login?returnTo=/onboarding/venue&role=VENUE"
                 className="bg-blue-600 hover:bg-blue-500 text-white px-6 lg:px-8 py-4 text-lg lg:text-xl font-black uppercase italic transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-900/20 text-center"
               >
                 Fill Your Calendar
-              </Link>
+              </a>
               <div className="flex flex-col justify-center">
                 <span className="text-[10px] lg:text-xs text-zinc-500 uppercase tracking-widest font-bold">Venue Tier</span>
                 <span className="text-xs lg:text-sm font-mono text-zinc-400">$19.99 / month</span>

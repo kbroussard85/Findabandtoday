@@ -64,20 +64,24 @@ export function Navbar() {
           {!isLoading && (
             user ? (
               <div className="flex items-center gap-4 border-l border-zinc-800 pl-8">
-                <Link
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                <a
                   href="/api/auth/logout"
                   className="bg-zinc-800 text-white px-6 py-2 text-[10px] font-black uppercase italic tracking-widest hover:bg-zinc-700 transition-all duration-300 rounded-full"
                 >
                   Logout
-                </Link>
+                </a>
               </div>
             ) : (
-              <Link
-                href="/api/auth/login?role=BAND"
-                className="bg-white text-black px-6 py-2 text-[10px] font-black uppercase italic tracking-widest hover:bg-purple-500 hover:text-white transition-all duration-300 shadow-lg shadow-white/5 rounded-full"
-              >
-                Login
-              </Link>
+              <div className="flex items-center gap-4">
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                <a
+                  href="/api/auth/login?role=BAND"
+                  className="bg-white text-black px-6 py-2 text-[10px] font-black uppercase italic tracking-widest hover:bg-purple-500 hover:text-white transition-all duration-300 shadow-lg shadow-white/5 rounded-full"
+                >
+                  Login
+                </a>
+              </div>
             )
           )}
         </div>
@@ -118,21 +122,23 @@ export function Navbar() {
           <div className="pt-8 border-t border-zinc-800">
             {!isLoading && (
               user ? (
-                <Link
+                /* eslint-disable-next-line @next/next/no-html-link-for-pages */
+                <a
                   href="/api/auth/logout"
                   className="block w-full bg-zinc-800 text-white px-6 py-4 text-xs font-black uppercase italic tracking-widest text-center rounded-2xl"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Logout
-                </Link>
+                </a>
               ) : (
-                <Link
+                /* eslint-disable-next-line @next/next/no-html-link-for-pages */
+                <a
                   href="/api/auth/login"
                   className="block w-full bg-white text-black px-6 py-4 text-xs font-black uppercase italic tracking-widest text-center rounded-2xl"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Login
-                </Link>
+                </a>
               )
             )}
           </div>
