@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
 // Create styles
 const styles = StyleSheet.create({
@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
 
 interface ContractProps {
   gig: {
+    id: string;
     title: string;
     date: Date;
     totalAmount: number;
@@ -65,7 +66,7 @@ export const PerformanceContract = ({ gig }: ContractProps) => (
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <Text style={styles.title}>Performance Agreement</Text>
-        <Text>Reference ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</Text>
+        <Text>Reference ID: {gig.id.toUpperCase()}</Text>
       </View>
 
       <View style={styles.section}>

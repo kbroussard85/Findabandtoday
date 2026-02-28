@@ -1,9 +1,10 @@
 import React from 'react';
-import Link from 'next/link';
+import { Navbar } from '@/components/layout/Navbar';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-purple-500 antialiased">
+      <Navbar />
 
       {/* Main Hero Section */}
       <main className="relative flex flex-col md:flex-row min-h-[calc(100vh-80px)]">

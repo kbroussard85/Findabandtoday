@@ -28,9 +28,11 @@ export async function GET(
     if (!gig) return NextResponse.json({ error: 'Gig not found' }, { status: 404 });
 
     // Render PDF to stream
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const stream = await renderToStream(<PerformanceContract gig={gig as any} />);
     
     // Create response with PDF content type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new Response(stream as any, {
       headers: {
         'Content-Type': 'application/pdf',

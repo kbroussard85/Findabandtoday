@@ -37,7 +37,7 @@ export function SwipeToBook({ artists }: SwipeToBookProps) {
         ) : (
           <div className="text-center space-y-4">
             <h3 className="text-2xl font-black uppercase italic text-zinc-500">No More Talent</h3>
-            <p className="text-zinc-600">You've reached the end of the list for now.</p>
+            <p className="text-zinc-600">You&apos;ve reached the end of the list for now.</p>
             <button 
               onClick={() => setCurrentIndex(0)}
               className="bg-purple-600 px-8 py-3 rounded-full font-bold uppercase text-xs"

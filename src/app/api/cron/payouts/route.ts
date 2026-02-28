@@ -32,8 +32,9 @@ export async function GET(req: Request) {
       try {
         await triggerGigPayout(gig.id);
         results.push({ id: gig.id, status: 'SUCCESS' });
-      } catch (err: any) {
-        results.push({ id: gig.id, status: 'FAILED', error: err.message });
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        results.push({ id: gig.id, status: 'FAILED', error: errorMessage });
       }
     }
 

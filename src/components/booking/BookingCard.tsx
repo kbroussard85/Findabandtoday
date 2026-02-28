@@ -19,7 +19,7 @@ export function BookingCard({ artist, onSwipe }: BookingCardProps) {
     ['#ef4444', '#1a1a1a', '#22c55e']
   );
 
-  const handleDragEnd = (_: any, info: any) => {
+  const handleDragEnd = (_: unknown, info: { offset: { x: number } }) => {
     if (info.offset.x > 100) {
       onSwipe('right');
     } else if (info.offset.x < -100) {
