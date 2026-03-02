@@ -28,7 +28,6 @@ export default async function ProfilePage() {
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-black uppercase italic text-zinc-500">Identity Sync Pending</h2>
           <p className="text-zinc-600">Please log out and back in to finalize your account registration.</p>
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <Link href="/api/auth/logout" className="inline-block bg-zinc-800 text-white px-8 py-3 rounded-full font-bold uppercase text-xs">Logout</Link>
         </div>
       </div>
