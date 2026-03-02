@@ -25,10 +25,28 @@ export default async function ProfilePage() {
   if (!dbUser) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-8">
-        <div className="text-center space-y-4">
-          <h2 className="text-2xl font-black uppercase italic text-zinc-500">Identity Sync Pending</h2>
-          <p className="text-zinc-600">Please log out and back in to finalize your account registration.</p>
-          <Link href="/api/auth/logout" className="inline-block bg-zinc-800 text-white px-8 py-3 rounded-full font-bold uppercase text-xs">Logout</Link>
+        <div className="text-center space-y-8 max-w-md">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black uppercase italic text-zinc-400">Identity Sync Pending</h2>
+            <p className="text-zinc-500 font-medium">Your Auth0 account is active, but we haven&apos;t finished setting up your profile in our local database.</p>
+          </div>
+          
+          <div className="flex flex-col gap-4">
+            <Link 
+              href="/api/auth/sync/manual" 
+              className="bg-purple-600 hover:bg-purple-500 text-white px-8 py-4 rounded-full font-black uppercase italic tracking-tighter text-lg transition-all transform hover:scale-105"
+            >
+              Finalize Registration
+            </Link>
+            
+            <p className="text-[10px] text-zinc-700 uppercase font-black tracking-widest leading-loose">
+              If the button above doesn&apos;t work, please try logging out and back in.
+            </p>
+
+            <Link href="/api/auth/logout" className="text-zinc-500 hover:text-white transition-colors font-bold uppercase text-xs">
+              Logout
+            </Link>
+          </div>
         </div>
       </div>
     );
