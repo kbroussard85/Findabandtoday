@@ -3,6 +3,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { ProfileEditor } from '@/components/profile/ProfileEditor';
 import { CalendarEditor } from '@/components/profile/CalendarEditor';
+import { UpgradeButton } from '@/components/profile/UpgradeButton';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -66,13 +67,14 @@ export default async function ProfilePage() {
             <p className="text-zinc-500 font-medium uppercase tracking-widest text-xs">Profile Command Center</p>
           </div>
           
-          <div className="bg-zinc-900/50 border border-zinc-800 px-6 py-4 rounded-3xl backdrop-blur-sm flex items-center gap-4">
+          <div className="bg-zinc-900/50 border border-zinc-800 px-6 py-4 rounded-3xl backdrop-blur-sm flex items-center gap-6">
             <div className="text-right">
               <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Subscription Status</p>
               <p className={`text-sm font-bold uppercase italic ${dbUser.isPaid ? 'text-green-500' : 'text-zinc-400'}`}>
                 {dbUser.subscriptionTier?.replace('_', ' ') || 'Free Tier'}
               </p>
             </div>
+            {!dbUser.isPaid && <UpgradeButton role={dbUser.role} />}
             <div className={`w-3 h-3 rounded-full animate-pulse ${dbUser.isPaid ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-zinc-700'}`} />
           </div>
         </header>
