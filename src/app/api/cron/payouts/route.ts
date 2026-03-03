@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { GigStatus } from '@prisma/client';
+import { GigStatus, PayoutStatus } from '@prisma/client';
 import { triggerGigPayout } from '@/lib/stripe/payouts';
 
 export const dynamic = 'force-dynamic';
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const pendingGigs = await prisma.gig.findMany({
       where: {
         status: GigStatus.COMPLETED,
-        payoutStatus: 'PENDING',
+        payoutStatus: PayoutStatus.HELD_IN_ESCROW,
         // And optionally check if it's been 24 hours since the show date
         date: {
           lte: new Date(Date.now() - 24 * 60 * 60 * 1000)

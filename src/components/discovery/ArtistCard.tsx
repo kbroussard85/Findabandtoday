@@ -118,9 +118,14 @@ export function ArtistCard({ artist, isPremium }: ArtistCardProps) {
               <span className="text-zinc-500">Booking Status</span>
               <span className="text-green-500">AVAILABLE</span>
             </div>
-            <button className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-xs font-black uppercase italic tracking-widest text-white transition-all">
-              View Calendar
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-[10px] font-black uppercase italic tracking-widest text-white transition-all">
+                View Calendar
+              </button>
+              <button className="bg-purple-600 hover:bg-purple-500 border border-purple-500 rounded-xl py-3 text-[10px] font-black uppercase italic tracking-widest text-white transition-all shadow-lg shadow-purple-500/20">
+                Make Offer
+              </button>
+            </div>
           </div>
         </BlurredField>
       </div>

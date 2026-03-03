@@ -65,23 +65,49 @@ model Venue {
 }
 
 model Gig {
-  id           String         @id @default(cuid())
-  title        String
-  description  String?
-  venueId      String
-  bandId       String
-  status       GigStatus      @default(DRAFT)
-  date         DateTime
-  totalAmount  Float
-  platformFee  Float          @default(0)
-  contractUrl  String?
-  payoutStatus String?        @default("PENDING") // "PENDING", "PAID", "DISPUTED"
-  band         Band           @relation(fields: [bandId], references: [id])
-  venue        Venue          @relation(fields: [venueId], references: [id])
-  offers       Offer[]
-  history      OfferHistory[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id                    String            @id @default(cuid())
+  title                 String
+  description           String?
+  venueId               String
+  bandId                String
+  status                GigStatus         @default(DRAFT)
+  date                  DateTime
+  totalAmount           Float
+  platformFee           Float             @default(0)
+  contractUrl           String?
+  payoutStatus          PayoutStatus      @default(NOT_APPLICABLE)
+  stripePaymentIntentId String?           @unique // The "Hold" ID
+  depositPaid           Boolean           @default(false)
+  holdExpiresAt         DateTime?
+  band                  Band              @relation(fields: [bandId], references: [id])
+  venue                 Venue             @relation(fields: [venueId], references: [id])
+  offers                Offer[]
+  history               OfferHistory[]
+  agreement             BookingAgreement?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model BookingAgreement {
+  id                String     @id @default(cuid())
+  gigId             String     @unique
+  gig               Gig        @relation(fields: [gigId], references: [id])
+  // Terms
+  payoutType        PayoutType @default(CASH_DOS) // FABT_PAY or CASH_DOS
+  dealStructure     DealType   @default(GUARANTEE) // GUARANTEE, SPLIT, NEGOTIABLE
+  amount            Float
+  // Logistics (Sync'd from Profiles but editable)
+  loadInTime        String
+  soundCheckTime    String
+  setStartTime      String
+  setDuration       Int // In minutes
+  // Status & Signatures
+  venueAccepted     Boolean    @default(false)
+  bandAccepted      Boolean    @default(false)
+  contractSigned    Boolean    @default(false)
+  // Compliance Assets
+  stagePlotSnapshot String? // URL to the specific plot used for THIS gig
+  i9Snapshot         String? // URL to the specific I-9 used for THIS gig
 }
 
 model Offer {
@@ -114,9 +140,29 @@ enum GigStatus {
   BOOKED
   COMPLETED
   CANCELLED
+  ESCROW_HOLD
+  CONFIRMED
 }
 
 enum UserRole {
   BAND
   VENUE
+}
+
+enum PayoutType {
+  FABT_PAY
+  CASH_DOS
+}
+
+enum DealType {
+  GUARANTEE
+  SPLIT
+  NEGOTIABLE
+}
+
+enum PayoutStatus {
+  NOT_APPLICABLE
+  HELD_IN_ESCROW
+  RELEASED_TO_BAND
+  REFUNDED_TO_VENUE
 }

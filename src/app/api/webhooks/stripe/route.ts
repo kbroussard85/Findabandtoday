@@ -31,6 +31,31 @@ export async function POST(req: Request) {
 
   // Handle the event
   switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const gigId = paymentIntent.metadata?.gigId;
+      if (gigId) {
+        await prisma.gig.update({
+          where: { id: gigId },
+          data: { 
+            status: 'CONFIRMED', 
+            depositPaid: true 
+          }
+        });
+      }
+      break;
+    case 'payment_intent.amount_capturable_updated':
+      const capturableIntent = event.data.object as Stripe.PaymentIntent;
+      const gigIdToHold = capturableIntent.metadata?.gigId;
+      if (gigIdToHold) {
+        await prisma.gig.update({
+          where: { id: gigIdToHold },
+          data: { 
+            status: 'ESCROW_HOLD'
+          }
+        });
+      }
+      break;
     case 'checkout.session.completed':
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.userId;

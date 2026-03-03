@@ -1,6 +1,6 @@
 import { stripe } from './client';
 import prisma from '@/lib/prisma';
-import { GigStatus } from '@prisma/client';
+import { GigStatus, PayoutStatus } from '@prisma/client';
 
 /**
  * Triggers a transfer from the Platform account to a Connect account.
@@ -17,7 +17,7 @@ export async function triggerGigPayout(gigId: string) {
 
   if (!gig) throw new Error('Gig not found');
   if (gig.status !== GigStatus.COMPLETED) throw new Error('Gig is not marked as COMPLETED');
-  if (gig.payoutStatus === 'PAID') throw new Error('Gig already paid');
+  if (gig.payoutStatus === PayoutStatus.RELEASED_TO_BAND) throw new Error('Gig already paid');
 
   const destinationAccount = gig.band.user.stripeCustomerId;
   if (!destinationAccount) throw new Error('Band has no Connect account');
@@ -38,7 +38,7 @@ export async function triggerGigPayout(gigId: string) {
     // Update Gig record
     await prisma.gig.update({
       where: { id: gigId },
-      data: { payoutStatus: 'PAID' },
+      data: { payoutStatus: PayoutStatus.RELEASED_TO_BAND },
     });
 
     return transfer;
