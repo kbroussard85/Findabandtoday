@@ -122,7 +122,14 @@ export function ArtistCard({ artist, isPremium }: ArtistCardProps) {
               <button className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-[10px] font-black uppercase italic tracking-widest text-white transition-all">
                 View Calendar
               </button>
-              <button className="bg-purple-600 hover:bg-purple-500 border border-purple-500 rounded-xl py-3 text-[10px] font-black uppercase italic tracking-widest text-white transition-all shadow-lg shadow-purple-500/20">
+              <button 
+                onClick={() => {
+                  console.log(`Initiating offer for artist: ${artist.name}`);
+                  // In a real flow, this would open a modal or redirect to /gigs/new?bandId=...
+                  alert('Opening Offer Flow...');
+                }}
+                className="bg-purple-600 hover:bg-purple-500 border border-purple-500 rounded-xl py-3 text-[10px] font-black uppercase italic tracking-widest text-white transition-all shadow-lg shadow-purple-500/20"
+              >
                 Make Offer
               </button>
             </div>

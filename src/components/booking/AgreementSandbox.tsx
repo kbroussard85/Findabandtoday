@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Shield, FileText, CheckCircle } from 'lucide-react';
 
 interface AgreementSandboxProps {
+  gigId: string;
   bandData: {
     name: string;
     stagePlotUrl?: string;
@@ -16,14 +17,17 @@ interface AgreementSandboxProps {
   };
   initialOffer: {
     amount?: number;
+    payoutType?: 'CASH_DOS' | 'FABT_PAY';
   };
+  onConfirm?: (gigId: string, data: { clientSecret?: string; error?: string }) => void;
 }
 
-export default function AgreementSandbox({ bandData, venueData, initialOffer }: AgreementSandboxProps) {
+export default function AgreementSandbox({ gigId, bandData, venueData, initialOffer, onConfirm }: AgreementSandboxProps) {
+  const [loading, setLoading] = useState(false);
   const [deal, setDeal] = useState({
     amount: initialOffer.amount || 350,
     type: 'GUARANTEE',
-    payoutMethod: 'CASH_DOS',
+    payoutMethod: initialOffer.payoutType || 'CASH_DOS',
     loadIn: '17:00',
     setStart: '21:00',
     duration: 90
@@ -34,7 +38,38 @@ export default function AgreementSandbox({ bandData, venueData, initialOffer }: 
     termsAccepted: false
   });
 
-  const isReady = validation.techAcknowledged && validation.termsAccepted;
+  const isReady = validation.techAcknowledged && validation.termsAccepted && !loading;
+
+  const handleConfirm = async () => {
+    if (!isReady) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/gigs/${gigId}/escrow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'HOLD', 
+          amount: deal.amount,
+          payoutType: deal.payoutMethod 
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      
+      if (onConfirm) onConfirm(gigId, data);
+      else {
+        // Default behavior: show success or redirect
+        alert('Booking Hold Secured! Redirecting...');
+        window.location.href = `/profile`;
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to secure hold. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-8 font-sans">
@@ -135,9 +170,10 @@ export default function AgreementSandbox({ bandData, venueData, initialOffer }: 
 
             <button 
               disabled={!isReady}
+              onClick={handleConfirm}
               className={`w-full py-6 rounded-2xl text-2xl font-black uppercase italic transition-all ${isReady ? 'bg-white text-black hover:bg-purple-500 hover:text-white shadow-xl shadow-purple-500/20' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}
             >
-              {isReady ? 'Confirm & Book' : 'Complete Terms'}
+              {loading ? 'Processing...' : (isReady ? 'Confirm & Book' : 'Complete Terms')}
             </button>
             <p className="text-[10px] text-center text-zinc-500 uppercase tracking-tighter">
               Clicking &quot;Confirm&quot; will place a $50.00 hold on your card via FABT Escrow.
