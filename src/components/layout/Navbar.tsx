@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useProfile } from '@/hooks/useProfile';
-import { Search, Menu, X, LayoutDashboard, Zap } from 'lucide-react';
+import { Search, Menu, X, LayoutDashboard } from 'lucide-react';
 import { UpgradeButton } from '../profile/UpgradeButton';
 
 export function Navbar() {
   const { user, isLoading: isAuthLoading } = useUser();
-  const { dbUser, loading: isProfileLoading } = useProfile();
+  const { dbUser } = useProfile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
