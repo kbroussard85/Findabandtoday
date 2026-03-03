@@ -9,19 +9,26 @@ interface UpgradeButtonProps {
 export function UpgradeButton({ role }: UpgradeButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  // Map roles to Price IDs (you should replace these with your actual Stripe Price IDs)
+  // Map roles to Price IDs from environment variables
   const priceIds = {
-    BAND: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BAND || 'price_band_placeholder',
-    VENUE: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_VENUE || 'price_venue_placeholder',
+    BAND: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BAND,
+    VENUE: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_VENUE,
   };
 
   const handleUpgrade = async () => {
+    const activePriceId = priceIds[role];
+
+    if (!activePriceId || activePriceId.includes('placeholder')) {
+      alert(`Stripe Billing is not yet connected for ${role}s. Please add your Stripe Price IDs to Vercel.`);
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId: priceIds[role] }),
+        body: JSON.stringify({ priceId: activePriceId }),
       });
 
       const data = await response.json();
@@ -32,7 +39,7 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
       }
     } catch (error) {
       console.error('Upgrade Error:', error);
-      alert('Error initiating checkout. Please check console for details.');
+      alert('Checkout unavailable. Check Stripe configuration.');
     } finally {
       setLoading(false);
     }
@@ -42,13 +49,14 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
     <button
       onClick={handleUpgrade}
       disabled={loading}
-      className={`w-full py-3 rounded-xl font-black uppercase italic tracking-widest text-xs transition-all transform hover:scale-105 active:scale-95 shadow-lg ${
+      className={`w-full py-2 lg:py-3 px-4 rounded-full font-black uppercase italic tracking-tighter text-[10px] lg:text-xs transition-all transform hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center gap-2 ${
         role === 'BAND' 
           ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/20' 
           : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
-      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      } ${loading ? 'opacity-50 cursor-not-allowed' : ''} text-white`}
     >
-      {loading ? 'Processing...' : `Upgrade to ${role === 'BAND' ? 'Artist Biz' : 'Venue Command'}`}
+      <span className="animate-pulse">⚡</span>
+      {loading ? 'WAITING...' : `UPGRADE ${role}`}
     </button>
   );
 }

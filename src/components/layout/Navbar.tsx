@@ -4,10 +4,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { Search, Menu, X, LayoutDashboard } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
+import { Search, Menu, X, LayoutDashboard, Zap } from 'lucide-react';
+import { UpgradeButton } from '../profile/UpgradeButton';
 
 export function Navbar() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading: isAuthLoading } = useUser();
+  const { dbUser, loading: isProfileLoading } = useProfile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
@@ -20,8 +23,10 @@ export function Navbar() {
     }
   };
 
+  const showUpgrade = user && dbUser && !dbUser.isPaid;
+
   return (
-    <nav className="border-b border-zinc-800 bg-black/50 backdrop-blur-md sticky top-0 z-50 w-full font-sans">
+    <nav className="border-b border-zinc-800 bg-black/50 backdrop-blur-md sticky top-0 z-50 w-full font-sans antialiased">
       <div className="flex items-center justify-between px-6 lg:px-8 py-4 lg:py-6 gap-4 lg:gap-12 max-w-7xl mx-auto">
         <div className="flex items-center gap-8 shrink-0">
           <Link href="/" className="text-xl lg:text-2xl font-black tracking-tighter uppercase italic hover:scale-105 transition-transform">
@@ -59,11 +64,17 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Desktop Auth */}
-        <div className="hidden md:flex items-center gap-4 ml-auto">
-          {!isLoading && (
+        {/* Desktop Auth & Upgrade */}
+        <div className="hidden md:flex items-center gap-6 ml-auto">
+          {showUpgrade && (
+            <div className="w-48">
+              <UpgradeButton role={dbUser.role} />
+            </div>
+          )}
+          
+          {!isAuthLoading && (
             user ? (
-              <div className="flex items-center gap-4 border-l border-zinc-800 pl-8">
+              <div className="flex items-center gap-4 border-l border-zinc-800 pl-6">
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 <a
                   href="/api/auth/logout"
@@ -98,6 +109,12 @@ export function Navbar() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-zinc-900 border-b border-zinc-800 px-6 py-8 space-y-8 animate-in slide-in-from-top duration-300">
+          {showUpgrade && (
+            <div className="py-2">
+              <UpgradeButton role={dbUser.role} />
+            </div>
+          )}
+
           {/* Mobile Search */}
           <form onSubmit={handleSearch} className="flex items-center bg-black border border-zinc-800 px-4 py-3 rounded-2xl">
             <input
@@ -120,7 +137,7 @@ export function Navbar() {
           </div>
 
           <div className="pt-8 border-t border-zinc-800">
-            {!isLoading && (
+            {!isAuthLoading && (
               user ? (
                 /* eslint-disable-next-line @next/next/no-html-link-for-pages */
                 <a
