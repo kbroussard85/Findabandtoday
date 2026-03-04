@@ -115,7 +115,7 @@ model Gig {
   band                  Band              @relation(fields: [bandId], references: [id])
   venue                 Venue             @relation(fields: [venueId], references: [id])
   offers                Offer[]
-  history               OfferHistory[]
+  offerHistory          OfferHistory[]
 }
 
 model BookingAgreement {
@@ -153,8 +153,10 @@ model OfferHistory {
   toStatus     GigStatus
   changedById  String
   changeReason String?
-  timestamp    DateTime  @default(now())
+  createdAt    DateTime  @default(now())
   gig          Gig       @relation(fields: [gigId], references: [id])
+
+  @@index([gigId, createdAt])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
