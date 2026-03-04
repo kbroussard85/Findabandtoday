@@ -4,20 +4,17 @@ export const GET = handleAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   login: handleLogin((req: any) => {
     try {
-      if (!req || !req.url) {
-        return { returnTo: '/directory' };
-      }
-
       const url = new URL(req.url, 'http://localhost');
-      const returnTo = url.searchParams.get('returnTo') || '/directory';
       const role = url.searchParams.get('role');
+      const returnTo = url.searchParams.get('returnTo') || '/directory';
 
       return {
+        authorizationParams: {
+          ...(role ? { role } : {}),
+        },
         returnTo,
-        ...(role ? { authorizationParams: { role } } : {})
       };
     } catch (e) {
-      console.error('Auth0 login error:', e);
       return { returnTo: '/directory' };
     }
   }),
