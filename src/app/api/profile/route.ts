@@ -16,8 +16,20 @@ export async function GET() {
     const dbUser = await prisma.user.findUnique({
       where: { auth0Id: user.sub },
       include: {
-        bandProfile: true,
-        venueProfile: true,
+        bandProfile: {
+          include: {
+            members: {
+              include: { user: true }
+            }
+          }
+        },
+        venueProfile: {
+          include: {
+            members: {
+              include: { user: true }
+            }
+          }
+        },
       },
     });
 
@@ -52,13 +64,39 @@ export async function POST(req: Request) {
     }
 
     if (dbUser.role === 'BAND') {
+      const band = await prisma.band.findFirst({
+        where: {
+          members: {
+            some: {
+              userId: dbUser.id,
+              role: { in: ['OWNER', 'MANAGER'] }
+            }
+          }
+        }
+      });
+
+      if (!band) return NextResponse.json({ error: 'Not authorized to update this band' }, { status: 403 });
+
       await prisma.band.update({
-        where: { userId: dbUser.id },
+        where: { id: band.id },
         data: { bio, negotiationPrefs, media },
       });
     } else {
+      const venue = await prisma.venue.findFirst({
+        where: {
+          members: {
+            some: {
+              userId: dbUser.id,
+              role: { in: ['OWNER', 'MANAGER'] }
+            }
+          }
+        }
+      });
+
+      if (!venue) return NextResponse.json({ error: 'Not authorized to update this venue' }, { status: 403 });
+
       await prisma.venue.update({
-        where: { userId: dbUser.id },
+        where: { id: venue.id },
         data: { bio, negotiationPrefs, media },
       });
     }

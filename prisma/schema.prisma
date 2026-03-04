@@ -12,17 +12,19 @@ datasource db {
 }
 
 model User {
-  id                 String   @id @default(cuid())
-  auth0Id            String   @unique
-  email              String   @unique
+  id                 String        @id @default(cuid())
+  auth0Id            String        @unique
+  email              String        @unique
   role               UserRole
-  stripeCustomerId   String?  @unique
-  isPaid             Boolean  @default(false)
+  stripeCustomerId   String?       @unique
+  isPaid             Boolean       @default(false)
   subscriptionTier   String?
   subscriptionStatus String? // "active", "canceled", "past_due", "none"
-  createdAt          DateTime @default(now())
+  createdAt          DateTime      @default(now())
   bandProfile        Band?
   venueProfile       Venue?
+  bandMemberships    BandMember[]
+  venueMemberships   VenueMember[]
 }
 
 model Band {
@@ -42,6 +44,7 @@ model Band {
   taxStatus        Boolean                   @default(false)
   user             User                      @relation(fields: [userId], references: [id])
   gigs             Gig[]
+  members          BandMember[]
 
   @@index([location], type: Gist)
 }
@@ -60,8 +63,42 @@ model Venue {
   negotiationPrefs Json? // {minRate, currency, openToNegotiate}
   gigs             Gig[]
   user             User                      @relation(fields: [userId], references: [id])
+  members          VenueMember[]
 
   @@index([location], type: Gist)
+}
+
+model BandMember {
+  id        String     @id @default(cuid())
+  bandId    String
+  userId    String
+  role      MemberRole @default(MEMBER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  band      Band       @relation(fields: [bandId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bandId, userId])
+}
+
+model VenueMember {
+  id        String     @id @default(cuid())
+  venueId   String
+  userId    String
+  role      MemberRole @default(MEMBER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  venue     Venue      @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, userId])
+}
+
+enum MemberRole {
+  OWNER
+  MANAGER
+  MEMBER
+  GUEST
 }
 
 model Gig {
@@ -107,7 +144,7 @@ model BookingAgreement {
   contractSigned    Boolean    @default(false)
   // Compliance Assets
   stagePlotSnapshot String? // URL to the specific plot used for THIS gig
-  i9Snapshot         String? // URL to the specific I-9 used for THIS gig
+  i9Snapshot        String? // URL to the specific I-9 used for THIS gig
 }
 
 model Offer {

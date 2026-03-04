@@ -3,6 +3,7 @@ import React, { useState, Suspense } from 'react';
 import { useDiscovery } from '@/hooks/useDiscovery';
 import { DiscoveryGrid } from '@/components/discovery/DiscoveryGrid';
 import { useSearchParams } from 'next/navigation';
+import { MaximizerPicks } from '@/components/ai/MaximizerPicks';
 
 function DirectoryContent() {
   const searchParams = useSearchParams();
@@ -41,6 +42,9 @@ function DirectoryContent() {
           {q ? `Showing results for "${q}" within your selected radius.` : 'Browse verified artists and venues within your radius. Use the filters below to refine your search.'}
         </p>
       </header>
+
+      {/* AI Maximizer Section */}
+      <MaximizerPicks lat={lat} lng={lng} radius={radius} />
       
       {/* Filters Bar */}
       <div className="bg-zinc-900/50 border border-zinc-800 p-6 lg:p-8 rounded-3xl backdrop-blur-sm flex flex-col md:flex-row gap-8 items-center justify-between">
