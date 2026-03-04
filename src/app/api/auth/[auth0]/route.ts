@@ -1,19 +1,29 @@
 import { handleAuth, handleLogin } from '@auth0/nextjs-auth0';
 
 export const GET = handleAuth({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    login: handleLogin((req: any) => {
-        const url = new URL(req.url, 'http://localhost');
-        const returnTo = url.searchParams.get('returnTo');
-        const role = url.searchParams.get('role');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  login: handleLogin((req: any) => {
+    // Be as defensive as possible.
+    try {
+      if (!req || !req.url) {
+        return { returnTo: '/directory' };
+      }
 
-        return {
-            authorizationParams: {
-                ...(role && { role }),
-            },
-            returnTo: returnTo || '/directory',
-        };
-    }),
+      // App Router req.url is absolute.
+      const url = new URL(req.url, 'http://localhost');
+      const returnTo = url.searchParams.get('returnTo') || '/directory';
+      const role = url.searchParams.get('role');
+
+      const options: any = { returnTo };
+      if (role) {
+        options.authorizationParams = { role };
+      }
+      return options;
+    } catch (e) {
+      console.error('Auth0 login error:', e);
+      return { returnTo: '/directory' };
+    }
+  }),
 });
 
 export const POST = handleAuth();
