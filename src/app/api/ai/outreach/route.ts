@@ -77,11 +77,11 @@ export async function POST(req: Request) {
         status: GigStatus.DRAFT,
         date: new Date(date),
         totalAmount: suggestedAmount,
-        history: {
+        offerHistory: {
           create: {
             fromStatus: GigStatus.DRAFT,
             toStatus: GigStatus.DRAFT,
-            changedById: session.user.sub,
+            changedById: sender.id,
             changeReason: 'AI Liaison drafted initial offer.'
           }
         }
