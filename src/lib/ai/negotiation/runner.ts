@@ -43,7 +43,7 @@ export async function runNegotiationSession(gigId: string, initiatingActorId: st
   };
 
   // 4. Run Graph
-  const finalState = await negotiationGraph.invoke(initialState) as NegotiationState;
+  const finalState = await (negotiationGraph.invoke(initialState) as unknown) as NegotiationState;
 
   // 5. Update Database based on results
   if (finalState.status === 'ACCEPTED') {
