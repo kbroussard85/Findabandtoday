@@ -198,6 +198,11 @@ async function main() {
   });
 
   console.log('Seed complete! Added 5 Bands and 3 Venues.');
+
+  console.log('Updating geospatial location fields...');
+  await prisma.$executeRawUnsafe(`UPDATE "Band" SET location = ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography WHERE lat IS NOT NULL AND lng IS NOT NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Venue" SET location = ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography WHERE lat IS NOT NULL AND lng IS NOT NULL`);
+  console.log('Geospatial updates complete!');
 }
 
 main()

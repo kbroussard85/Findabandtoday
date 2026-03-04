@@ -47,3 +47,4 @@ next-env.d.ts
 *.bak
 test-agents.ts
 lint_*.txt
+.planning/

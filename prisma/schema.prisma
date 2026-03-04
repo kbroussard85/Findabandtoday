@@ -19,11 +19,11 @@ model User {
   stripeCustomerId   String?       @unique
   isPaid             Boolean       @default(false)
   subscriptionTier   String?
-  subscriptionStatus String? // "active", "canceled", "past_due", "none"
   createdAt          DateTime      @default(now())
+  subscriptionStatus String?
   bandProfile        Band?
-  venueProfile       Venue?
   bandMemberships    BandMember[]
+  venueProfile       Venue?
   venueMemberships   VenueMember[]
 }
 
@@ -31,20 +31,20 @@ model Band {
   id               String                    @id @default(cuid())
   userId           String                    @unique
   name             String
-  bio              String?
   lat              Float?
   lng              Float?
   location         Unsupported("geography")?
   searchRadius     Int                       @default(50)
-  media            Json? // Array of {url, type: "mp3"|"mp4", title}
-  availability     Json? // {bookedDates: string[], blockedDates: string[]}
-  negotiationPrefs Json? // {minRate, currency, openToNegotiate}
   audioUrlPreview  String?
   audioUrlFull     String?
   taxStatus        Boolean                   @default(false)
+  availability     Json?
+  bio              String?
+  media            Json?
+  negotiationPrefs Json?
   user             User                      @relation(fields: [userId], references: [id])
-  gigs             Gig[]
   members          BandMember[]
+  gigs             Gig[]
 
   @@index([location], type: Gist)
 }
@@ -53,14 +53,14 @@ model Venue {
   id               String                    @id @default(cuid())
   userId           String                    @unique
   name             String
-  bio              String?
   lat              Float?
   lng              Float?
   location         Unsupported("geography")?
   capacity         Int?
-  media            Json? // Array of {url, type: "image"|"video", title}
-  availability     Json? // {bookedDates: string[], blockedDates: string[]}
-  negotiationPrefs Json? // {minRate, currency, openToNegotiate}
+  availability     Json?
+  bio              String?
+  media            Json?
+  negotiationPrefs Json?
   gigs             Gig[]
   user             User                      @relation(fields: [userId], references: [id])
   members          VenueMember[]
@@ -88,63 +88,52 @@ model VenueMember {
   role      MemberRole @default(MEMBER)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  venue     Venue      @relation(fields: [venueId], references: [id], onDelete: Cascade)
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue     Venue      @relation(fields: [venueId], references: [id], onDelete: Cascade)
 
   @@unique([venueId, userId])
 }
 
-enum MemberRole {
-  OWNER
-  MANAGER
-  MEMBER
-  GUEST
-}
-
 model Gig {
   id                    String            @id @default(cuid())
-  title                 String
-  description           String?
-  venueId               String
-  bandId                String
-  status                GigStatus         @default(DRAFT)
-  date                  DateTime
-  totalAmount           Float
-  platformFee           Float             @default(0)
   contractUrl           String?
-  payoutStatus          PayoutStatus      @default(NOT_APPLICABLE)
-  stripePaymentIntentId String?           @unique // The "Hold" ID
+  bandId                String
+  venueId               String
+  createdAt             DateTime          @default(now())
+  date                  DateTime
+  description           String?
+  platformFee           Float             @default(0)
+  title                 String
+  totalAmount           Float
+  updatedAt             DateTime          @updatedAt
+  status                GigStatus         @default(DRAFT)
   depositPaid           Boolean           @default(false)
   holdExpiresAt         DateTime?
+  stripePaymentIntentId String?           @unique
+  payoutStatus          PayoutStatus      @default(NOT_APPLICABLE)
+  agreement             BookingAgreement?
   band                  Band              @relation(fields: [bandId], references: [id])
   venue                 Venue             @relation(fields: [venueId], references: [id])
   offers                Offer[]
   history               OfferHistory[]
-  agreement             BookingAgreement?
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
 }
 
 model BookingAgreement {
   id                String     @id @default(cuid())
   gigId             String     @unique
-  gig               Gig        @relation(fields: [gigId], references: [id])
-  // Terms
-  payoutType        PayoutType @default(CASH_DOS) // FABT_PAY or CASH_DOS
-  dealStructure     DealType   @default(GUARANTEE) // GUARANTEE, SPLIT, NEGOTIABLE
+  payoutType        PayoutType @default(CASH_DOS)
+  dealStructure     DealType   @default(GUARANTEE)
   amount            Float
-  // Logistics (Sync'd from Profiles but editable)
   loadInTime        String
   soundCheckTime    String
   setStartTime      String
-  setDuration       Int // In minutes
-  // Status & Signatures
+  setDuration       Int
   venueAccepted     Boolean    @default(false)
   bandAccepted      Boolean    @default(false)
   contractSigned    Boolean    @default(false)
-  // Compliance Assets
-  stagePlotSnapshot String? // URL to the specific plot used for THIS gig
-  i9Snapshot        String? // URL to the specific I-9 used for THIS gig
+  stagePlotSnapshot String?
+  i9Snapshot        String?
+  gig               Gig        @relation(fields: [gigId], references: [id])
 }
 
 model Offer {
@@ -152,7 +141,7 @@ model Offer {
   gigId       String
   amount      Float
   message     String?
-  createdById String // Auth0 ID of the user who made the offer
+  createdById String
   createdAt   DateTime @default(now())
   gig         Gig      @relation(fields: [gigId], references: [id])
 }
@@ -162,10 +151,26 @@ model OfferHistory {
   gigId        String
   fromStatus   GigStatus
   toStatus     GigStatus
-  changedById  String // Auth0 ID
+  changedById  String
   changeReason String?
   timestamp    DateTime  @default(now())
   gig          Gig       @relation(fields: [gigId], references: [id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+enum MemberRole {
+  OWNER
+  MANAGER
+  MEMBER
+  GUEST
 }
 
 enum GigStatus {
