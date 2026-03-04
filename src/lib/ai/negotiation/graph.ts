@@ -2,14 +2,14 @@ import { StateGraph, START, END } from "@langchain/langgraph";
 import { aiClient } from "../client";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 
-interface NegotiationHistoryItem {
+export interface NegotiationHistoryItem {
   actor: 'BAND' | 'VENUE';
   amount: number;
   message: string | unknown;
 }
 
 // Define the state for our negotiation graph
-interface NegotiationState {
+export interface NegotiationState {
   gigId: string;
   currentAmount: number;
   status: string;
@@ -25,7 +25,7 @@ interface NegotiationState {
  */
 async function evaluateOffer(state: NegotiationState) {
   const { currentAmount, lastActor, bandMinRate, venueMaxBudget } = state;
-  
+
   // Logical Evaluation
   if (lastActor === 'VENUE' && currentAmount >= bandMinRate) {
     return { status: 'ACCEPTED' };
@@ -33,7 +33,7 @@ async function evaluateOffer(state: NegotiationState) {
   if (lastActor === 'BAND' && currentAmount <= venueMaxBudget) {
     return { status: 'ACCEPTED' };
   }
-  
+
   if (state.turnCount > 5) return { status: 'REJECTED' }; // Prevent infinite loops
 
   return { status: 'COUNTER_OFFER' };
@@ -44,7 +44,7 @@ async function evaluateOffer(state: NegotiationState) {
  */
 async function proposeCounter(state: NegotiationState) {
   const { currentAmount, lastActor, bandMinRate, venueMaxBudget } = state;
-  
+
   let nextAmount = currentAmount;
   if (lastActor === 'VENUE') {
     // Venue offered too low, Band counters
@@ -68,7 +68,7 @@ async function proposeCounter(state: NegotiationState) {
   };
 }
 
-// Build the graph
+// Build the graph using a more flexible approach
 const workflow = new StateGraph<NegotiationState>({
   channels: {
     gigId: null,

@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     const isBandSender = sender.role === 'BAND';
     const senderProfile = isBandSender ? sender.bandProfile : sender.venueProfile;
-    
+
     if (!senderProfile) return NextResponse.json({ error: 'Sender profile details missing' }, { status: 400 });
 
     // 2. Get recipient's profile
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       senderProfile: {
         name: senderProfile.name,
         bio: senderProfile.bio,
-        negotiationPrefs: senderProfile.negotiationPrefs
+        negotiationPrefs: senderProfile.negotiationPrefs as Record<string, unknown> | null
       },
       recipientProfile: {
         name: recipientProfile.name,

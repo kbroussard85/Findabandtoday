@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { negotiationGraph } from "./graph";
+import { negotiationGraph, NegotiationState } from "./graph";
 import { transitionGigState } from "@/lib/negotiation/state-machine";
 import { GigStatus } from "@prisma/client";
 
@@ -31,19 +31,19 @@ export async function runNegotiationSession(gigId: string, initiatingActorId: st
   const venueMaxBudget = venuePrefs.maxBudget || 1000;
 
   // 3. Initialize Graph State
-  const initialState = {
+  const initialState: NegotiationState = {
     gigId: gig.id,
     currentAmount: gig.totalAmount,
     status: 'OFFER_SENT',
     history: [],
     bandMinRate,
     venueMaxBudget,
-    lastActor: 'VENUE' as const, // Assume venue initiated for this example
+    lastActor: 'VENUE', // Assume venue initiated for this example
     turnCount: 0,
   };
 
   // 4. Run Graph
-  const finalState = await negotiationGraph.invoke(initialState);
+  const finalState = await negotiationGraph.invoke(initialState) as NegotiationState;
 
   // 5. Update Database based on results
   if (finalState.status === 'ACCEPTED') {
