@@ -1,17 +1,15 @@
 import { handleAuth, handleLogin } from '@auth0/nextjs-auth0';
-import { NextRequest } from 'next/server';
 
 export const GET = handleAuth({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     login: handleLogin((req: any) => {
-        // Use a dummy base for relative URLs to avoid errors
-        const url = new URL(req.url || '', 'http://n');
+        const url = new URL(req.url, 'http://localhost');
         const returnTo = url.searchParams.get('returnTo');
         const role = url.searchParams.get('role');
 
         return {
             authorizationParams: {
-                role: role, // Pass role to Auth0 if needed
+                ...(role && { role }),
             },
             returnTo: returnTo || '/directory',
         };
