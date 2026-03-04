@@ -18,7 +18,7 @@ export interface NegotiationState {
   venueMaxBudget: number;
   lastActor: 'BAND' | 'VENUE';
   turnCount: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
