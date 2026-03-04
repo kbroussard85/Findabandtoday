@@ -63,8 +63,12 @@ async function proposeCounter(state: NegotiationState) {
 
   return {
     currentAmount: Math.round(nextAmount),
-    history: [...state.history, { actor: lastActor === 'VENUE' ? 'BAND' : 'VENUE', amount: nextAmount, message: response.content }],
-    lastActor: lastActor === 'VENUE' ? 'BAND' : 'VENUE',
+    history: [...state.history, { 
+      actor: (lastActor === 'VENUE' ? 'BAND' : 'VENUE') as 'BAND' | 'VENUE', 
+      amount: nextAmount, 
+      message: String(response.content) 
+    }],
+    lastActor: (lastActor === 'VENUE' ? 'BAND' : 'VENUE') as 'BAND' | 'VENUE',
     turnCount: state.turnCount + 1
   };
 }
