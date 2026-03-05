@@ -8,7 +8,7 @@ datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   directUrl  = env("DIRECT_URL")
-  extensions = [postgis, uuid_ossp(map: "uuid-ossp")]
+  extensions = [postgis, uuid_ossp(map: "uuid-ossp"), pg_trgm]
 }
 
 model User {

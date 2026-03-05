@@ -39,6 +39,22 @@ const styles = StyleSheet.create({
     width: 150,
     fontWeight: 'bold',
   },
+  signatureSection: {
+    marginTop: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  signatureBox: {
+    width: '45%',
+    borderTopWidth: 1,
+    borderTopColor: '#000',
+    paddingTop: 10,
+  },
+  signatureLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
   footer: {
     marginTop: 50,
     borderTopWidth: 1,
@@ -59,9 +75,16 @@ interface ContractProps {
     band: { name: string };
     venue: { name: string };
   };
+  performanceDetails?: {
+    loadIn?: string;
+    setStart?: string;
+    duration?: number;
+    payoutMethod?: string;
+    technicalNotes?: string;
+  };
 }
 
-export const PerformanceContract = ({ gig }: ContractProps) => (
+export const PerformanceContract = ({ gig, performanceDetails }: ContractProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
@@ -85,22 +108,61 @@ export const PerformanceContract = ({ gig }: ContractProps) => (
         </View>
       </View>
 
+      {performanceDetails && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>2. Schedule & Technicals</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Load-In Time:</Text>
+            <Text>{performanceDetails.loadIn || 'TBD'}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Set Start Time:</Text>
+            <Text>{performanceDetails.setStart || 'TBD'}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Performance Duration:</Text>
+            <Text>{performanceDetails.duration ? `${performanceDetails.duration} Minutes` : 'TBD'}</Text>
+          </View>
+          {performanceDetails.technicalNotes && (
+            <View style={styles.row}>
+              <Text style={styles.label}>Technical Notes:</Text>
+              <Text style={{ flex: 1 }}>{performanceDetails.technicalNotes}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>2. Compensation</Text>
-        <Text>
-          The Venue agrees to pay the Artist a total guarantee of ${gig.totalAmount.toFixed(2)}. 
-          Payout will be processed automatically via the FindABandToday platform 24 hours 
-          following the successful completion of the performance.
+        <Text style={styles.sectionTitle}>{performanceDetails ? '3' : '2'}. Compensation</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Total Guarantee:</Text>
+          <Text>${gig.totalAmount.toFixed(2)}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Payment Method:</Text>
+          <Text>{performanceDetails?.payoutMethod === 'FABT_PAY' ? 'FABT Digital Pay (Escrow)' : 'Cash Day of Show'}</Text>
+        </View>
+        <Text style={{ marginTop: 10, fontSize: 10, color: '#444' }}>
+          {performanceDetails?.payoutMethod === 'FABT_PAY' 
+            ? 'Payout will be processed automatically via the FindABandToday platform 24 hours following the successful completion of the performance.'
+            : 'Venue is responsible for providing cash payment directly to the Artist immediately following the performance.'}
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>3. Terms & Conditions</Text>
-        <Text>
-          This agreement is legally binding once accepted by both parties via the platform. 
-          Cancellation by either party within 48 hours of the event may result in a 
-          cancellation fee as dictated by platform policy.
-        </Text>
+        <Text style={styles.sectionTitle}>{performanceDetails ? '4' : '3'}. Signatures</Text>
+        <View style={styles.signatureSection}>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureLabel}>Artist / Band Signature</Text>
+            <Text style={{ marginTop: 5 }}>{gig.band.name}</Text>
+            <Text style={{ fontSize: 8, marginTop: 15 }}>Date: ________________________</Text>
+          </View>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureLabel}>Venue Representative</Text>
+            <Text style={{ marginTop: 5 }}>{gig.venue.name}</Text>
+            <Text style={{ fontSize: 8, marginTop: 15 }}>Date: ________________________</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.footer}>

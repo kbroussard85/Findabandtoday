@@ -4,7 +4,19 @@ const prismaClientSingleton = () => {
   return new PrismaClient().$extends({
     model: {
       band: {
-        async findNearby(lat: number, lng: number, radiusMeters: number) {
+        async findNearby(lat: number, lng: number, radiusMeters: number, query?: string) {
+          if (query) {
+            return prisma.$queryRaw`
+              SELECT id, name, lat, lng, bio, media, availability, "negotiationPrefs", "audioUrlPreview"
+              FROM "Band"
+              WHERE ST_DWithin(
+                location,
+                ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+                ${radiusMeters}
+              )
+              AND (name ILIKE ${`%${query}%`} OR bio ILIKE ${`%${query}%`})
+            `;
+          }
           return prisma.$queryRaw`
             SELECT id, name, lat, lng, bio, media, availability, "negotiationPrefs", "audioUrlPreview"
             FROM "Band"
@@ -17,7 +29,19 @@ const prismaClientSingleton = () => {
         },
       },
       venue: {
-        async findNearby(lat: number, lng: number, radiusMeters: number) {
+        async findNearby(lat: number, lng: number, radiusMeters: number, query?: string) {
+          if (query) {
+            return prisma.$queryRaw`
+              SELECT id, name, lat, lng, capacity, bio, media, availability, "negotiationPrefs"
+              FROM "Venue"
+              WHERE ST_DWithin(
+                location,
+                ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+                ${radiusMeters}
+              )
+              AND (name ILIKE ${`%${query}%`} OR bio ILIKE ${`%${query}%`})
+            `;
+          }
           return prisma.$queryRaw`
             SELECT id, name, lat, lng, capacity, bio, media, availability, "negotiationPrefs"
             FROM "Venue"

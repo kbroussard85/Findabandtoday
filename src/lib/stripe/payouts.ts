@@ -27,13 +27,16 @@ export async function triggerGigPayout(gigId: string) {
   const transferAmount = (gig.totalAmount - platformFee) * 100; // In cents
 
   try {
-    const transfer = await stripe.transfers.create({
-      amount: Math.round(transferAmount),
-      currency: 'usd',
-      destination: destinationAccount,
-      description: `Payout for Gig: ${gig.title}`,
-      metadata: { gigId },
-    });
+    const transfer = await stripe.transfers.create(
+      {
+        amount: Math.round(transferAmount),
+        currency: 'usd',
+        destination: destinationAccount,
+        description: `Payout for Gig: ${gig.title}`,
+        metadata: { gigId },
+      },
+      { idempotencyKey: `payout-${gigId}` }
+    );
 
     // Update Gig record
     await prisma.gig.update({

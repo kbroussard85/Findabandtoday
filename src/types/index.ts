@@ -10,4 +10,9 @@ export interface Artist {
   bio?: string | null;
   audioUrlPreview?: string | null;
   media?: MediaItem[] | null;
+  backlineInfo?: string | null;
+  negotiationPrefs?: {
+    minRate?: number;
+    openToNegotiate?: boolean;
+  } | null;
 }

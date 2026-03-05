@@ -47,16 +47,16 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
       const response = await fetch(`/api/gigs/${gigId}/escrow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'HOLD', 
+        body: JSON.stringify({
+          action: 'HOLD',
           amount: deal.amount,
-          payoutType: deal.payoutMethod 
+          payoutType: deal.payoutMethod
         }),
       });
-      
+
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      
+
       if (onConfirm) onConfirm(gigId, data);
       else {
         // Default behavior: show success or redirect
@@ -72,7 +72,7 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 md:p-8 font-sans">
+    <div className="bg-zinc-950 text-white p-4 md:p-8 font-sans">
       {/* Header Info */}
       <div className="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center border-b border-zinc-800 pb-6 gap-4">
         <div>
@@ -90,27 +90,27 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
       </div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
         {/* LEFT: VENUE LOGISTICS */}
         <div className="space-y-6 bg-zinc-950 p-6 rounded-2xl border border-zinc-900">
           <h3 className="text-blue-500 font-black uppercase italic tracking-tighter text-xl">Venue Logistics</h3>
           <div className="space-y-4">
             <div className="p-4 bg-zinc-900 rounded-lg">
               <label className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Load-In Time</label>
-              <input 
-                type="time" 
-                value={deal.loadIn} 
-                onChange={(e) => setDeal({...deal, loadIn: e.target.value})} 
-                className="bg-transparent text-xl font-bold outline-none w-full text-white" 
+              <input
+                type="time"
+                value={deal.loadIn}
+                onChange={(e) => setDeal({ ...deal, loadIn: e.target.value })}
+                className="bg-transparent text-xl font-bold outline-none w-full text-white"
               />
             </div>
             <div className="p-4 bg-zinc-900 rounded-lg">
               <label className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Set Start Time</label>
-              <input 
-                type="time" 
-                value={deal.setStart} 
-                onChange={(e) => setDeal({...deal, setStart: e.target.value})} 
-                className="bg-transparent text-xl font-bold outline-none w-full text-white" 
+              <input
+                type="time"
+                value={deal.setStart}
+                onChange={(e) => setDeal({ ...deal, setStart: e.target.value })}
+                className="bg-transparent text-xl font-bold outline-none w-full text-white"
               />
             </div>
             <div className="p-4 border border-zinc-800 rounded-lg text-sm text-zinc-400">
@@ -127,24 +127,24 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
               <label className="text-xs font-black uppercase tracking-widest text-purple-400 mb-2 block">The Payout Offer</label>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-4xl font-black italic">$</span>
-                <input 
-                  type="number" 
-                  value={deal.amount} 
-                  onChange={(e) => setDeal({...deal, amount: parseInt(e.target.value)})}
-                  className="bg-transparent text-6xl font-black italic outline-none w-48 text-center text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                <input
+                  type="number"
+                  value={deal.amount}
+                  onChange={(e) => setDeal({ ...deal, amount: parseInt(e.target.value) })}
+                  className="bg-transparent text-6xl font-black italic outline-none w-48 text-center text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <button 
-                onClick={() => setDeal({...deal, payoutMethod: 'CASH_DOS'})}
+              <button
+                onClick={() => setDeal({ ...deal, payoutMethod: 'CASH_DOS' })}
                 className={`py-3 rounded-xl text-xs font-black uppercase italic border-2 transition-all ${deal.payoutMethod === 'CASH_DOS' ? 'bg-purple-500 border-purple-500 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
               >
                 Cash Day of Show
               </button>
-              <button 
-                onClick={() => setDeal({...deal, payoutMethod: 'FABT_PAY'})}
+              <button
+                onClick={() => setDeal({ ...deal, payoutMethod: 'FABT_PAY' })}
                 className={`py-3 rounded-xl text-xs font-black uppercase italic border-2 transition-all ${deal.payoutMethod === 'FABT_PAY' ? 'bg-blue-500 border-blue-500 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
               >
                 FABT Digital Pay
@@ -153,14 +153,14 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
 
             <div className="space-y-4 pt-4">
               <label className="flex items-center gap-3 cursor-pointer group">
-                <input type="checkbox" className="hidden" onChange={(e) => setValidation({...validation, techAcknowledged: e.target.checked})} />
+                <input type="checkbox" className="hidden" onChange={(e) => setValidation({ ...validation, techAcknowledged: e.target.checked })} />
                 <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${validation.techAcknowledged ? 'bg-purple-500 border-purple-500' : 'border-zinc-700'}`}>
                   {validation.techAcknowledged && <CheckCircle size={14} className="text-white" />}
                 </div>
                 <span className="text-xs font-bold uppercase text-zinc-400 group-hover:text-white">I acknowledge the technical riders</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer group">
-                <input type="checkbox" className="hidden" onChange={(e) => setValidation({...validation, termsAccepted: e.target.checked})} />
+                <input type="checkbox" className="hidden" onChange={(e) => setValidation({ ...validation, termsAccepted: e.target.checked })} />
                 <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${validation.termsAccepted ? 'bg-purple-500 border-purple-500' : 'border-zinc-700'}`}>
                   {validation.termsAccepted && <CheckCircle size={14} className="text-white" />}
                 </div>
@@ -168,7 +168,7 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
               </label>
             </div>
 
-            <button 
+            <button
               disabled={!isReady}
               onClick={handleConfirm}
               className={`w-full py-6 rounded-2xl text-2xl font-black uppercase italic transition-all ${isReady ? 'bg-white text-black hover:bg-purple-500 hover:text-white shadow-xl shadow-purple-500/20' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}
@@ -186,11 +186,11 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
           <h3 className="text-purple-500 font-black uppercase italic tracking-tighter text-xl">Artist Technicals</h3>
           <div className="space-y-4">
             <div className="aspect-video bg-zinc-900 rounded-lg flex items-center justify-center border border-zinc-800 overflow-hidden relative">
-               {bandData.stagePlotUrl ? (
-                 <Image src={bandData.stagePlotUrl} alt="Stage Plot" fill className="opacity-50 hover:opacity-100 transition-opacity object-cover" />
-               ) : (
-                 <span className="text-zinc-700 font-black uppercase italic text-sm">No Plot Provided</span>
-               )}
+              {bandData.stagePlotUrl ? (
+                <Image src={bandData.stagePlotUrl} alt="Stage Plot" fill className="opacity-50 hover:opacity-100 transition-opacity object-cover" />
+              ) : (
+                <span className="text-zinc-700 font-black uppercase italic text-sm">No Plot Provided</span>
+              )}
             </div>
             <div className="p-4 border border-zinc-800 rounded-lg">
               <p className="font-bold text-white mb-2 uppercase text-xs">Input List Highlights:</p>
@@ -201,9 +201,24 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
               </ul>
             </div>
             <div className="flex gap-2">
-               <button className="flex-1 bg-zinc-900 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-zinc-800 hover:border-zinc-600 transition-colors flex items-center justify-center gap-2 text-white">
-                 <FileText size={14} /> Full Rider
-               </button>
+              <button className="flex-1 bg-zinc-900 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-zinc-800 hover:border-zinc-600 transition-colors flex items-center justify-center gap-2 text-white">
+                <FileText size={14} /> Full Rider
+              </button>
+              <button 
+                onClick={() => {
+                  const params = new URLSearchParams({
+                    loadIn: deal.loadIn,
+                    setStart: deal.setStart,
+                    duration: deal.duration.toString(),
+                    payoutMethod: deal.payoutMethod,
+                    technicalNotes: "Standard technical requirements apply."
+                  });
+                  window.open(`/api/gigs/${gigId}/contract?${params.toString()}`, '_blank');
+                }}
+                className="flex-1 bg-purple-900/20 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-purple-500/30 hover:border-purple-500 transition-colors flex items-center justify-center gap-2 text-purple-400"
+              >
+                <FileText size={14} /> Preview Contract
+              </button>
             </div>
           </div>
         </div>

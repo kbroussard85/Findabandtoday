@@ -26,20 +26,23 @@ export async function initializeBookingHold(gigId: string, amount: number) {
   // Calculate Fee: $50 Flat or 5% of Guarantee (whichever the logic dictates)
   const feeAmount = amount >= 1000 ? amount * 0.05 : 50;
 
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: Math.round(feeAmount * 100), // Stripe uses cents
-    currency: 'usd',
-    customer: gig.venue.user.stripeCustomerId,
-    capture_method: 'manual', // THIS IS THE ESCROW HOLD
-    metadata: { gigId: gigId, type: 'BOOKING_DEPOSIT' },
-  });
+  const paymentIntent = await stripe.paymentIntents.create(
+    {
+      amount: Math.round(feeAmount * 100), // Stripe uses cents
+      currency: 'usd',
+      customer: gig.venue.user.stripeCustomerId,
+      capture_method: 'manual', // THIS IS THE ESCROW HOLD
+      metadata: { gigId: gigId, type: 'BOOKING_DEPOSIT' },
+    },
+    { idempotencyKey: `hold-${gigId}` }
+  );
 
   // Store the Intent ID in our DB to capture it later
   await prisma.gig.update({
     where: { id: gigId },
-    data: { 
-      stripePaymentIntentId: paymentIntent.id, 
-      status: 'ESCROW_HOLD' 
+    data: {
+      stripePaymentIntentId: paymentIntent.id,
+      status: 'ESCROW_HOLD'
     }
   });
 
@@ -57,13 +60,17 @@ export async function captureBookingFee(gigId: string) {
 
   if (!gig?.stripePaymentIntentId) throw new Error("No payment intent found.");
 
-  const intent = await stripe.paymentIntents.capture(gig.stripePaymentIntentId);
+  const intent = await stripe.paymentIntents.capture(
+    gig.stripePaymentIntentId,
+    {},
+    { idempotencyKey: `capture-${gigId}` }
+  );
 
   await prisma.gig.update({
     where: { id: gigId },
-    data: { 
-      status: 'CONFIRMED', 
-      depositPaid: true 
+    data: {
+      status: 'CONFIRMED',
+      depositPaid: true
     }
   });
 

@@ -49,13 +49,13 @@ export async function GET(req: Request) {
     }>;
 
     if (roleParam.toUpperCase() === 'BAND') {
-      results = await prisma.band.findNearby(lat, lng, radiusInMeters) as typeof results;
+      results = await prisma.band.findNearby(lat, lng, radiusInMeters, queryParam || undefined) as typeof results;
     } else {
-      results = await prisma.venue.findNearby(lat, lng, radiusInMeters) as typeof results;
+      results = await prisma.venue.findNearby(lat, lng, radiusInMeters, queryParam || undefined) as typeof results;
     }
 
     // GATING LOGIC: If not premium, strip sensitive data before sending
-    let gatedResults = results.map(item => {
+    const gatedResults = results.map(item => {
       const sanitized = { ...item } as Record<string, unknown>;
       if (!isPremium) {
         // Strip sensitive fields
@@ -64,15 +64,6 @@ export async function GET(req: Request) {
       }
       return sanitized;
     });
-
-    // TEXT SEARCH FILTER: 
-    if (queryParam) {
-      const q = queryParam.toLowerCase();
-      gatedResults = gatedResults.filter(item => 
-        (item.name as string).toLowerCase().includes(q) || 
-        (item.bio as string | undefined)?.toLowerCase().includes(q)
-      );
-    }
 
     return NextResponse.json({ data: gatedResults });
   } catch (error) {
