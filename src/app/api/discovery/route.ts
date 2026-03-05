@@ -9,6 +9,8 @@ export async function GET(req: Request) {
   const radiusParam = searchParams.get('radius') || '50';
   const roleParam = searchParams.get('role') || 'BAND';
   const queryParam = searchParams.get('q');
+  const limitParam = searchParams.get('limit') || '20';
+  const offsetParam = searchParams.get('offset') || '0';
 
   if (!latParam || !lngParam) {
     return NextResponse.json({ error: 'Missing lat or lng' }, { status: 400 });
@@ -17,9 +19,11 @@ export async function GET(req: Request) {
   const lat = parseFloat(latParam);
   const lng = parseFloat(lngParam);
   const radiusMiles = parseFloat(radiusParam);
+  const limit = parseInt(limitParam);
+  const offset = parseInt(offsetParam);
 
-  if (isNaN(lat) || isNaN(lng) || isNaN(radiusMiles)) {
-    return NextResponse.json({ error: 'Invalid coordinates or radius' }, { status: 400 });
+  if (isNaN(lat) || isNaN(lng) || isNaN(radiusMiles) || isNaN(limit) || isNaN(offset)) {
+    return NextResponse.json({ error: 'Invalid coordinates, radius, limit, or offset' }, { status: 400 });
   }
 
   // Get current user session to check for premium status
@@ -49,9 +53,9 @@ export async function GET(req: Request) {
     }>;
 
     if (roleParam.toUpperCase() === 'BAND') {
-      results = await prisma.band.findNearby(lat, lng, radiusInMeters, queryParam || undefined) as typeof results;
+      results = await prisma.band.findNearby(lat, lng, radiusInMeters, queryParam || undefined, limit, offset) as typeof results;
     } else {
-      results = await prisma.venue.findNearby(lat, lng, radiusInMeters, queryParam || undefined) as typeof results;
+      results = await prisma.venue.findNearby(lat, lng, radiusInMeters, queryParam || undefined, limit, offset) as typeof results;
     }
 
     // GATING LOGIC: If not premium, strip sensitive data before sending

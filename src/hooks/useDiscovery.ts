@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Artist } from '@/types';
 
 interface DiscoveryParams {
@@ -6,35 +6,72 @@ interface DiscoveryParams {
   lng: number | null;
   radius: number;
   role: 'BAND' | 'VENUE';
+  query?: string;
 }
 
-export function useDiscovery({ lat, lng, radius, role }: DiscoveryParams) {
+const LIMIT = 20;
+
+export function useDiscovery({ lat, lng, radius, role, query }: DiscoveryParams) {
   const [data, setData] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
+  const fetchDiscovery = useCallback(async (currentOffset: number, isInitial: boolean) => {
     if (lat === null || lng === null) return;
 
-    const fetchDiscovery = async () => {
+    if (isInitial) {
       setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`/api/discovery?lat=${lat}&lng=${lng}&radius=${radius}&role=${role}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        const result = await response.json();
-        setData(result.data || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
+      setOffset(0);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    setError(null);
+    try {
+      const qParam = query ? `&q=${encodeURIComponent(query)}` : '';
+      const response = await fetch(
+        `/api/discovery?lat=${lat}&lng=${lng}&radius=${radius}&role=${role}&limit=${LIMIT}&offset=${currentOffset}${qParam}`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
       }
-    };
+      
+      const result = await response.json();
+      const newData = result.data || [];
+      
+      if (isInitial) {
+        setData(newData);
+      } else {
+        setData(prev => [...prev, ...newData]);
+      }
+      
+      if (newData.length < LIMIT) {
+        setHasMore(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [lat, lng, radius, role, query]);
 
-    fetchDiscovery();
-  }, [lat, lng, radius, role]);
+  useEffect(() => {
+    fetchDiscovery(0, true);
+  }, [fetchDiscovery]);
 
-  return { data, loading, error };
+  const loadMore = () => {
+    if (!loading && !loadingMore && hasMore) {
+      const nextOffset = offset + LIMIT;
+      setOffset(nextOffset);
+      fetchDiscovery(nextOffset, false);
+    }
+  };
+
+  return { data, loading, loadingMore, error, loadMore, hasMore };
 }

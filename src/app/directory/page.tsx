@@ -15,15 +15,13 @@ function DirectoryContent() {
   const [radius, setRadius] = useState<number>(50);
   const [role, setRole] = useState<'BAND' | 'VENUE'>('BAND');
 
-  const { data, loading, error } = useDiscovery({ lat, lng, radius, role });
-
-  // Filter local data based on q if needed (API already does it, but double check)
-  const filteredData = q 
-    ? data.filter(item => 
-        item.name.toLowerCase().includes(q.toLowerCase()) || 
-        item.bio?.toLowerCase().includes(q.toLowerCase())
-      )
-    : data;
+  const { data, loading, loadingMore, error, loadMore, hasMore } = useDiscovery({ 
+    lat, 
+    lng, 
+    radius, 
+    role,
+    query: q || undefined 
+  });
 
   // For demo purposes, assuming user is not premium to show the blurred UI
   const isPremium = false; 
@@ -94,7 +92,31 @@ function DirectoryContent() {
         )}
         
         {!loading && !error && (
-          <DiscoveryGrid items={filteredData} isPremium={isPremium} />
+          <div className="space-y-12">
+            <DiscoveryGrid items={data} isPremium={isPremium} />
+            
+            {hasMore && (
+              <div className="flex justify-center pt-8 border-t border-zinc-900">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="bg-zinc-900 hover:bg-zinc-800 text-white px-12 py-4 rounded-2xl text-xs font-black uppercase italic tracking-widest border border-zinc-800 transition-all disabled:opacity-50 flex items-center gap-4 group"
+                >
+                  {loadingMore ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                      FETCHING MORE...
+                    </>
+                  ) : (
+                    <>
+                      LOAD MORE TALENT
+                      <span className="text-purple-500 group-hover:translate-y-1 transition-transform">↓</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
