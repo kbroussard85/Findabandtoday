@@ -14,7 +14,7 @@ export const GET = handleAuth({
         },
         returnTo,
       };
-    } catch (e) {
+    } catch {
       return { returnTo: '/directory' };
     }
   }),
