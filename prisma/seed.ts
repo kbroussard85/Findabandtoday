@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { SUBSCRIPTION_TIERS } from '../src/lib/constants/tiers';
 
 const prisma = new PrismaClient();
 
@@ -19,7 +20,7 @@ async function main() {
       email: 'blues@test.com',
       role: 'BAND',
       isPaid: true,
-      subscriptionTier: 'ARTIST_BIZ',
+      subscriptionTier: SUBSCRIPTION_TIERS.ARTIST_BIZ,
       bandProfile: {
         create: {
           name: 'The Nashville Blues Trio',
@@ -68,7 +69,7 @@ async function main() {
       email: 'metal@test.com',
       role: 'BAND',
       isPaid: true,
-      subscriptionTier: 'ARTIST_BIZ',
+      subscriptionTier: SUBSCRIPTION_TIERS.ARTIST_BIZ,
       bandProfile: {
         create: {
           name: 'Iron Forge',
@@ -138,7 +139,7 @@ async function main() {
       email: 'venue@test.com',
       role: 'VENUE',
       isPaid: true,
-      subscriptionTier: 'VENUE_COMMAND',
+      subscriptionTier: SUBSCRIPTION_TIERS.VENUE_COMMAND,
       venueProfile: {
         create: {
           name: 'The Stage on Broadway',
@@ -181,7 +182,7 @@ async function main() {
       email: 'club@test.com',
       role: 'VENUE',
       isPaid: true,
-      subscriptionTier: 'VENUE_COMMAND',
+      subscriptionTier: SUBSCRIPTION_TIERS.VENUE_COMMAND,
       venueProfile: {
         create: {
           name: 'Play Dance Bar',

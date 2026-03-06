@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { SUBSCRIPTION_TIERS, TIER_PRICE_IDS } from '@/lib/constants/tiers';
 
 interface UpgradeButtonProps {
   role: 'BAND' | 'VENUE';
@@ -9,10 +10,10 @@ interface UpgradeButtonProps {
 export function UpgradeButton({ role }: UpgradeButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  // Map roles to Price IDs from environment variables
+  // Map roles to Price IDs from centralized constants
   const priceIds = {
-    BAND: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BAND,
-    VENUE: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_VENUE,
+    BAND: TIER_PRICE_IDS[SUBSCRIPTION_TIERS.ARTIST_BIZ],
+    VENUE: TIER_PRICE_IDS[SUBSCRIPTION_TIERS.VENUE_PRO],
   };
 
   const handleUpgrade = async () => {
