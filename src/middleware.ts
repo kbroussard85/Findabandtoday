@@ -11,6 +11,7 @@ import {
 
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl.pathname;
+  // @ts-expect-error - ip property exists on NextRequest in Vercel/Next.js environment
   const ip = req.ip ?? "127.0.0.1";
 
   // Rate limit by IP for discovery
