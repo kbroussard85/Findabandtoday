@@ -1,5 +1,5 @@
 // src/lib/ratelimit.ts
-import { Ratelimit } from "@upstash/ratelimit";
+import { Ratelimit, type Duration } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
@@ -12,11 +12,11 @@ const redis = redisUrl && redisToken
 /**
  * Helper to create a ratelimiter or return null if credentials are missing
  */
-function createLimiter(requests: number, window: string, prefix: string) {
+function createLimiter(requests: number, window: Duration, prefix: string) {
   if (!redis) return null;
   return new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(requests, window as any),
+    limiter: Ratelimit.slidingWindow(requests, window),
     analytics: true,
     prefix: `@upstash/ratelimit/${prefix}`,
   });
