@@ -92,31 +92,13 @@ function DirectoryContent() {
         )}
         
         {!loading && !error && (
-          <div className="space-y-12">
-            <DiscoveryGrid items={data} isPremium={isPremium} />
-            
-            {hasMore && (
-              <div className="flex justify-center pt-8 border-t border-zinc-900">
-                <button
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                  className="bg-zinc-900 hover:bg-zinc-800 text-white px-12 py-4 rounded-2xl text-xs font-black uppercase italic tracking-widest border border-zinc-800 transition-all disabled:opacity-50 flex items-center gap-4 group"
-                >
-                  {loadingMore ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                      FETCHING MORE...
-                    </>
-                  ) : (
-                    <>
-                      LOAD MORE TALENT
-                      <span className="text-purple-500 group-hover:translate-y-1 transition-transform">↓</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
+          <DiscoveryGrid 
+            items={data} 
+            isPremium={isPremium} 
+            onLoadMore={loadMore}
+            hasMore={hasMore}
+            isLoadingMore={loadingMore}
+          />
         )}
       </div>
     </div>
