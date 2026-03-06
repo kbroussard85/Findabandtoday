@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { ProfileEditor } from '@/components/profile/ProfileEditor';
 import { CalendarEditor } from '@/components/profile/CalendarEditor';
 import { UpgradeButton } from '@/components/profile/UpgradeButton';
+import { GigDashboard } from '@/components/profile/GigDashboard';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -80,18 +81,28 @@ export default async function ProfilePage() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <section className="lg:col-span-2 space-y-8">
-            <div className="flex items-center gap-4 mb-6">
-              <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">01</span>
-              <h2 className="text-2xl font-black uppercase italic tracking-tight">Public Identity</h2>
+          <section className="lg:col-span-2 space-y-16">
+            <div className="space-y-8">
+              <div className="flex items-center gap-4 mb-6">
+                <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">01</span>
+                <h2 className="text-2xl font-black uppercase italic tracking-tight">Public Identity</h2>
+              </div>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <ProfileEditor initialData={profile as any} role={dbUser.role} />
             </div>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <ProfileEditor initialData={profile as any} role={dbUser.role} />
+
+            <div className="space-y-8">
+              <div className="flex items-center gap-4 mb-6">
+                <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">02</span>
+                <h2 className="text-2xl font-black uppercase italic tracking-tight">My Bookings</h2>
+              </div>
+              <GigDashboard />
+            </div>
           </section>
 
           <aside className="space-y-8">
             <div className="flex items-center gap-4 mb-6">
-              <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">02</span>
+              <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">03</span>
               <h2 className="text-2xl font-black uppercase italic tracking-tight">Availability</h2>
             </div>
             <div className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-3xl backdrop-blur-sm">
