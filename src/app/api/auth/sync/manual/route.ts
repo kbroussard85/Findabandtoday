@@ -85,7 +85,7 @@ export async function GET(req: Request) {
     console.error('Manual Sync Error:', error);
     
     // Provide more specific error feedback if it's a Prisma error
-    const err = error as { code?: string; meta?: any; message?: string };
+    const err = error as { code?: string; meta?: unknown; message?: string };
     
     if (err.code === 'P2002') {
       return NextResponse.json({ 
