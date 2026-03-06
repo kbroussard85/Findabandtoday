@@ -81,20 +81,22 @@ export async function GET(req: Request) {
     
     // Redirect back to profile using the request origin
     return NextResponse.redirect(new URL('/profile', origin));
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Manual Sync Error:', error);
     
     // Provide more specific error feedback if it's a Prisma error
-    if (error.code === 'P2002') {
+    const err = error as { code?: string; meta?: any; message?: string };
+    
+    if (err.code === 'P2002') {
       return NextResponse.json({ 
         error: 'Database conflict: A user with this ID or email already exists.',
-        details: error.meta 
+        details: err.meta 
       }, { status: 409 });
     }
 
     return NextResponse.json({ 
       error: 'Failed to sync user', 
-      message: error.message || 'Unknown error' 
+      message: err.message || 'Unknown error' 
     }, { status: 500 });
   }
 }

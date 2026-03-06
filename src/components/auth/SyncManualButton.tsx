@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export function SyncManualButton() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   const handleSync = async () => {
     setLoading(true);
@@ -14,7 +12,7 @@ export function SyncManualButton() {
     try {
       // We use window.location for the redirect behavior of the GET route
       window.location.href = '/api/auth/sync/manual';
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Manual Sync Error:', err);
       setError('Connection issue. Please try again in a moment.');
       setLoading(false);
