@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
  * Manual fallback to sync a user if the Auth0 Action fails.
  */
 export async function GET(req: Request) {
-  const { origin } = new URL(req.url);
+  const { origin, searchParams } = new URL(req.url);
   
   try {
     console.log('[MANUAL-SYNC] Starting manual sync process...');
@@ -23,9 +23,16 @@ export async function GET(req: Request) {
     const auth0Id = user.sub;
     const email = user.email;
     
-    // Role is expected in user_metadata or app_metadata, but we fallback to BAND
-    // Check multiple possible locations for role
-    const role = user.role || user['https://fabt.vercel.app/role'] || 'BAND'; 
+    // Role priority: Query Param > User Metadata > Fallback (null)
+    let role = searchParams.get('role')?.toUpperCase() || user.role || user['https://fabt.vercel.app/role'];
+    
+    // If no role found anywhere, we might still need selection, 
+    // but this route is usually called AFTER selection or from login buttons.
+    if (!role) {
+      console.warn('[MANUAL-SYNC] No role found, defaulting to BAND for safety or redirect to selection');
+      // For now, let's just use BAND to avoid breaking, or we could redirect to /auth/role-selection
+      role = 'BAND';
+    }
     
     console.log(`[MANUAL-SYNC] Syncing user: ${email} (${auth0Id}) with role: ${role}`);
 

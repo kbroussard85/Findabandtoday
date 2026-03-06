@@ -5,9 +5,7 @@ import { ProfileEditor } from '@/components/profile/ProfileEditor';
 import { CalendarEditor } from '@/components/profile/CalendarEditor';
 import { UpgradeButton } from '@/components/profile/UpgradeButton';
 import { GigDashboard } from '@/components/profile/GigDashboard';
-import { SyncManualButton } from '@/components/auth/SyncManualButton';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 
 export default async function ProfilePage() {
   const session = await getSession();
@@ -26,28 +24,16 @@ export default async function ProfilePage() {
   });
 
   if (!dbUser) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-8">
-        <div className="text-center space-y-8 max-w-md">
-          <div className="space-y-2">
-            <h2 className="text-3xl font-black uppercase italic text-zinc-400">Identity Sync Pending</h2>
-            <p className="text-zinc-500 font-medium">Your Auth0 account is active, but we haven&apos;t finished setting up your profile in our local database.</p>
-          </div>
-          
-          <div className="flex flex-col gap-4">
-            <SyncManualButton />
-            
-            <p className="text-[10px] text-zinc-700 uppercase font-black tracking-widest leading-loose">
-              If the button above doesn&apos;t work, please try logging out and back in.
-            </p>
+    // Check if role is in the session metadata
+    const sessionRole = user.role || user['https://fabt.vercel.app/role'];
 
-            <Link href="/api/auth/logout?returnTo=/" className="text-zinc-500 hover:text-white transition-colors font-bold uppercase text-xs">
-              Logout
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    if (sessionRole) {
+      // Auto-trigger sync if we have the role
+      redirect(`/api/auth/sync/manual?role=${sessionRole}`);
+    }
+
+    // Otherwise, ask for role selection
+    redirect('/auth/role-selection');
   }
 
   const profile = dbUser.role === 'BAND' ? dbUser.bandProfile : dbUser.venueProfile;
