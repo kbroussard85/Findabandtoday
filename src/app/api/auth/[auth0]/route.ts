@@ -1,4 +1,4 @@
-import { handleAuth, handleLogin } from '@auth0/nextjs-auth0';
+import { handleAuth, handleLogin, handleLogout } from '@auth0/nextjs-auth0';
 
 export const GET = handleAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,6 +17,13 @@ export const GET = handleAuth({
     } catch {
       return { returnTo: '/directory' };
     }
+  }),
+  logout: handleLogout((req: any) => {
+    const url = new URL(req.url, 'http://localhost');
+    const returnTo = url.searchParams.get('returnTo') || process.env.AUTH0_BASE_URL || '/';
+    return {
+      returnTo,
+    };
   }),
 });
 

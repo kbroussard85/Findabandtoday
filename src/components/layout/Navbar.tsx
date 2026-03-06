@@ -77,7 +77,7 @@ export function Navbar() {
               <div className="flex items-center gap-4 border-l border-zinc-800 pl-6">
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 <a
-                  href="/api/auth/logout"
+                  href="/api/auth/logout?returnTo=/"
                   className="bg-zinc-800 text-white px-6 py-2 text-[10px] font-black uppercase italic tracking-widest hover:bg-zinc-700 transition-all duration-300 rounded-full"
                 >
                   Logout
@@ -141,7 +141,7 @@ export function Navbar() {
               user ? (
                 /* eslint-disable-next-line @next/next/no-html-link-for-pages */
                 <a
-                  href="/api/auth/logout"
+                  href="/api/auth/logout?returnTo=/"
                   className="block w-full bg-zinc-800 text-white px-6 py-4 text-xs font-black uppercase italic tracking-widest text-center rounded-2xl"
                   onClick={() => setIsMenuOpen(false)}
                 >

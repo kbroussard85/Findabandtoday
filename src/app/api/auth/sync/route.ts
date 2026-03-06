@@ -36,10 +36,34 @@ export async function POST(req: Request) {
         auth0Id,
         email,
         role: isBand ? 'BAND' : 'VENUE',
-        // Automatically create the linked profile record
+        // Automatically create the linked profile record and owner membership
         ...(isBand 
-          ? { bandProfile: { create: { name: email.split('@')[0] } } } 
-          : { venueProfile: { create: { name: email.split('@')[0] } } }
+          ? { 
+              bandProfile: { 
+                create: { 
+                  name: email.split('@')[0],
+                  members: {
+                    create: {
+                      role: 'OWNER',
+                      user: { connect: { auth0Id } }
+                    }
+                  }
+                } 
+              } 
+            } 
+          : { 
+              venueProfile: { 
+                create: { 
+                  name: email.split('@')[0],
+                  members: {
+                    create: {
+                      role: 'OWNER',
+                      user: { connect: { auth0Id } }
+                    }
+                  }
+                } 
+              } 
+            }
         )
       },
     });

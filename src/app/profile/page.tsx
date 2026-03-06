@@ -5,6 +5,7 @@ import { ProfileEditor } from '@/components/profile/ProfileEditor';
 import { CalendarEditor } from '@/components/profile/CalendarEditor';
 import { UpgradeButton } from '@/components/profile/UpgradeButton';
 import { GigDashboard } from '@/components/profile/GigDashboard';
+import { SyncManualButton } from '@/components/auth/SyncManualButton';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -34,18 +35,13 @@ export default async function ProfilePage() {
           </div>
           
           <div className="flex flex-col gap-4">
-            <Link 
-              href="/api/auth/sync/manual" 
-              className="bg-purple-600 hover:bg-purple-500 text-white px-8 py-4 rounded-full font-black uppercase italic tracking-tighter text-lg transition-all transform hover:scale-105"
-            >
-              Finalize Registration
-            </Link>
+            <SyncManualButton />
             
             <p className="text-[10px] text-zinc-700 uppercase font-black tracking-widest leading-loose">
               If the button above doesn&apos;t work, please try logging out and back in.
             </p>
 
-            <Link href="/api/auth/logout" className="text-zinc-500 hover:text-white transition-colors font-bold uppercase text-xs">
+            <Link href="/api/auth/logout?returnTo=/" className="text-zinc-500 hover:text-white transition-colors font-bold uppercase text-xs">
               Logout
             </Link>
           </div>
