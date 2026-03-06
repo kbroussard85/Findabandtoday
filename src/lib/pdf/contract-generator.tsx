@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface ContractProps {
+export interface ContractProps {
   gig: {
     id: string;
     title: string;
