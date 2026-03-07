@@ -38,9 +38,9 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
       } else {
         throw new Error(data.error || 'Failed to create checkout session');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upgrade Error:', error);
-      alert('Checkout unavailable. Check Stripe configuration.');
+      alert(`Checkout Error: ${error.message || 'Check Stripe configuration.'}`);
     } finally {
       setLoading(false);
     }
