@@ -39,11 +39,12 @@ export async function POST(req: Request) {
     let price;
     try {
       price = await stripe.prices.retrieve(priceId);
-    } catch (err: any) {
-      console.error(`[STRIPE-CHECKOUT] Failed to retrieve price ${priceId}:`, err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error(`[STRIPE-CHECKOUT] Failed to retrieve price ${priceId}:`, errorMessage);
       return NextResponse.json({ 
         error: `Stripe Error: The Price ID "${priceId}" could not be found. Check if you are in Test Mode vs Live Mode.`,
-        message: err.message
+        message: errorMessage
       }, { status: 400 });
     }
 
@@ -67,11 +68,12 @@ export async function POST(req: Request) {
 
     console.log(`[STRIPE-CHECKOUT] Session created: ${checkoutSession.id}`);
     return NextResponse.json({ url: checkoutSession.url });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[STRIPE-CHECKOUT] Unexpected Error:', error);
     return NextResponse.json({ 
       error: 'Failed to initiate checkout.',
-      message: error.message || 'Unknown error'
+      message: errorMessage
     }, { status: 500 });
   }
 }
