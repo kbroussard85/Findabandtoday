@@ -4,10 +4,10 @@ import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 
-const stripe = process.env.STRIPE_SECRET_KEY 
+const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion,
-    })
+    apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion,
+  })
   : null;
 
 export async function POST(req: Request) {
@@ -28,8 +28,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing Price ID' }, { status: 400 });
     }
 
+    // Retrieve price to check if it's recurring or one-time
+    const price = await stripe.prices.retrieve(priceId);
+    const mode = price.type === 'recurring' ? 'subscription' : 'payment';
+
     const checkoutSession = await stripe.checkout.sessions.create({
-      mode: 'subscription',
+      mode,
       payment_method_types: ['card'],
       line_items: [
         {
