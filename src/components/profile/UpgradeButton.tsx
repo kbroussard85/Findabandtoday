@@ -18,9 +18,19 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
 
   const handleUpgrade = async () => {
     const activePriceId = priceIds[role];
+    
+    console.log(`[DEBUG] Initiating upgrade for role: ${role}, Price ID: ${activePriceId}`);
 
     if (!activePriceId || activePriceId.includes('placeholder')) {
-      alert(`Stripe Billing is not yet connected for ${role}s. Please add your Stripe Price IDs to Vercel.`);
+      const missingVar = role === 'BAND' 
+        ? 'NEXT_PUBLIC_STRIPE_BAND_BIZ_PRICE_ID' 
+        : 'NEXT_PUBLIC_STRIPE_VENUE_PRO_PRICE_ID';
+      
+      alert(`Stripe Billing is not yet connected for ${role}s. 
+Missing environment variable: ${missingVar}
+Current Value: ${activePriceId || 'undefined'}
+
+Please ensure this is set in Vercel and that you have triggered a NEW DEPLOYMENT after saving.`);
       return;
     }
 
