@@ -21,9 +21,11 @@ interface ProfileData {
 interface ProfileEditorProps {
   initialData: ProfileData | null;
   role: 'BAND' | 'VENUE';
+  userName: string;
 }
 
-export function ProfileEditor({ initialData, role }: ProfileEditorProps) {
+export function ProfileEditor({ initialData, role, userName }: ProfileEditorProps) {
+  const [name, setName] = useState(userName);
   const [bio, setBio] = useState(initialData?.bio || '');
   const [minRate, setMinRate] = useState(initialData?.negotiationPrefs?.minRate || '');
   const [openToNegotiate, setOpenToNegotiate] = useState(initialData?.negotiationPrefs?.openToNegotiate ?? true);
@@ -41,12 +43,12 @@ export function ProfileEditor({ initialData, role }: ProfileEditorProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bio,
           negotiationPrefs: {
             minRate: Number(minRate),
             openToNegotiate,
           },
           media,
+          name,
         }),
       });
 
@@ -62,6 +64,17 @@ export function ProfileEditor({ initialData, role }: ProfileEditorProps) {
   return (
     <div className="space-y-12">
       <form onSubmit={handleSave} className="space-y-8">
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Display Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Official Name..."
+            className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold"
+          />
+        </div>
+
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Bio / Description</label>
           <textarea
@@ -97,11 +110,10 @@ export function ProfileEditor({ initialData, role }: ProfileEditorProps) {
         <button
           type="submit"
           disabled={saving}
-          className={`w-full py-4 rounded-full font-black uppercase italic tracking-tighter text-xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl ${
-            role === 'BAND' 
-              ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/20' 
-              : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
-          } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full py-4 rounded-full font-black uppercase italic tracking-tighter text-xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl ${role === 'BAND'
+            ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/20'
+            : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
+            } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {saving ? 'Syncing...' : 'Save Profile Changes'}
         </button>

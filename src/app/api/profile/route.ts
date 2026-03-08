@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { bio, negotiationPrefs, media } = await req.json();
+    const { bio, negotiationPrefs, media, name } = await req.json();
 
     const dbUser = await prisma.user.findUnique({
       where: { auth0Id: user.sub },
@@ -61,6 +61,14 @@ export async function POST(req: Request) {
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Update the base User record with the new name if provided
+    if (name) {
+      await prisma.user.update({
+        where: { id: dbUser.id },
+        data: { name },
+      });
     }
 
     if (dbUser.role === 'BAND') {

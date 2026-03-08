@@ -7,6 +7,7 @@ const f = createUploadthing();
 export const ourFileRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
   bandMedia: f({
+    image: { maxFileSize: "4MB", maxFileCount: 5 },
     audio: { maxFileSize: "4MB", maxFileCount: 5 },
     video: { maxFileSize: "16MB", maxFileCount: 1 },
   })

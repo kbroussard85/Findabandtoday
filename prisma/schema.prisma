@@ -15,6 +15,7 @@ model User {
   id                 String        @id @default(cuid())
   auth0Id            String        @unique
   email              String        @unique
+  name               String?
   role               UserRole
   stripeCustomerId   String?       @unique
   isPaid             Boolean       @default(false)

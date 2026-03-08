@@ -17,6 +17,7 @@ exports.onExecutePostUserRegistration = async (event, api) => {
     const payload = {
         auth0Id: user.user_id,
         email: user.email,
+        name: user.name || user.nickname || user.email.split('@')[0],
         role: user.user_metadata?.role || "BAND",
     };
 

@@ -34,7 +34,7 @@ export function Navbar() {
           </Link>
 
           {/* Nav Search - Desktop */}
-          <form 
+          <form
             onSubmit={handleSearch}
             className="hidden lg:flex items-center bg-zinc-900/80 border border-zinc-800 px-4 py-2 rounded-full focus-within:border-purple-500/50 transition-all duration-300 w-64 group"
           >
@@ -57,9 +57,14 @@ export function Navbar() {
           <Link href="/about" className="hover:text-white transition-colors">About</Link>
           <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
           {user && (
-            <Link href="/profile" className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors">
-              <LayoutDashboard className="w-3 h-3" />
-              Dashboard
+            <Link href="/profile" className="flex flex-col items-start gap-0.5 text-purple-400 hover:text-purple-300 transition-colors">
+              <span className="flex items-center gap-2">
+                <LayoutDashboard className="w-3 h-3" />
+                Dashboard
+              </span>
+              <span className="text-[9px] lowercase tracking-tight text-zinc-500 max-w-[100px] truncate">
+                {dbUser?.name || user.name || user.nickname || user.email}
+              </span>
             </Link>
           )}
         </div>
@@ -71,7 +76,7 @@ export function Navbar() {
               <UpgradeButton role={dbUser.role} />
             </div>
           )}
-          
+
           {!isAuthLoading && (
             user ? (
               <div className="flex items-center gap-4 border-l border-zinc-800 pl-6">

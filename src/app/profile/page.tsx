@@ -49,7 +49,7 @@ export default async function ProfilePage() {
             </h1>
             <p className="text-zinc-500 font-medium uppercase tracking-widest text-xs">Profile Command Center</p>
           </div>
-          
+
           <div className="bg-zinc-900/50 border border-zinc-800 px-6 py-4 rounded-3xl backdrop-blur-sm flex items-center gap-6">
             <div className="text-right">
               <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Subscription Status</p>
@@ -70,7 +70,7 @@ export default async function ProfilePage() {
                 <h2 className="text-2xl font-black uppercase italic tracking-tight">Public Identity</h2>
               </div>
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              <ProfileEditor initialData={profile as any} role={dbUser.role} />
+              <ProfileEditor initialData={profile as any} role={dbUser.role} userName={dbUser.name || ''} />
             </div>
 
             <div className="space-y-8">
@@ -90,7 +90,7 @@ export default async function ProfilePage() {
             <div className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-3xl backdrop-blur-sm">
               <CalendarEditor initialDates={availability?.bookedDates || []} />
             </div>
-            
+
             <div className="p-8 bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 rounded-3xl space-y-4">
               <h4 className="text-xs font-black uppercase tracking-widest text-purple-500">Pro Tip</h4>
               <p className="text-sm font-medium text-zinc-400 leading-relaxed italic">

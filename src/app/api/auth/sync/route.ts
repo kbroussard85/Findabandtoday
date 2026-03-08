@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { auth0Id, email, role } = await req.json();
+    const { auth0Id, email, role, name } = await req.json();
     console.log(`[SYNC] Attempting to sync user: ${email} with role: ${role}`);
 
     if (!auth0Id || !email || !role) {
@@ -31,39 +31,40 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.upsert({
       where: { auth0Id },
-      update: { email }, 
+      update: { email, name },
       create: {
         auth0Id,
         email,
+        name: name || email.split('@')[0],
         role: isBand ? 'BAND' : 'VENUE',
         // Automatically create the linked profile record and owner membership
-        ...(isBand 
-          ? { 
-              bandProfile: { 
-                create: { 
-                  name: email.split('@')[0],
-                  members: {
-                    create: {
-                      role: 'OWNER',
-                      user: { connect: { auth0Id } }
-                    }
+        ...(isBand
+          ? {
+            bandProfile: {
+              create: {
+                name: email.split('@')[0],
+                members: {
+                  create: {
+                    role: 'OWNER',
+                    user: { connect: { auth0Id } }
                   }
-                } 
-              } 
-            } 
-          : { 
-              venueProfile: { 
-                create: { 
-                  name: email.split('@')[0],
-                  members: {
-                    create: {
-                      role: 'OWNER',
-                      user: { connect: { auth0Id } }
-                    }
-                  }
-                } 
-              } 
+                }
+              }
             }
+          }
+          : {
+            venueProfile: {
+              create: {
+                name: email.split('@')[0],
+                members: {
+                  create: {
+                    role: 'OWNER',
+                    user: { connect: { auth0Id } }
+                  }
+                }
+              }
+            }
+          }
         )
       },
     });

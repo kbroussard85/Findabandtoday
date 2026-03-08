@@ -19,7 +19,16 @@ export async function POST(req: Request) {
       console.error('[STRIPE-CHECKOUT] Stripe secret key is missing from environment variables.');
       return NextResponse.json({ error: 'Stripe is not configured on the server.' }, { status: 500 });
     }
-    
+
+    // DIAGNOSTIC LOGGING
+    try {
+      const account = await stripe.accounts.retrieve();
+      console.log(`[STRIPE-CHECKOUT] Connected to Account: ${account.id} (${account.settings?.dashboard.display_name})`);
+      console.log(`[STRIPE-CHECKOUT] Using Secret Key ending in: ...${process.env.STRIPE_SECRET_KEY?.slice(-4)}`);
+    } catch {
+      console.warn('[STRIPE-CHECKOUT] Could not retrieve account info - check API key permissions.');
+    }
+
     const session = await getSession();
     const user = session?.user;
 
@@ -41,13 +50,14 @@ export async function POST(req: Request) {
       price = await stripe.prices.retrieve(priceId);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      const isTestKey = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
+
       console.error(`[STRIPE-CHECKOUT] Failed to retrieve price ${priceId}:`, errorMessage);
       return NextResponse.json({ 
-        error: `Stripe Error: The Price ID "${priceId}" could not be found. Check if you are in Test Mode vs Live Mode.`,
-        message: errorMessage
+        error: `Stripe Error: The Price ID "${priceId}" could not be found.`,
+        message: `${errorMessage}. Your server is currently using a ${isTestKey ? 'TEST MODE' : 'LIVE MODE'} secret key. Please ensure the Price ID exists in that specific mode.`
       }, { status: 400 });
     }
-
     const mode = price.type === 'recurring' ? 'subscription' : 'payment';
 
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -71,7 +81,7 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[STRIPE-CHECKOUT] Unexpected Error:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to initiate checkout.',
       message: errorMessage
     }, { status: 500 });

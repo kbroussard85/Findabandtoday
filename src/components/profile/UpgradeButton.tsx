@@ -47,7 +47,7 @@ Please ensure this is set in Vercel and that you have triggered a NEW DEPLOYMENT
         let errorData;
         try {
           errorData = JSON.parse(errorText);
-        } catch (_e) {
+        } catch {
           throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
         }
         throw new Error(errorData.error || `HTTP ${response.status}`);
@@ -59,13 +59,13 @@ Please ensure this is set in Vercel and that you have triggered a NEW DEPLOYMENT
       } else {
         throw new Error(data.error || 'Failed to create checkout session');
       }
-      } catch (error: unknown) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Check Stripe configuration.';
       console.error('Upgrade Error:', error);
       alert(`Checkout Error: ${errorMessage}`);
-      } finally {
+    } finally {
       setLoading(false);
-      }
+    }
 
   };
 
