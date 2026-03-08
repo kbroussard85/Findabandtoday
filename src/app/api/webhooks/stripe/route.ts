@@ -58,16 +58,27 @@ export async function POST(req: Request) {
       break;
     case 'checkout.session.completed':
       const session = event.data.object as Stripe.Checkout.Session;
-      const userId = session.metadata?.userId;
+      const userId = session.client_reference_id || session.metadata?.userId;
+      
+      console.log(`[STRIPE-WEBHOOK] Checkout completed for user: ${userId}, Customer: ${session.customer}`);
+
       if (userId) {
-        await prisma.user.update({
-          where: { auth0Id: userId },
-          data: { 
-            isPaid: true, 
-            stripeCustomerId: session.customer as string,
-            subscriptionStatus: 'active'
-          },
-        });
+        try {
+          const updatedUser = await prisma.user.update({
+            where: { auth0Id: userId },
+            data: { 
+              isPaid: true, 
+              stripeCustomerId: session.customer as string,
+              subscriptionStatus: 'active'
+            },
+          });
+          console.log(`[STRIPE-WEBHOOK] Successfully provisioned Pro status for user: ${updatedUser.email}`);
+        } catch (dbError) {
+          console.error(`[STRIPE-WEBHOOK] Database update failed for user ${userId}:`, dbError);
+          // In a real app, you might want to retry or alert admins
+        }
+      } else {
+        console.warn('[STRIPE-WEBHOOK] No userId found in session client_reference_id or metadata.');
       }
       break;
     case 'customer.subscription.deleted':

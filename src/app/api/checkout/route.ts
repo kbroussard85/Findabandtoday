@@ -63,13 +63,14 @@ export async function POST(req: Request) {
     const checkoutSession = await stripe.checkout.sessions.create({
       mode,
       payment_method_types: ['card'],
+      client_reference_id: user.sub, // Added for more robust webhook processing
       line_items: [
         {
           price: priceId,
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/profile?success=true`,
+      success_url: `${baseUrl}/profile?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/profile?canceled=true`,
       metadata: {
         userId: user.sub,
