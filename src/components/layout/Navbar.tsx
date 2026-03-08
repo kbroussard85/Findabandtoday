@@ -72,9 +72,7 @@ export function Navbar() {
         {/* Desktop Auth & Upgrade */}
         <div className="hidden md:flex items-center gap-6 ml-auto">
           {showUpgrade && (
-            <div className="w-48">
-              <UpgradeButton role={dbUser.role} />
-            </div>
+            <UpgradeButton role={dbUser.role} />
           )}
 
           {!isAuthLoading && (
