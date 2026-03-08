@@ -10,7 +10,8 @@ const stripe = process.env.STRIPE_SECRET_KEY
     })
   : null;
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+// Amelia: Use the specific whsec key provided by the team for verification
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_FLFOK5CeOJtxh25gcHiBmnRIkccb9A3M';
 
 export async function POST(req: Request) {
   if (!stripe) {
