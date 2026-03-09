@@ -3,13 +3,14 @@ import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function POST(req: Request) {
   try {
+    // Initialize Supabase inside the handler to prevent build-time errors if env vars are missing
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     const session = await getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -44,17 +45,17 @@ export async function POST(req: Request) {
     // 3. Get Public URL
     const { data: urlData } = supabase.storage.from('media').getPublicUrl(storageData.path);
 
-    // 4. Save reference to Database using Prisma (instead of raw Supabase insert for consistency)
+    // 4. Save reference to Database using Prisma
     const mediaRecord = await prisma.artistMedia.create({
       data: {
         userId: dbUser.id,
         fileUrl: urlData.publicUrl,
         fileType: 'audio',
-        isPrimary: true // Defaulting to true for the first upload for simplicity
+        isPrimary: true 
       }
     });
 
-    // 5. Update the Band/Venue profile audioUrlPreview for immediate discovery usage
+    // 5. Update the Band profile audioUrlPreview
     if (dbUser.role === 'BAND') {
       await prisma.band.update({
         where: { userId: dbUser.id },
