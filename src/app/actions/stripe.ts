@@ -3,9 +3,8 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import Stripe from 'stripe';
 
-// FIXED: Using a valid API version string
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion, 
+    apiVersion: '2025-01-27.acacia' as unknown as Stripe.LatestApiVersion, 
 });
 
 export async function createUpgradeSession(formData: FormData) {
