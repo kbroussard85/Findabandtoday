@@ -31,6 +31,10 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
   
   const isBand = dbUser.role === 'BAND';
   const profile = isBand ? dbUser.bandProfile : dbUser.venueProfile;
+  
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const initialDates = profile?.availabilities?.map((a: any) => a.eventDate) || [];
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   const handleStripePortal = async () => {
     try {
@@ -130,7 +134,7 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
             <h2 className="text-2xl font-black uppercase italic tracking-tight">Availability</h2>
           </div>
           <div className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-3xl backdrop-blur-sm">
-            <CalendarEditor initialDates={[]} />
+            <CalendarEditor initialDates={initialDates} />
           </div>
 
           <div className="p-8 bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 rounded-3xl space-y-4">
