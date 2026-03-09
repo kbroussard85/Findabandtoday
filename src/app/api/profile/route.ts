@@ -72,6 +72,11 @@ export async function POST(req: Request) {
         data: { name },
       });
     }
+    // - [x] Fix Stripe Checkout Server Action Error <!-- id: 11 -->
+    // - [x] Refine UpgradeButton Error Handling <!-- id: 12 -->
+    // - [x] Debug "Invalid API Key" Error (Added Logs) <!-- id: 13 -->
+    // - [x] Transition Stripe to Live Mode (Stayed in Test Mode) <!-- id: 14 -->
+    // - [x] Sync Stripe Test Mode Keys to Vercel <!-- id: 15 -->
 
     if (dbUser.role === 'BAND') {
       // Find or Create the Band Profile

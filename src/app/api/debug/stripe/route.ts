@@ -4,7 +4,10 @@ import Stripe from 'stripe';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  console.log('Stripe Debug Route Hit');
+  
   const results: any = {
+    status: 'DEBUG_ACTIVE',
     env: {
       STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ? '✅ Present (Starts with ' + process.env.STRIPE_SECRET_KEY.slice(0, 7) + '...)' : '❌ MISSING',
       STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ? '✅ Present' : '❌ MISSING',
@@ -12,11 +15,10 @@ export async function GET() {
     },
     connectivity: 'Testing...',
     account: null,
-    products: []
   };
 
   if (!process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json({ error: 'Missing Stripe Secret Key in environment' }, { status: 500 });
+    return NextResponse.json({ ...results, error: 'Missing Stripe Secret Key' }, { status: 500 });
   }
 
   try {
@@ -24,7 +26,6 @@ export async function GET() {
       apiVersion: '2025-01-27.acacia' as any,
     });
 
-    // 1. Test Key Validity & IP Restrictions
     const account = await stripe.accounts.retrieve();
     results.connectivity = '✅ Connected Successfully';
     results.account = {
@@ -33,25 +34,22 @@ export async function GET() {
       business_name: account.settings?.dashboard?.display_name
     };
 
-    // 2. Test Price ID existence
     const priceId = process.env.NEXT_PUBLIC_STRIPE_BAND_BIZ_PRICE_ID;
     if (priceId) {
       try {
         const price = await stripe.prices.retrieve(priceId);
-        results.price_verification = `✅ Price ID ${priceId} found (${(price.unit_amount! / 100).toFixed(2)} ${price.currency.toUpperCase()})`;
+        results.price_verification = `✅ Price ID found: ${price.unit_amount! / 100} ${price.currency.toUpperCase()}`;
       } catch (e: any) {
-        results.price_verification = `❌ Price ID ${priceId} NOT FOUND in this Stripe account.`;
+        results.price_verification = `❌ Price ID NOT FOUND: ${e.message}`;
       }
     }
 
     return NextResponse.json(results);
   } catch (error: any) {
-    console.error('[STRIPE_DEBUG_ERROR]:', error);
     return NextResponse.json({
       ...results,
       connectivity: '❌ Failed',
-      error: error.message,
-      hint: 'Ensure your Vercel/Local env vars match your Stripe Dashboard keys.'
+      error: error.message
     }, { status: 500 });
   }
 }

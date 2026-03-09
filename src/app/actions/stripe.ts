@@ -3,8 +3,14 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27.acacia' as unknown as Stripe.LatestApiVersion, 
+if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('[STRIPE_DEBUG] STRIPE_SECRET_KEY is missing from process.env');
+} else {
+    console.log(`[STRIPE_DEBUG] Initializing Stripe with key ending in: ...${process.env.STRIPE_SECRET_KEY.slice(-4)}`);
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    apiVersion: '2025-01-27.acacia' as unknown as Stripe.LatestApiVersion,
 });
 
 export async function createUpgradeSession(formData: FormData) {
@@ -20,8 +26,8 @@ export async function createUpgradeSession(formData: FormData) {
             throw new Error('Price ID is missing.');
         }
 
-        const baseUrl = process.env.AUTH0_BASE_URL || 
-                        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+        const baseUrl = process.env.AUTH0_BASE_URL ||
+            (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
         const userId = session.user.sub;
 
