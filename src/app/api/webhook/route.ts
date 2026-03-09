@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 
+// Use type casting to satisfy the strict apiVersion requirement in this version of the SDK
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-01-27.acacia' as any,
 });
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
 
     try {
         event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } catch (err) {
+    } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error(`[STRIPE-WEBHOOK] Error verifying signature: ${errorMessage}`);
         return NextResponse.json({ error: `Webhook Error: ${errorMessage}` }, { status: 400 });
