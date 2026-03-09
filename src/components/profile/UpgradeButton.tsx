@@ -4,8 +4,6 @@ import React, { useState } from 'react';
 import { SUBSCRIPTION_TIERS, TIER_PRICE_IDS } from '@/lib/constants/tiers';
 import { CheckCircle2, Rocket, Zap } from 'lucide-react';
 
-import { createUpgradeSession } from '@/app/actions/stripe';
-
 interface UpgradeButtonProps {
   role: 'BAND' | 'VENUE';
 }
