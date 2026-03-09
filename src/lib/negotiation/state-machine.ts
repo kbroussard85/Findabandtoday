@@ -5,13 +5,16 @@ import prisma from '@/lib/prisma';
  * Valid transitions for a Gig offer lifecycle.
  */
 export const VALID_TRANSITIONS: Record<GigStatus, GigStatus[]> = {
-  [GigStatus.DRAFT]: [GigStatus.OFFER_SENT, GigStatus.CANCELLED],
+  [GigStatus.DRAFT]: [GigStatus.OFFER_SENT, GigStatus.CANCELLED, GigStatus.SUBMISSION, GigStatus.REQUEST],
+  [GigStatus.SUBMISSION]: [GigStatus.PENDING_APPROVAL, GigStatus.REJECTED, GigStatus.CANCELLED],
+  [GigStatus.REQUEST]: [GigStatus.OFFER_SENT, GigStatus.ACCEPTED, GigStatus.REJECTED, GigStatus.CANCELLED],
+  [GigStatus.PENDING_APPROVAL]: [GigStatus.OFFER_SENT, GigStatus.ACCEPTED, GigStatus.REJECTED, GigStatus.CANCELLED],
   [GigStatus.OFFER_SENT]: [GigStatus.ESCROW_HOLD, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED, GigStatus.ACCEPTED],
   [GigStatus.COUNTER_OFFER]: [GigStatus.ESCROW_HOLD, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED, GigStatus.ACCEPTED],
   [GigStatus.ESCROW_HOLD]: [GigStatus.CONFIRMED, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED],
   [GigStatus.CONFIRMED]: [GigStatus.BOOKED, GigStatus.CANCELLED],
   [GigStatus.ACCEPTED]: [GigStatus.BOOKED, GigStatus.CANCELLED, GigStatus.ESCROW_HOLD],
-  [GigStatus.REJECTED]: [GigStatus.DRAFT, GigStatus.OFFER_SENT], // Allow resending if terms change
+  [GigStatus.REJECTED]: [GigStatus.DRAFT, GigStatus.OFFER_SENT, GigStatus.SUBMISSION, GigStatus.REQUEST], // Allow resending if terms change
   [GigStatus.BOOKED]: [GigStatus.COMPLETED, GigStatus.CANCELLED],
   [GigStatus.COMPLETED]: [],
   [GigStatus.CANCELLED]: [GigStatus.DRAFT], // Allow restarting from draft
