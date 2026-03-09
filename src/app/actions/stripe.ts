@@ -24,8 +24,8 @@ export async function createUpgradeSession(formData: FormData) {
         const auth0Id = session.user.sub;
         const email = session.user.email;
 
-        // 1. Get or Create the local user and their Stripe Customer ID
-        let dbUser = await prisma.user.findUnique({
+        // 1. Get the local user
+        const dbUser = await prisma.user.findUnique({
             where: { auth0Id },
         });
 
@@ -34,12 +34,24 @@ export async function createUpgradeSession(formData: FormData) {
         }
 
         let stripeCustomerId = dbUser.stripeCustomerId;
+        let needsNewCustomer = !stripeCustomerId;
 
-        // 2. If no Stripe Customer exists, create one now
-        // This resolves the "Accounts V2" requirement for an existing customer
-        if (!stripeCustomerId) {
+        // 2. VERIFY & REPAIR: If we have an ID, check if it exists in the NEW Stripe account
+        if (stripeCustomerId) {
+            try {
+                await stripe.customers.retrieve(stripeCustomerId);
+                console.log(`[STRIPE] Verified existing customer: ${stripeCustomerId}`);
+            } catch (err) {
+                console.log(`[STRIPE] Customer ID ${stripeCustomerId} not found in this account. Creating new one.`);
+                needsNewCustomer = true;
+            }
+        }
+
+        // 3. Create a new Customer if needed
+        if (needsNewCustomer) {
             const customer = await stripe.customers.create({
                 email: email,
+                name: dbUser.name || undefined,
                 metadata: {
                     auth0Id: auth0Id,
                     userId: dbUser.id
@@ -47,20 +59,23 @@ export async function createUpgradeSession(formData: FormData) {
             });
             stripeCustomerId = customer.id;
 
-            // Update local DB with the new Stripe Customer ID
+            // Update local DB with the new valid Stripe Customer ID
             await prisma.user.update({
                 where: { id: dbUser.id },
                 data: { stripeCustomerId }
             });
+            console.log(`[STRIPE] Created and saved new customer: ${stripeCustomerId}`);
         }
 
         const baseUrl = process.env.AUTH0_BASE_URL || 
                         (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
-        // 3. Create Checkout Session with the explicit customer ID
+        // 4. Create Checkout Session with the verified customer ID
+        console.log(`[STRIPE] Initiating checkout for customer: ${stripeCustomerId} with price: ${priceId}`);
+        
         const checkoutSession = await stripe.checkout.sessions.create({
             mode: 'subscription',
-            customer: stripeCustomerId, // Explicitly passing the existing customer
+            customer: stripeCustomerId!, 
             payment_method_types: ['card'],
             line_items: [{
                 price: priceId,
