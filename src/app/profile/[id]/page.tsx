@@ -36,7 +36,11 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
   
   // Media mapping
   const media = (profile.media as unknown as MediaItem[]) || [];
-  const primaryAudio = profile.audioUrlPreview || (media.find(m => m.type === 'audio')?.url);
+  
+  // Safe access to audioUrlPreview (only exists on Band)
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const primaryAudio = (isBand ? (profile as any).audioUrlPreview : null) || (media.find(m => m.type === 'audio')?.url);
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-purple-500 antialiased">
