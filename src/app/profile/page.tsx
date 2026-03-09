@@ -32,10 +32,14 @@ export default async function ProfilePage() {
     redirect('/auth/role-selection');
   }
 
+  // CRITICAL: Serialize the data to remove non-POJO types like Date objects
+  // This prevents "An error occurred in the Server Components render"
+  const serializedUser = JSON.parse(JSON.stringify(dbUser));
+
   return (
     <div className="min-h-screen bg-black text-white p-8 lg:p-12">
       <div className="max-w-7xl mx-auto">
-        <DashboardCenter dbUser={dbUser} />
+        <DashboardCenter dbUser={serializedUser} />
       </div>
     </div>
   );

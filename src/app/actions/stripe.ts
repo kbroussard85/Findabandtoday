@@ -1,33 +1,31 @@
 'use server';
 
 import { getSession } from '@auth0/nextjs-auth0';
-import { redirect } from 'next/navigation';
 import Stripe from 'stripe';
 
+// FIXED: Using a valid API version string
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion,
+    apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion, 
 });
 
 export async function createUpgradeSession(formData: FormData) {
-    const session = await getSession();
-    const priceId = formData.get('priceId') as string;
-
-    if (!session || !session.user) {
-        redirect('/api/auth/login');
-    }
-
-    if (!priceId) {
-        throw new Error('Price ID is required');
-    }
-
-    // Determine the base URL for redirects
-    const baseUrl = process.env.AUTH0_BASE_URL || 
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-
-    // Use auth0Id directly for the client_reference_id to ensure we can find the user in the webhook
-    const userId = session.user.sub;
-
     try {
+        const session = await getSession();
+        const priceId = formData.get('priceId') as string;
+
+        if (!session || !session.user) {
+            throw new Error('You must be logged in to upgrade.');
+        }
+
+        if (!priceId) {
+            throw new Error('Price ID is missing.');
+        }
+
+        const baseUrl = process.env.AUTH0_BASE_URL || 
+                        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+        const userId = session.user.sub;
+
         const checkoutSession = await stripe.checkout.sessions.create({
             mode: 'subscription',
             payment_method_types: ['card'],
@@ -45,14 +43,13 @@ export async function createUpgradeSession(formData: FormData) {
         });
 
         if (!checkoutSession.url) {
-            throw new Error('Failed to create Stripe checkout URL');
+            throw new Error('Stripe failed to return a checkout URL.');
         }
 
-        // Return the URL instead of redirecting inside the try/catch
-        // to avoid the NEXT_REDIRECT error being treated as a crash
         return { url: checkoutSession.url };
-    } catch (error) {
-        console.error('[STRIPE_ERROR]:', error);
-        throw error;
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to initiate checkout.';
+        console.error('[STRIPE_ACTION_ERROR]:', error);
+        return { error: errorMessage };
     }
 }

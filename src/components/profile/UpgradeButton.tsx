@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { SUBSCRIPTION_TIERS, TIER_PRICE_IDS } from '@/lib/constants/tiers';
 import { CheckCircle2, Rocket, Zap } from 'lucide-react';
+import { createUpgradeSession } from '@/app/actions/stripe';
 
 interface UpgradeButtonProps {
   role: 'BAND' | 'VENUE';
@@ -32,16 +33,8 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
   const handleUpgrade = async () => {
     const activePriceId = priceIds[role];
 
-    console.log(`[DEBUG] Initiating upgrade for role: ${role}, Price ID: ${activePriceId}`);
-
     if (!activePriceId || activePriceId.includes('placeholder')) {
-      const missingVar = role === 'BAND'
-        ? 'NEXT_PUBLIC_STRIPE_BAND_BIZ_PRICE_ID'
-        : 'NEXT_PUBLIC_STRIPE_VENUE_PRO_PRICE_ID';
-
-      alert(`Stripe Billing is not yet connected for ${role}s. 
-      Missing environment variable: ${missingVar}
-      Current Value: ${activePriceId || 'undefined'}`);
+      alert(`Stripe Billing is not yet connected for ${role}s.`);
       return;
     }
 
@@ -50,16 +43,17 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
       const formData = new FormData();
       formData.append('priceId', activePriceId);
       
-      const { createUpgradeSession } = await import('@/app/actions/stripe');
       const result = await createUpgradeSession(formData);
       
       if (result?.url) {
         window.location.href = result.url;
+      } else if (result?.error) {
+        alert(`Checkout Error: ${result.error}`);
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Check Stripe configuration.';
-      console.error('Upgrade Error:', error);
-      alert(`Checkout Error: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initiate checkout.';
+      console.error('Upgrade Error:', errorMessage);
+      alert('Failed to initiate checkout. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -79,7 +73,7 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
         {loading ? 'SYNCING...' : `UPGRADE TO PRO 🚀`}
       </button>
 
-      {/* UX Popover on Hover (Desktop) */}
+      {/* UX Popover */}
       <div className="hidden md:group-hover:block absolute top-full right-0 mt-4 w-72 bg-zinc-900 border border-zinc-800 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl p-6 z-[60] animate-in fade-in slide-in-from-top-2 duration-200">
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-white">
@@ -100,8 +94,6 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
             </p>
           </div>
         </div>
-
-        {/* Pointer triangle */}
         <div className="absolute -top-2 right-12 w-4 h-4 bg-zinc-900 border-t border-l border-zinc-800 rotate-45" />
       </div>
     </div>
