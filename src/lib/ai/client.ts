@@ -1,10 +1,32 @@
 import { ChatOpenAI } from "@langchain/openai";
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import { AIMessage } from "@langchain/core/messages";
+
+/**
+ * Mock AI Client for development when API keys are missing or quota is exceeded.
+ */
+class MockChatOpenAI extends BaseChatModel {
+  _llmType() { return "mock"; }
+  async _generate() {
+    return {
+      generations: [{
+        text: JSON.stringify(["id1", "id2", "id3"]), // Default mock for Maximizer
+        message: new AIMessage("This is a mock AI response for development.")
+      }]
+    };
+  }
+}
+
+const isMockEnabled = !process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes("sk-proj-4aGHbm");
 
 /**
  * Shared AI client for all agentic operations.
  */
-export const aiClient = new ChatOpenAI({
-  modelName: "gpt-4o-mini", // Cost-effective for basic negotiation
-  temperature: 0.2, // Keep responses deterministic and professional
-  openAIApiKey: process.env.OPENAI_API_KEY,
-});
+export const aiClient = isMockEnabled 
+  ? new MockChatOpenAI({}) as unknown as ChatOpenAI
+  : new ChatOpenAI({
+      modelName: "gpt-4o-mini",
+      temperature: 0.2,
+      openAIApiKey: process.env.OPENAI_API_KEY,
+    });
+

@@ -14,7 +14,7 @@ async function main() {
 
   // --- BANDS ---
 
-  await prisma.user.create({
+  const band1 = await prisma.user.create({
     data: {
       auth0Id: 'seed_band_1',
       email: 'blues@test.com',
@@ -38,10 +38,15 @@ async function main() {
           negotiationPrefs: { minRate: 500, openToNegotiate: true }
         }
       }
-    }
+    },
+    include: { bandProfile: true }
   });
 
-  await prisma.user.create({
+  await prisma.bandMember.create({
+    data: { bandId: band1.bandProfile!.id, userId: band1.id, role: 'OWNER' }
+  });
+
+  const band2 = await prisma.user.create({
     data: {
       auth0Id: 'seed_band_2',
       email: 'indie@test.com',
@@ -60,10 +65,15 @@ async function main() {
           negotiationPrefs: { minRate: 200, openToNegotiate: false }
         }
       }
-    }
+    },
+    include: { bandProfile: true }
   });
 
-  await prisma.user.create({
+  await prisma.bandMember.create({
+    data: { bandId: band2.bandProfile!.id, userId: band2.id, role: 'OWNER' }
+  });
+
+  const band3 = await prisma.user.create({
     data: {
       auth0Id: 'seed_band_3',
       email: 'metal@test.com',
@@ -83,10 +93,15 @@ async function main() {
           negotiationPrefs: { minRate: 800, openToNegotiate: true }
         }
       }
-    }
+    },
+    include: { bandProfile: true }
   });
 
-  await prisma.user.create({
+  await prisma.bandMember.create({
+    data: { bandId: band3.bandProfile!.id, userId: band3.id, role: 'OWNER' }
+  });
+
+  const band4 = await prisma.user.create({
     data: {
       auth0Id: 'seed_band_4',
       email: 'dj@test.com',
@@ -105,10 +120,15 @@ async function main() {
           negotiationPrefs: { minRate: 1200, openToNegotiate: false }
         }
       }
-    }
+    },
+    include: { bandProfile: true }
   });
 
-  await prisma.user.create({
+  await prisma.bandMember.create({
+    data: { bandId: band4.bandProfile!.id, userId: band4.id, role: 'OWNER' }
+  });
+
+  const band5 = await prisma.user.create({
     data: {
       auth0Id: 'seed_band_5',
       email: 'country@test.com',
@@ -127,13 +147,18 @@ async function main() {
           negotiationPrefs: { minRate: 400, openToNegotiate: true }
         }
       }
-    }
+    },
+    include: { bandProfile: true }
+  });
+
+  await prisma.bandMember.create({
+    data: { bandId: band5.bandProfile!.id, userId: band5.id, role: 'OWNER' }
   });
 
 
   // --- VENUES ---
 
-  await prisma.user.create({
+  const venue1 = await prisma.user.create({
     data: {
       auth0Id: 'seed_venue_1',
       email: 'venue@test.com',
@@ -152,10 +177,15 @@ async function main() {
           negotiationPrefs: { minRate: 1000, openToNegotiate: true }
         }
       }
-    }
+    },
+    include: { venueProfile: true }
   });
 
-  await prisma.user.create({
+  await prisma.venueMember.create({
+    data: { venueId: venue1.venueProfile!.id, userId: venue1.id, role: 'OWNER' }
+  });
+
+  const venue2 = await prisma.user.create({
     data: {
       auth0Id: 'seed_venue_2',
       email: 'divebar@test.com',
@@ -173,10 +203,15 @@ async function main() {
           negotiationPrefs: { minRate: 0, openToNegotiate: true } // Door deal
         }
       }
-    }
+    },
+    include: { venueProfile: true }
   });
 
-  await prisma.user.create({
+  await prisma.venueMember.create({
+    data: { venueId: venue2.venueProfile!.id, userId: venue2.id, role: 'OWNER' }
+  });
+
+  const venue3 = await prisma.user.create({
     data: {
       auth0Id: 'seed_venue_3',
       email: 'club@test.com',
@@ -195,7 +230,12 @@ async function main() {
           negotiationPrefs: { minRate: 800, openToNegotiate: false }
         }
       }
-    }
+    },
+    include: { venueProfile: true }
+  });
+
+  await prisma.venueMember.create({
+    data: { venueId: venue3.venueProfile!.id, userId: venue3.id, role: 'OWNER' }
   });
 
   console.log('Seed complete! Added 5 Bands and 3 Venues.');

@@ -61,6 +61,11 @@ export function Navbar() {
               <span className="flex items-center gap-2">
                 <LayoutDashboard className="w-3 h-3" />
                 Dashboard
+                {dbUser?.isPaid && (
+                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-[8px] text-black font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">
+                    PRO
+                  </span>
+                )}
               </span>
               <span className="text-[9px] lowercase tracking-tight text-zinc-500 max-w-[100px] truncate">
                 {dbUser?.name || user.name || user.nickname || user.email}
@@ -135,7 +140,14 @@ export function Navbar() {
             <Link href="/about" className="hover:text-white transition-colors" onClick={() => setIsMenuOpen(false)}>About</Link>
             <Link href="/contact" className="hover:text-white transition-colors" onClick={() => setIsMenuOpen(false)}>Contact</Link>
             {user && (
-              <Link href="/profile" className="text-purple-400" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+              <Link href="/profile" className="text-purple-400 flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                Dashboard
+                {dbUser?.isPaid && (
+                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-[8px] text-black font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">
+                    PRO
+                  </span>
+                )}
+              </Link>
             )}
           </div>
 

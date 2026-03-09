@@ -41,39 +41,31 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
 
       alert(`Stripe Billing is not yet connected for ${role}s. 
 Missing environment variable: ${missingVar}
-Current Value: ${activePriceId || 'undefined'}
-
-Please ensure this is set in Vercel and that you have triggered a NEW DEPLOYMENT after saving.`);
+Current Value: ${activePriceId || 'undefined'}`);
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId: activePriceId }),
-      });
+      // Create FormData to pass to the Server Action
+      const formData = new FormData();
+      formData.append('priceId', activePriceId);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
-        }
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error(data.error || 'Failed to create checkout session');
-      }
+      // Import the server action dynamically to avoid SSR issues if necessary, 
+      // but standard import is usually fine in Next.js 14/15
+      const { createUpgradeSession } = await import('@/app/actions/stripe');
+      await createUpgradeSession(formData);
     } catch (error: unknown) {
+      // Note: Server actions that redirect throw a special error that Next.js catches.
+      // If we catch it here, we might interfere with the redirect.
+      // However, createUpgradeSession calls redirect() which should stop execution.
       const errorMessage = error instanceof Error ? error.message : 'Check Stripe configuration.';
+
+      // If the error is a redirect error, we should let it bubble up
+      if (errorMessage === 'NEXT_REDIRECT') {
+        throw error;
+      }
+
       console.error('Upgrade Error:', error);
       alert(`Checkout Error: ${errorMessage}`);
     } finally {
@@ -86,11 +78,10 @@ Please ensure this is set in Vercel and that you have triggered a NEW DEPLOYMENT
       <button
         onClick={handleUpgrade}
         disabled={loading}
-        className={`w-full py-3 px-6 rounded-xl font-black uppercase italic tracking-tighter text-xs transition-all transform hover:scale-105 active:scale-95 shadow-2xl flex items-center justify-center gap-3 bg-gradient-to-r ${
-          role === 'BAND' 
-            ? 'from-purple-600 to-blue-500 shadow-purple-900/40' 
+        className={`w-full py-3 px-6 rounded-xl font-black uppercase italic tracking-tighter text-xs transition-all transform hover:scale-105 active:scale-95 shadow-2xl flex items-center justify-center gap-3 bg-gradient-to-r ${role === 'BAND'
+            ? 'from-purple-600 to-blue-500 shadow-purple-900/40'
             : 'from-blue-600 to-cyan-500 shadow-blue-900/40'
-        } ${loading ? 'opacity-50 cursor-not-allowed' : ''} text-white border border-white/10`}
+          } ${loading ? 'opacity-50 cursor-not-allowed' : ''} text-white border border-white/10`}
       >
         <Rocket className={`w-4 h-4 ${loading ? 'animate-ping' : 'animate-pulse'}`} />
         {loading ? 'SYNCING...' : `UPGRADE TO ${role === 'BAND' ? 'ARTIST BIZ' : 'VENUE PRO'}`}
@@ -117,7 +108,7 @@ Please ensure this is set in Vercel and that you have triggered a NEW DEPLOYMENT
             </p>
           </div>
         </div>
-        
+
         {/* Pointer triangle */}
         <div className="absolute -top-2 right-12 w-4 h-4 bg-zinc-900 border-t border-l border-zinc-800 rotate-45" />
       </div>
