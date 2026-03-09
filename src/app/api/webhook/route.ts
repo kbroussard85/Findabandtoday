@@ -17,9 +17,10 @@ export async function POST(req: Request) {
 
     try {
         event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } catch (err: any) {
-        console.error(`[STRIPE-WEBHOOK] Error verifying signature: ${err.message}`);
-        return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        console.error(`[STRIPE-WEBHOOK] Error verifying signature: ${errorMessage}`);
+        return NextResponse.json({ error: `Webhook Error: ${errorMessage}` }, { status: 400 });
     }
 
     console.log(`[STRIPE-WEBHOOK] Received event: ${event.type}`);
@@ -30,7 +31,6 @@ export async function POST(req: Request) {
         // This is the ID we passed in the Server Action: client_reference_id
         const userId = session.client_reference_id;
         const stripeCustomerId = session.customer as string;
-        const subscriptionId = session.subscription as string;
 
         if (!userId) {
             console.error('[STRIPE-WEBHOOK] Missing client_reference_id in session');
