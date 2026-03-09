@@ -4,55 +4,43 @@ const prismaClientSingleton = () => {
   return new PrismaClient().$extends({
     model: {
       band: {
-        async findNearby(lat: number, lng: number, radiusMeters: number, query?: string, limit: number = 20, offset: number = 0) {
-          if (query) {
-            return prisma.$queryRaw`
-              SELECT id, name, lat, lng, bio, media, availability, "negotiationPrefs", "audioUrlPreview"
-              FROM "Band"
-              WHERE ST_DWithin(
-                location,
-                ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
-                ${radiusMeters}
-              )
-              AND (name ILIKE ${`%${query}%`} OR bio ILIKE ${`%${query}%`})
-              LIMIT ${limit} OFFSET ${offset}
-            `;
-          }
+        async findNearby(lat: number, lng: number, radiusMeters: number, query?: string, genre?: string, limit: number = 20, offset: number = 0) {
+          const queryPart = query ? `%${query}%` : null;
+          const genrePart = genre || null;
+
           return prisma.$queryRaw`
-            SELECT id, name, lat, lng, bio, media, availability, "negotiationPrefs", "audioUrlPreview"
-            FROM "Band"
+            SELECT DISTINCT b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview"
+            FROM "Band" b
+            LEFT JOIN "_BandGenres" bg ON b.id = bg."A"
+            LEFT JOIN "Genre" g ON bg."B" = g.id
             WHERE ST_DWithin(
-              location,
+              b.location,
               ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
               ${radiusMeters}
             )
+            AND (${queryPart} IS NULL OR b.name ILIKE ${queryPart} OR b.bio ILIKE ${queryPart})
+            AND (${genrePart} IS NULL OR g.name = ${genrePart})
             LIMIT ${limit} OFFSET ${offset}
           `;
         },
       },
       venue: {
-        async findNearby(lat: number, lng: number, radiusMeters: number, query?: string, limit: number = 20, offset: number = 0) {
-          if (query) {
-            return prisma.$queryRaw`
-              SELECT id, name, lat, lng, capacity, bio, media, availability, "negotiationPrefs"
-              FROM "Venue"
-              WHERE ST_DWithin(
-                location,
-                ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
-                ${radiusMeters}
-              )
-              AND (name ILIKE ${`%${query}%`} OR bio ILIKE ${`%${query}%`})
-              LIMIT ${limit} OFFSET ${offset}
-            `;
-          }
+        async findNearby(lat: number, lng: number, radiusMeters: number, query?: string, genre?: string, limit: number = 20, offset: number = 0) {
+          const queryPart = query ? `%${query}%` : null;
+          const genrePart = genre || null;
+
           return prisma.$queryRaw`
-            SELECT id, name, lat, lng, capacity, bio, media, availability, "negotiationPrefs"
-            FROM "Venue"
+            SELECT DISTINCT v.id, v.name, v.lat, v.lng, v.capacity, v.bio, v.media
+            FROM "Venue" v
+            LEFT JOIN "_VenueGenres" vg ON v.id = vg."A"
+            LEFT JOIN "Genre" g ON vg."B" = g.id
             WHERE ST_DWithin(
-              location,
+              v.location,
               ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
               ${radiusMeters}
             )
+            AND (${queryPart} IS NULL OR v.name ILIKE ${queryPart} OR v.bio ILIKE ${queryPart})
+            AND (${genrePart} IS NULL OR g.name = ${genrePart})
             LIMIT ${limit} OFFSET ${offset}
           `;
         },

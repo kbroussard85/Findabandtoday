@@ -9,6 +9,7 @@ export async function GET(req: Request) {
   const radiusParam = searchParams.get('radius') || '50';
   const roleParam = searchParams.get('role') || 'BAND';
   const queryParam = searchParams.get('q');
+  const genreParam = searchParams.get('genre');
   const limitParam = searchParams.get('limit') || '20';
   const offsetParam = searchParams.get('offset') || '0';
 
@@ -53,9 +54,25 @@ export async function GET(req: Request) {
     }>;
 
     if (roleParam.toUpperCase() === 'BAND') {
-      results = await prisma.band.findNearby(lat, lng, radiusInMeters, queryParam || undefined, limit, offset) as typeof results;
+      results = await prisma.band.findNearby(
+        lat, 
+        lng, 
+        radiusInMeters, 
+        queryParam || undefined, 
+        genreParam || undefined,
+        limit, 
+        offset
+      ) as typeof results;
     } else {
-      results = await prisma.venue.findNearby(lat, lng, radiusInMeters, queryParam || undefined, limit, offset) as typeof results;
+      results = await prisma.venue.findNearby(
+        lat, 
+        lng, 
+        radiusInMeters, 
+        queryParam || undefined, 
+        genreParam || undefined,
+        limit, 
+        offset
+      ) as typeof results;
     }
 
     // GATING LOGIC: If not premium, strip sensitive data before sending

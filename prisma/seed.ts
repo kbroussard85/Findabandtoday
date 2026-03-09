@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, AvailabilityStatus } from '@prisma/client';
 import { SUBSCRIPTION_TIERS } from '../src/lib/constants/tiers';
 
 const prisma = new PrismaClient();
@@ -6,9 +6,24 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Cleaning up database...');
   await prisma.gig.deleteMany();
+  await prisma.availability.deleteMany();
+  await prisma.bandMember.deleteMany();
+  await prisma.venueMember.deleteMany();
   await prisma.band.deleteMany();
   await prisma.venue.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.genre.deleteMany();
+
+  console.log('Seeding genres...');
+  const genres = await Promise.all([
+    prisma.genre.create({ data: { name: 'Rock' } }),
+    prisma.genre.create({ data: { name: 'Blues' } }),
+    prisma.genre.create({ data: { name: 'Country' } }),
+    prisma.genre.create({ data: { name: 'Jazz' } }),
+    prisma.genre.create({ data: { name: 'Electronic' } }),
+    prisma.genre.create({ data: { name: 'Indie' } }),
+    prisma.genre.create({ data: { name: 'Metal' } }),
+  ]);
 
   console.log('Seeding extended Nashville/Regional test data...');
 
@@ -32,10 +47,14 @@ async function main() {
           media: [
             { url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', type: 'audio', title: 'Studio Session' }
           ],
-          availability: {
-            bookedDates: [new Date(2026, 2, 28).toISOString(), new Date(2026, 3, 1).toISOString()]
+          availabilities: {
+            create: [
+              { eventDate: new Date(2026, 2, 28), status: AvailabilityStatus.BOOKED },
+              { eventDate: new Date(2026, 3, 1), status: AvailabilityStatus.BOOKED }
+            ]
           },
-          negotiationPrefs: { minRate: 500, openToNegotiate: true }
+          negotiationPrefs: { minRate: 500, openToNegotiate: true },
+          genres: { connect: [{ id: genres.find(g => g.name === 'Blues')?.id }] }
         }
       }
     },
@@ -61,8 +80,8 @@ async function main() {
           searchRadius: 50,
           audioUrlPreview: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
           media: [],
-          availability: { bookedDates: [] },
-          negotiationPrefs: { minRate: 200, openToNegotiate: false }
+          negotiationPrefs: { minRate: 200, openToNegotiate: false },
+          genres: { connect: [{ id: genres.find(g => g.name === 'Indie')?.id }] }
         }
       }
     },
@@ -89,8 +108,8 @@ async function main() {
           searchRadius: 250,
           audioUrlPreview: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
           media: [],
-          availability: { bookedDates: [] },
-          negotiationPrefs: { minRate: 800, openToNegotiate: true }
+          negotiationPrefs: { minRate: 800, openToNegotiate: true },
+          genres: { connect: [{ id: genres.find(g => g.name === 'Metal')?.id }] }
         }
       }
     },
@@ -116,8 +135,8 @@ async function main() {
           searchRadius: 500,
           audioUrlPreview: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
           media: [],
-          availability: { bookedDates: [] },
-          negotiationPrefs: { minRate: 1200, openToNegotiate: false }
+          negotiationPrefs: { minRate: 1200, openToNegotiate: false },
+          genres: { connect: [{ id: genres.find(g => g.name === 'Electronic')?.id }] }
         }
       }
     },
@@ -143,8 +162,8 @@ async function main() {
           searchRadius: 100,
           audioUrlPreview: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
           media: [],
-          availability: { bookedDates: [] },
-          negotiationPrefs: { minRate: 400, openToNegotiate: true }
+          negotiationPrefs: { minRate: 400, openToNegotiate: true },
+          genres: { connect: [{ id: genres.find(g => g.name === 'Country')?.id }] }
         }
       }
     },
@@ -173,8 +192,8 @@ async function main() {
           lng: -86.7775,
           capacity: 500,
           media: [],
-          availability: { bookedDates: [] },
-          negotiationPrefs: { minRate: 1000, openToNegotiate: true }
+          negotiationPrefs: { minRate: 1000, openToNegotiate: true },
+          genres: { connect: [{ id: genres.find(g => g.name === 'Country')?.id }, { id: genres.find(g => g.name === 'Rock')?.id }] }
         }
       }
     },
@@ -199,8 +218,8 @@ async function main() {
           lng: -86.7550, // East Nashville
           capacity: 400,
           media: [],
-          availability: { bookedDates: [] },
-          negotiationPrefs: { minRate: 0, openToNegotiate: true } // Door deal
+          negotiationPrefs: { minRate: 0, openToNegotiate: true },
+          genres: { connect: [{ id: genres.find(g => g.name === 'Indie')?.id }, { id: genres.find(g => g.name === 'Rock')?.id }] }
         }
       }
     },
@@ -226,8 +245,8 @@ async function main() {
           lng: -86.7970, // Church St
           capacity: 600,
           media: [],
-          availability: { bookedDates: [] },
-          negotiationPrefs: { minRate: 800, openToNegotiate: false }
+          negotiationPrefs: { minRate: 800, openToNegotiate: false },
+          genres: { connect: [{ id: genres.find(g => g.name === 'Electronic')?.id }] }
         }
       }
     },
@@ -238,7 +257,7 @@ async function main() {
     data: { venueId: venue3.venueProfile!.id, userId: venue3.id, role: 'OWNER' }
   });
 
-  console.log('Seed complete! Added 5 Bands and 3 Venues.');
+  console.log('Seed complete! Added 5 Bands and 3 Venues with Genres.');
 
   console.log('Updating geospatial location fields...');
   await prisma.$executeRawUnsafe(`UPDATE "Band" SET location = ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography WHERE lat IS NOT NULL AND lng IS NOT NULL`);

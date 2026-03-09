@@ -7,11 +7,12 @@ interface DiscoveryParams {
   radius: number;
   role: 'BAND' | 'VENUE';
   query?: string;
+  genre?: string;
 }
 
 const LIMIT = 20;
 
-export function useDiscovery({ lat, lng, radius, role, query }: DiscoveryParams) {
+export function useDiscovery({ lat, lng, radius, role, query, genre }: DiscoveryParams) {
   const [data, setData] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -33,8 +34,9 @@ export function useDiscovery({ lat, lng, radius, role, query }: DiscoveryParams)
     setError(null);
     try {
       const qParam = query ? `&q=${encodeURIComponent(query)}` : '';
+      const gParam = genre ? `&genre=${encodeURIComponent(genre)}` : '';
       const response = await fetch(
-        `/api/discovery?lat=${lat}&lng=${lng}&radius=${radius}&role=${role}&limit=${LIMIT}&offset=${currentOffset}${qParam}`
+        `/api/discovery?lat=${lat}&lng=${lng}&radius=${radius}&role=${role}&limit=${LIMIT}&offset=${currentOffset}${qParam}${gParam}`
       );
       
       if (!response.ok) {
@@ -59,7 +61,7 @@ export function useDiscovery({ lat, lng, radius, role, query }: DiscoveryParams)
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [lat, lng, radius, role, query]);
+  }, [lat, lng, radius, role, query, genre]);
 
   useEffect(() => {
     fetchDiscovery(0, true);

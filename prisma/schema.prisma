@@ -35,17 +35,20 @@ model Band {
   lat              Float?
   lng              Float?
   location         Unsupported("geography")?
+  city             String?
   searchRadius     Int                       @default(50)
   audioUrlPreview  String?
   audioUrlFull     String?
   taxStatus        Boolean                   @default(false)
-  availability     Json?
   bio              String?
   media            Json?
   negotiationPrefs Json?
+  socialLinks      Json?                     @default("{\"instagram\": \"\", \"twitter\": \"\", \"spotify\": \"\", \"website\": \"\"}")
   user             User                      @relation(fields: [userId], references: [id])
   members          BandMember[]
   gigs             Gig[]
+  availabilities   Availability[]
+  genres           Genre[]                   @relation("BandGenres")
 
   @@index([location], type: Gist)
 }
@@ -57,16 +60,26 @@ model Venue {
   lat              Float?
   lng              Float?
   location         Unsupported("geography")?
+  city             String?
   capacity         Int?
-  availability     Json?
   bio              String?
   media            Json?
   negotiationPrefs Json?
+  socialLinks      Json?                     @default("{\"instagram\": \"\", \"twitter\": \"\", \"spotify\": \"\", \"website\": \"\"}")
   gigs             Gig[]
   user             User                      @relation(fields: [userId], references: [id])
   members          VenueMember[]
+  availabilities   Availability[]
+  genres           Genre[]                   @relation("VenueGenres")
 
   @@index([location], type: Gist)
+}
+
+model Genre {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  bands  Band[]  @relation("BandGenres")
+  venues Venue[] @relation("VenueGenres")
 }
 
 model BandMember {
@@ -95,6 +108,20 @@ model VenueMember {
   @@unique([venueId, userId])
 }
 
+model Availability {
+  id          String             @id @default(cuid())
+  bandId      String?
+  venueId     String?
+  eventDate   DateTime
+  status      AvailabilityStatus @default(AVAILABLE)
+  description String?
+  createdAt   DateTime           @default(now())
+  band        Band?              @relation(fields: [bandId], references: [id], onDelete: Cascade)
+  venue       Venue?             @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([eventDate])
+}
+
 model Gig {
   id                    String            @id @default(cuid())
   contractUrl           String?
@@ -108,6 +135,7 @@ model Gig {
   totalAmount           Float
   updatedAt             DateTime          @updatedAt
   status                GigStatus         @default(DRAFT)
+  engagementType        EngagementType    @default(REQUEST)
   depositPaid           Boolean           @default(false)
   holdExpiresAt         DateTime?
   stripePaymentIntentId String?           @unique
@@ -178,6 +206,9 @@ enum MemberRole {
 
 enum GigStatus {
   DRAFT
+  SUBMISSION
+  REQUEST
+  PENDING_APPROVAL
   OFFER_SENT
   COUNTER_OFFER
   ACCEPTED
@@ -187,6 +218,18 @@ enum GigStatus {
   CANCELLED
   ESCROW_HOLD
   CONFIRMED
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  BOOKED
+  PAST
+  CONFIRMED
+}
+
+enum EngagementType {
+  SUBMISSION
+  REQUEST
 }
 
 enum UserRole {

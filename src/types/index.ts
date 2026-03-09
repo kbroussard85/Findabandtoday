@@ -4,6 +4,11 @@ export interface MediaItem {
   name?: string;
 }
 
+export interface Genre {
+  id: string;
+  name: string;
+}
+
 export interface Artist {
   id: string;
   name: string;
@@ -11,6 +16,7 @@ export interface Artist {
   audioUrlPreview?: string | null;
   media?: MediaItem[] | null;
   backlineInfo?: string | null;
+  genres?: Genre[] | null;
   negotiationPrefs?: {
     minRate?: number;
     openToNegotiate?: boolean;

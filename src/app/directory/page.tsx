@@ -5,7 +5,11 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { DiscoveryGrid } from '@/components/discovery/DiscoveryGrid';
 import { useSearchParams } from 'next/navigation';
 import { MaximizerPicks } from '@/components/ai/MaximizerPicks';
-import { MapPin, Navigation, Search, Loader2 } from 'lucide-react';
+import { MapPin, Navigation, Search, Loader2, Music } from 'lucide-react';
+
+const POPULAR_GENRES = [
+  'Rock', 'Blues', 'Country', 'Jazz', 'Electronic', 'Indie', 'Metal', 'Pop', 'R&B', 'Folk'
+];
 
 function DirectoryContent() {
   const searchParams = useSearchParams();
@@ -14,6 +18,7 @@ function DirectoryContent() {
   const { lat, lng, loading: geoLoading, error: geoError, permissionStatus, getLocation, setManualLocation } = useGeolocation();
   const [radius, setRadius] = useState<number>(50);
   const [role, setRole] = useState<'BAND' | 'VENUE'>('BAND');
+  const [genre, setGenre] = useState<string>('');
   const [citySearch, setCitySearch] = useState('');
   const [isGeocoding, setIsGeocoding] = useState(false);
 
@@ -22,6 +27,7 @@ function DirectoryContent() {
     lng, 
     radius, 
     role,
+    genre: genre || undefined,
     query: q || undefined 
   });
 
@@ -135,32 +141,73 @@ function DirectoryContent() {
       <MaximizerPicks lat={lat} lng={lng} radius={radius} />
       
       {/* Filters Bar */}
-      <div className="bg-zinc-900/50 border border-zinc-800 p-6 lg:p-8 rounded-3xl backdrop-blur-sm flex flex-col md:flex-row gap-8 items-center justify-between">
-        <div className="flex flex-col gap-4 w-full md:w-1/2">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Search Radius</span>
-            <span className="text-sm font-mono text-purple-400 font-bold">{radius} MILES</span>
+      <div className="space-y-6">
+        <div className="bg-zinc-900/50 border border-zinc-800 p-6 lg:p-8 rounded-3xl backdrop-blur-sm flex flex-col md:flex-row gap-8 items-center justify-between">
+          <div className="flex flex-col gap-4 w-full md:w-1/3">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Search Radius</span>
+              <span className="text-sm font-mono text-purple-400 font-bold">{radius} MILES</span>
+            </div>
+            <input 
+              type="range" 
+              min="5" 
+              max="500" 
+              value={radius} 
+              onChange={(e) => setRadius(Number(e.target.value))} 
+              className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+            />
           </div>
-          <input 
-            type="range" 
-            min="5" 
-            max="500" 
-            value={radius} 
-            onChange={(e) => setRadius(Number(e.target.value))} 
-            className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
-          />
+          
+          <div className="flex flex-col gap-2 w-full md:w-auto">
+            <span className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2 text-center md:text-left">Category</span>
+            <div className="flex bg-zinc-800 p-1 rounded-xl">
+              <button 
+                onClick={() => setRole('BAND')}
+                className={`px-6 py-2 rounded-lg text-xs font-black uppercase italic transition-all ${role === 'BAND' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Bands
+              </button>
+              <button 
+                onClick={() => setRole('VENUE')}
+                className={`px-6 py-2 rounded-lg text-xs font-black uppercase italic transition-all ${role === 'VENUE' ? 'bg-blue-600 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Venues
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 w-full md:w-auto">
+            <span className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2 text-center md:text-left">Filter by Genre</span>
+            <select 
+              value={genre} 
+              onChange={(e) => setGenre(e.target.value)}
+              className="bg-zinc-800 border-none rounded-xl px-6 py-3 font-bold uppercase italic text-sm focus:ring-2 focus:ring-purple-500 transition-all outline-none min-w-[180px]"
+            >
+              <option value="">All Genres</option>
+              {POPULAR_GENRES.map(g => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        
-        <div className="flex flex-col gap-2 w-full md:w-auto">
-          <span className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">Category</span>
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value as 'BAND' | 'VENUE')}
-            className="bg-zinc-800 border-none rounded-xl px-6 py-3 font-bold uppercase italic text-sm focus:ring-2 focus:ring-purple-500 transition-all outline-none"
+
+        {/* Quick Genre Chips */}
+        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+          <button 
+            onClick={() => setGenre('')}
+            className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${genre === '' ? 'bg-white text-black border-white' : 'bg-zinc-900 text-zinc-500 border-zinc-800 hover:border-zinc-700'}`}
           >
-            <option value="BAND">Looking for Bands</option>
-            <option value="VENUE">Looking for Venues</option>
-          </select>
+            All
+          </button>
+          {POPULAR_GENRES.map(g => (
+            <button 
+              key={g}
+              onClick={() => setGenre(g)}
+              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${genre === g ? 'bg-purple-600 text-white border-purple-600' : 'bg-zinc-900 text-zinc-500 border-zinc-800 hover:border-zinc-700'}`}
+            >
+              {g}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -182,13 +229,23 @@ function DirectoryContent() {
         )}
         
         {!loading && !error && (
-          <DiscoveryGrid 
-            items={data} 
-            isPremium={isPremium} 
-            onLoadMore={loadMore}
-            hasMore={hasMore}
-            isLoadingMore={loadingMore}
-          />
+          <>
+            {data.length === 0 ? (
+              <div className="p-20 text-center space-y-4">
+                <Music className="mx-auto text-zinc-800" size={60} />
+                <h3 className="text-2xl font-black uppercase italic text-zinc-600">No matches found</h3>
+                <p className="text-zinc-500">Try expanding your radius or selecting a different genre.</p>
+              </div>
+            ) : (
+              <DiscoveryGrid 
+                items={data} 
+                isPremium={isPremium} 
+                onLoadMore={loadMore}
+                hasMore={hasMore}
+                isLoadingMore={loadingMore}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
