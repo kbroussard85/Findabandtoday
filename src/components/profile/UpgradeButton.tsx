@@ -51,23 +51,17 @@ Current Value: ${activePriceId || 'undefined'}`);
       const formData = new FormData();
       formData.append('priceId', activePriceId);
 
-      // Import the server action dynamically to avoid SSR issues if necessary, 
-      // but standard import is usually fine in Next.js 14/15
       const { createUpgradeSession } = await import('@/app/actions/stripe');
       await createUpgradeSession(formData);
-    } catch (error: unknown) {
-      // Note: Server actions that redirect throw a special error that Next.js catches.
-      // If we catch it here, we might interfere with the redirect.
-      // However, createUpgradeSession calls redirect() which should stop execution.
-      const errorMessage = error instanceof Error ? error.message : 'Check Stripe configuration.';
-
-      // If the error is a redirect error, we should let it bubble up
-      if (errorMessage === 'NEXT_REDIRECT') {
+    } catch (error: any) {
+      // CRITICAL: Next.js redirect() throws an error that should NOT be caught here
+      // if we want the browser to actually redirect.
+      if (error.message === 'NEXT_REDIRECT') {
         throw error;
       }
-
+      
       console.error('Upgrade Error:', error);
-      alert(`Checkout Error: ${errorMessage}`);
+      alert(`Checkout Error: ${error.message || 'Check Stripe configuration.'}`);
     } finally {
       setLoading(false);
     }
@@ -79,12 +73,12 @@ Current Value: ${activePriceId || 'undefined'}`);
         onClick={handleUpgrade}
         disabled={loading}
         className={`w-full py-3 px-6 rounded-xl font-black uppercase italic tracking-tighter text-xs transition-all transform hover:scale-105 active:scale-95 shadow-2xl flex items-center justify-center gap-3 bg-gradient-to-r ${role === 'BAND'
-            ? 'from-purple-600 to-blue-500 shadow-purple-900/40'
-            : 'from-blue-600 to-cyan-500 shadow-blue-900/40'
+          ? 'from-purple-600 to-blue-500 shadow-purple-900/40'
+          : 'from-blue-600 to-cyan-500 shadow-blue-900/40'
           } ${loading ? 'opacity-50 cursor-not-allowed' : ''} text-white border border-white/10`}
       >
         <Rocket className={`w-4 h-4 ${loading ? 'animate-ping' : 'animate-pulse'}`} />
-        {loading ? 'SYNCING...' : `UPGRADE TO ${role === 'BAND' ? 'ARTIST BIZ' : 'VENUE PRO'}`}
+        {loading ? 'SYNCING...' : `UPGRADE TO ${role === 'BAND' ? 'ARTIST BIZ' : 'VENUE PRO'} 🚀`}
       </button>
 
       {/* UX Popover on Hover (Desktop) */}
