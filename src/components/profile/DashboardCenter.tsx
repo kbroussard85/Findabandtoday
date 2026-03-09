@@ -15,9 +15,9 @@ interface DashboardCenterProps {
     id: string;
     auth0Id: string;
     role: 'BAND' | 'VENUE';
-    name?: string;
+    name?: string | null;
     isPaid: boolean;
-    subscriptionTier?: string;
+    subscriptionTier?: string | null;
     /* eslint-disable @typescript-eslint/no-explicit-any */
     bandProfile?: any;
     venueProfile?: any;
