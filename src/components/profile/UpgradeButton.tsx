@@ -79,7 +79,7 @@ Current Value: ${activePriceId || 'undefined'}`);
           } ${loading ? 'opacity-50 cursor-not-allowed' : ''} text-white border border-white/10`}
       >
         <Rocket className={`w-4 h-4 ${loading ? 'animate-ping' : 'animate-pulse'}`} />
-        {loading ? 'SYNCING...' : `UPGRADE TO ${role === 'BAND' ? 'ARTIST BIZ' : 'VENUE PRO'} 🚀`}
+        {loading ? 'SYNCING...' : `UPGRADE TO PRO 🚀`}
       </button>
 
       {/* UX Popover on Hover (Desktop) */}
