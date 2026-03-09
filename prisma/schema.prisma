@@ -31,12 +31,14 @@ model User {
 
 model ArtistMedia {
   id        String   @id @default(cuid())
-  userId    String
-  fileUrl   String
-  fileType  String   // 'image' or 'audio'
-  isPrimary Boolean  @default(false)
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artistId  String   @map("artist_id")
+  fileUrl   String   @map("file_url")
+  fileType  String   @map("file_type") // 'image' or 'audio'
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@map("artist_media")
 }
 
 model Band {
