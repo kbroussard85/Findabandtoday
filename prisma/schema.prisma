@@ -26,6 +26,17 @@ model User {
   bandMemberships    BandMember[]
   venueProfile       Venue?
   venueMemberships   VenueMember[]
+  artistMedia        ArtistMedia[]
+}
+
+model ArtistMedia {
+  id        String   @id @default(cuid())
+  userId    String
+  fileUrl   String
+  fileType  String   // 'image' or 'audio'
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Band {

@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { UploadDropzone } from '@/lib/uploadthing';
+import { Music, Upload, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { AudioPlayer } from '../ui/AudioPlayer';
 
 interface MediaItem {
   url: string;
@@ -16,6 +18,7 @@ interface ProfileData {
     openToNegotiate?: boolean;
   } | null;
   media?: MediaItem[] | null;
+  audioUrlPreview?: string | null;
 }
 
 interface ProfileEditorProps {
@@ -30,8 +33,12 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   const [minRate, setMinRate] = useState(initialData?.negotiationPrefs?.minRate || '');
   const [openToNegotiate, setOpenToNegotiate] = useState(initialData?.negotiationPrefs?.openToNegotiate ?? true);
   const [media, setMedia] = useState<MediaItem[]>(initialData?.media || []);
+  const [audioUrlPreview, setAudioUrlPreview] = useState(initialData?.audioUrlPreview || '');
+  
   const [saving, setSaving] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
   const [message, setMessage] = useState('');
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +65,42 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       setMessage('Error saving profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingAudio(true);
+    setMessage('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/artist/upload-audio', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setAudioUrlPreview(data.url);
+        // Add to media list if not already there
+        const newMediaItem = { url: data.url, type: 'audio', name: file.name };
+        setMedia(prev => [...prev, newMediaItem]);
+        setMessage('Audio uploaded to Supabase!');
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
+    } catch (err: any) {
+      console.error('Audio upload error:', err);
+      setMessage(`Upload Error: ${err.message}`);
+    } finally {
+      setUploadingAudio(false);
+      if (audioInputRef.current) audioInputRef.current.value = '';
     }
   };
 
@@ -118,18 +161,61 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           {saving ? 'Syncing...' : 'Save Profile Changes'}
         </button>
         {message && (
-          <p className={`text-center font-bold uppercase italic text-sm tracking-tight ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
+          <div className={`flex items-center justify-center gap-2 font-bold uppercase italic text-sm tracking-tight ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
+            {message.includes('Error') ? <XCircle size={16} /> : <CheckCircle size={16} />}
             {message}
-          </p>
+          </div>
         )}
       </form>
+
+      {/* Audio Upload Section (Supabase Integration) */}
+      <div className="space-y-6 pt-12 border-t border-zinc-800">
+        <div className="flex items-center gap-4 mb-2">
+          <Music className="text-purple-500" size={20} />
+          <h2 className="text-xl font-black uppercase italic tracking-tight">Audio Showcase</h2>
+        </div>
+        
+        <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm space-y-6">
+          {audioUrlPreview && (
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Current Active Preview</span>
+              <AudioPlayer src={audioUrlPreview} title={`${name} - Active Demo`} />
+            </div>
+          )}
+
+          <div className="relative group">
+            <input 
+              type="file" 
+              accept="audio/*" 
+              onChange={handleAudioUpload}
+              ref={audioInputRef}
+              className="hidden"
+            />
+            <button
+              onClick={() => audioInputRef.current?.click()}
+              disabled={uploadingAudio}
+              className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group"
+            >
+              <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                {uploadingAudio ? <Loader2 className="animate-spin text-white" /> : <Upload className="text-zinc-400 group-hover:text-white" />}
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-black uppercase italic tracking-widest text-white">
+                  {uploadingAudio ? 'Uploading to Supabase...' : 'Upload New Audio Demo'}
+                </p>
+                <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">MP3, WAV, or OGG up to 10MB</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="relative py-12">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
           <div className="w-full border-t border-zinc-800"></div>
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-black px-6 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Gallery & Media</span>
+          <span className="bg-black px-6 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Visual Gallery</span>
         </div>
       </div>
 
@@ -160,7 +246,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           {media.map((item, idx) => (
             <div key={idx} className="group relative bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 aspect-square hover:border-zinc-700 transition-all">
               <span className="text-2xl filter grayscale group-hover:grayscale-0 transition-all">
-                {item.type.includes('video') ? '🎬' : '🎵'}
+                {item.type.includes('image') ? '📸' : (item.type.includes('video') ? '🎬' : '🎵')}
               </span>
               <p className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500 text-center line-clamp-1 w-full">{item.name}</p>
               <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500"></div>
