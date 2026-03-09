@@ -53,15 +53,16 @@ Current Value: ${activePriceId || 'undefined'}`);
 
       const { createUpgradeSession } = await import('@/app/actions/stripe');
       await createUpgradeSession(formData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // CRITICAL: Next.js redirect() throws an error that should NOT be caught here
       // if we want the browser to actually redirect.
-      if (error.message === 'NEXT_REDIRECT') {
+      if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
         throw error;
       }
       
+      const errorMessage = error instanceof Error ? error.message : 'Check Stripe configuration.';
       console.error('Upgrade Error:', error);
-      alert(`Checkout Error: ${error.message || 'Check Stripe configuration.'}`);
+      alert(`Checkout Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
