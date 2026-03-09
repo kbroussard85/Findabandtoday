@@ -96,7 +96,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       } else {
         throw new Error(data.error || 'Upload failed');
       }
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       console.error('Audio upload error:', err);
       setMessage(`Upload Error: ${err.message}`);
     } finally {
