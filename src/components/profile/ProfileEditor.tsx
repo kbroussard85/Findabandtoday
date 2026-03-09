@@ -28,6 +28,7 @@ interface ProfileEditorProps {
 }
 
 export function ProfileEditor({ initialData, role, userName }: ProfileEditorProps) {
+  console.log('ProfileEditor debug - Initial Audio:', initialData?.audioUrlPreview);
   const [name, setName] = useState(userName);
   const [bio, setBio] = useState(initialData?.bio || '');
   const [minRate, setMinRate] = useState(initialData?.negotiationPrefs?.minRate || '');
@@ -169,7 +170,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       </form>
 
       {/* Audio Upload Section (Supabase Integration) */}
-      <div className="space-y-6 pt-12 border-t border-zinc-800">
+      <div id="audio-showcase-section" className="space-y-6 pt-12 border-t border-zinc-800">
         <div className="flex items-center gap-4 mb-2">
           <Music className="text-purple-500" size={20} />
           <h2 className="text-xl font-black uppercase italic tracking-tight">Audio Showcase</h2>
