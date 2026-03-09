@@ -8,20 +8,20 @@ datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   directUrl  = env("DIRECT_URL")
-  extensions = [postgis, uuid_ossp(map: "uuid-ossp"), pg_trgm]
+  extensions = [pg_trgm, postgis, uuid_ossp(map: "uuid-ossp")]
 }
 
 model User {
   id                 String        @id @default(cuid())
   auth0Id            String        @unique
   email              String        @unique
-  name               String?
   role               UserRole
   stripeCustomerId   String?       @unique
   isPaid             Boolean       @default(false)
   subscriptionTier   String?
   createdAt          DateTime      @default(now())
   subscriptionStatus String?
+  name               String?
   bandProfile        Band?
   bandMemberships    BandMember[]
   venueProfile       Venue?
@@ -33,7 +33,7 @@ model ArtistMedia {
   id        String   @id @default(cuid())
   artistId  String   @map("artist_id")
   fileUrl   String   @map("file_url")
-  fileType  String   @map("file_type") // 'image' or 'audio'
+  fileType  String   @map("file_type")
   isPrimary Boolean  @default(false) @map("is_primary")
   createdAt DateTime @default(now()) @map("created_at")
   user      User     @relation(fields: [artistId], references: [id], onDelete: Cascade)
@@ -48,7 +48,6 @@ model Band {
   lat              Float?
   lng              Float?
   location         Unsupported("geography")?
-  city             String?
   searchRadius     Int                       @default(50)
   audioUrlPreview  String?
   audioUrlFull     String?
@@ -56,11 +55,12 @@ model Band {
   bio              String?
   media            Json?
   negotiationPrefs Json?
-  socialLinks      Json?                     @default("{\"instagram\": \"\", \"twitter\": \"\", \"spotify\": \"\", \"website\": \"\"}")
+  socialLinks      Json?                     @default("{\"spotify\": \"\", \"twitter\": \"\", \"website\": \"\", \"instagram\": \"\"}")
+  city             String?
+  availabilities   Availability[]
   user             User                      @relation(fields: [userId], references: [id])
   members          BandMember[]
   gigs             Gig[]
-  availabilities   Availability[]
   genres           Genre[]                   @relation("BandGenres")
 
   @@index([location], type: Gist)
@@ -73,16 +73,16 @@ model Venue {
   lat              Float?
   lng              Float?
   location         Unsupported("geography")?
-  city             String?
   capacity         Int?
   bio              String?
   media            Json?
   negotiationPrefs Json?
-  socialLinks      Json?                     @default("{\"instagram\": \"\", \"twitter\": \"\", \"spotify\": \"\", \"website\": \"\"}")
+  socialLinks      Json?                     @default("{\"spotify\": \"\", \"twitter\": \"\", \"website\": \"\", \"instagram\": \"\"}")
+  city             String?
+  availabilities   Availability[]
   gigs             Gig[]
   user             User                      @relation(fields: [userId], references: [id])
   members          VenueMember[]
-  availabilities   Availability[]
   genres           Genre[]                   @relation("VenueGenres")
 
   @@index([location], type: Gist)
@@ -142,17 +142,17 @@ model Gig {
   venueId               String
   createdAt             DateTime          @default(now())
   date                  DateTime
+  depositPaid           Boolean           @default(false)
   description           String?
+  holdExpiresAt         DateTime?
+  payoutStatus          PayoutStatus      @default(NOT_APPLICABLE)
   platformFee           Float             @default(0)
+  stripePaymentIntentId String?           @unique
   title                 String
   totalAmount           Float
   updatedAt             DateTime          @updatedAt
   status                GigStatus         @default(DRAFT)
   engagementType        EngagementType    @default(REQUEST)
-  depositPaid           Boolean           @default(false)
-  holdExpiresAt         DateTime?
-  stripePaymentIntentId String?           @unique
-  payoutStatus          PayoutStatus      @default(NOT_APPLICABLE)
   agreement             BookingAgreement?
   band                  Band              @relation(fields: [bandId], references: [id])
   venue                 Venue             @relation(fields: [venueId], references: [id])
@@ -210,6 +210,37 @@ model spatial_ref_sys {
   proj4text String? @db.VarChar(2048)
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model engagements {
+  id                                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sender_id                                  String?
+  receiver_id                                String?
+  type                                       String?
+  status                                     String?   @default("pending")
+  event_date                                 DateTime? @db.Date
+  created_at                                 DateTime? @default(now()) @db.Timestamptz(6)
+  profiles_engagements_receiver_idToprofiles profiles? @relation("engagements_receiver_idToprofiles", fields: [receiver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  profiles_engagements_sender_idToprofiles   profiles? @relation("engagements_sender_idToprofiles", fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model profiles {
+  id                                            String        @id
+  email                                         String?
+  full_name                                     String?
+  avatar_url                                    String?
+  stripe_customer_id                            String?       @unique
+  is_pro                                        Boolean?      @default(false)
+  is_artist                                     Boolean?      @default(false)
+  subscription_status                           String?
+  bio                                           String?
+  location                                      String?
+  social_links                                  Json?         @default("{\"spotify\": \"\", \"website\": \"\", \"instagram\": \"\"}")
+  updated_at                                    DateTime?     @default(now()) @db.Timestamptz(6)
+  engagements_engagements_receiver_idToprofiles engagements[] @relation("engagements_receiver_idToprofiles")
+  engagements_engagements_sender_idToprofiles   engagements[] @relation("engagements_sender_idToprofiles")
+}
+
 enum MemberRole {
   OWNER
   MANAGER
@@ -219,9 +250,6 @@ enum MemberRole {
 
 enum GigStatus {
   DRAFT
-  SUBMISSION
-  REQUEST
-  PENDING_APPROVAL
   OFFER_SENT
   COUNTER_OFFER
   ACCEPTED
@@ -231,6 +259,9 @@ enum GigStatus {
   CANCELLED
   ESCROW_HOLD
   CONFIRMED
+  SUBMISSION
+  REQUEST
+  PENDING_APPROVAL
 }
 
 enum AvailabilityStatus {

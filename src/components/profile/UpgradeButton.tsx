@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { SUBSCRIPTION_TIERS, TIER_PRICE_IDS } from '@/lib/constants/tiers';
 import { CheckCircle2, Rocket, Zap } from 'lucide-react';
 
+import { createUpgradeSession } from '@/app/actions/stripe';
+
 interface UpgradeButtonProps {
   role: 'BAND' | 'VENUE';
 }
@@ -40,26 +42,23 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
         : 'NEXT_PUBLIC_STRIPE_VENUE_PRO_PRICE_ID';
 
       alert(`Stripe Billing is not yet connected for ${role}s. 
-Missing environment variable: ${missingVar}
-Current Value: ${activePriceId || 'undefined'}`);
+      Missing environment variable: ${missingVar}
+      Current Value: ${activePriceId || 'undefined'}`);
       return;
     }
 
     setLoading(true);
     try {
-      // Create FormData to pass to the Server Action
       const formData = new FormData();
       formData.append('priceId', activePriceId);
-
-      const { createUpgradeSession } = await import('@/app/actions/stripe');
-      await createUpgradeSession(formData);
-    } catch (error: unknown) {
-      // CRITICAL: Next.js redirect() throws an error that should NOT be caught here
-      // if we want the browser to actually redirect.
-      if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
-        throw error;
-      }
       
+      const { createUpgradeSession } = await import('@/app/actions/stripe');
+      const result = await createUpgradeSession(formData);
+      
+      if (result?.url) {
+        window.location.href = result.url;
+      }
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Check Stripe configuration.';
       console.error('Upgrade Error:', error);
       alert(`Checkout Error: ${errorMessage}`);

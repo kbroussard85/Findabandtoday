@@ -20,14 +20,16 @@ export async function GET() {
           include: {
             members: {
               include: { user: true }
-            }
+            },
+            availabilities: true
           }
         },
         venueProfile: {
           include: {
             members: {
               include: { user: true }
-            }
+            },
+            availabilities: true
           }
         },
       },
@@ -72,40 +74,74 @@ export async function POST(req: Request) {
     }
 
     if (dbUser.role === 'BAND') {
-      const band = await prisma.band.findFirst({
-        where: {
-          members: {
-            some: {
-              userId: dbUser.id,
-              role: { in: ['OWNER', 'MANAGER'] }
-            }
-          }
-        }
+      // Find or Create the Band Profile
+      let band = await prisma.band.findUnique({
+        where: { userId: dbUser.id }
       });
 
-      if (!band) return NextResponse.json({ error: 'Not authorized to update this band' }, { status: 403 });
+      if (!band) {
+        band = await prisma.band.create({
+          data: {
+            userId: dbUser.id,
+            name: name || user.name || 'New Artist',
+          }
+        });
+      }
+
+      // CRITICAL: Ensure the user is a member/owner of their own band
+      await prisma.bandMember.upsert({
+        where: {
+          bandId_userId: {
+            bandId: band.id,
+            userId: dbUser.id
+          }
+        },
+        update: { role: 'OWNER' },
+        create: {
+          bandId: band.id,
+          userId: dbUser.id,
+          role: 'OWNER'
+        }
+      });
 
       await prisma.band.update({
         where: { id: band.id },
-        data: { bio, negotiationPrefs, media },
+        data: { bio, negotiationPrefs, media, name: name || band.name },
       });
     } else {
-      const venue = await prisma.venue.findFirst({
-        where: {
-          members: {
-            some: {
-              userId: dbUser.id,
-              role: { in: ['OWNER', 'MANAGER'] }
-            }
+      // Find or Create the Venue Profile
+      let venue = await prisma.venue.findUnique({
+        where: { userId: dbUser.id }
+      });
+
+      if (!venue) {
+        venue = await prisma.venue.create({
+          data: {
+            userId: dbUser.id,
+            name: name || user.name || 'New Venue',
           }
+        });
+      }
+
+      // CRITICAL: Ensure the user is a member/owner of their own venue
+      await prisma.venueMember.upsert({
+        where: {
+          venueId_userId: {
+            venueId: venue.id,
+            userId: dbUser.id
+          }
+        },
+        update: { role: 'OWNER' },
+        create: {
+          venueId: venue.id,
+          userId: dbUser.id,
+          role: 'OWNER'
         }
       });
 
-      if (!venue) return NextResponse.json({ error: 'Not authorized to update this venue' }, { status: 403 });
-
       await prisma.venue.update({
         where: { id: venue.id },
-        data: { bio, negotiationPrefs, media },
+        data: { bio, negotiationPrefs, media, name: name || venue.name },
       });
     }
 

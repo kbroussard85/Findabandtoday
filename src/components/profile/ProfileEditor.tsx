@@ -35,7 +35,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   const [openToNegotiate, setOpenToNegotiate] = useState(initialData?.negotiationPrefs?.openToNegotiate ?? true);
   const [media, setMedia] = useState<MediaItem[]>(initialData?.media || []);
   const [audioUrlPreview, setAudioUrlPreview] = useState(initialData?.audioUrlPreview || '');
-  
+
   const [saving, setSaving] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [message, setMessage] = useState('');
@@ -57,6 +57,8 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           },
           media,
           name,
+          bio,
+          audioUrlPreview,
         }),
       });
 
@@ -103,6 +105,10 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       setUploadingAudio(false);
       if (audioInputRef.current) audioInputRef.current.value = '';
     }
+  };
+
+  const handleDeleteMedia = (urlToDelete: string) => {
+    setMedia(prev => prev.filter(item => item.url !== urlToDelete));
   };
 
   return (
@@ -175,7 +181,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           <Music className="text-purple-500" size={20} />
           <h2 className="text-xl font-black uppercase italic tracking-tight">Audio Showcase</h2>
         </div>
-        
+
         <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm space-y-6">
           {audioUrlPreview && (
             <div className="space-y-2">
@@ -185,9 +191,9 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           )}
 
           <div className="relative group">
-            <input 
-              type="file" 
-              accept="audio/*" 
+            <input
+              type="file"
+              accept="audio/*"
               onChange={handleAudioUpload}
               ref={audioInputRef}
               className="hidden"
@@ -245,12 +251,29 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-8">
           {media.map((item, idx) => (
-            <div key={idx} className="group relative bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 aspect-square hover:border-zinc-700 transition-all">
-              <span className="text-2xl filter grayscale group-hover:grayscale-0 transition-all">
-                {item.type.includes('image') ? '📸' : (item.type.includes('video') ? '🎬' : '🎵')}
-              </span>
-              <p className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500 text-center line-clamp-1 w-full">{item.name}</p>
-              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500"></div>
+            <div key={idx} className="group relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden aspect-square hover:border-zinc-700 transition-all">
+              {item.type.includes('image') ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={item.url} alt={item.name || 'Gallery Image'} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
+                  <span className="text-2xl filter grayscale group-hover:grayscale-0 transition-all">
+                    {item.type.includes('video') ? '🎬' : '🎵'}
+                  </span>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500 text-center line-clamp-1 w-full">{item.name}</p>
+                </div>
+              )}
+
+              {/* Delete Button */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDeleteMedia(item.url);
+                }}
+                className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-white/40 hover:text-red-500 hover:bg-black transition-all opacity-0 group-hover:opacity-100"
+              >
+                <XCircle size={14} />
+              </button>
             </div>
           ))}
         </div>

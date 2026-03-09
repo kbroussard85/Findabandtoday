@@ -110,10 +110,12 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-4 mb-6">
                 <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">01</span>
-                <h2 className="text-2xl font-black uppercase italic tracking-tight">Public Identity</h2>
+                <h2 className="text-2xl font-black uppercase italic tracking-tight">
+                  Public Identity: <span className="text-purple-500">{profile?.name || 'New Artist'}</span>
+                </h2>
               </div>
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              <ProfileEditor initialData={profile as any} role={dbUser.role} userName={dbUser.name || ''} />
+              <ProfileEditor initialData={profile as any} role={dbUser.role} userName={profile?.name || dbUser.name || ''} />
             </div>
           )}
 
