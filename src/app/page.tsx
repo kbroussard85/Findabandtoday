@@ -1,4 +1,5 @@
 import React from 'react';
+import { HomeDiscovery } from '@/components/home/HomeDiscovery';
 
 export default function LandingPage() {
   return (
@@ -79,6 +80,9 @@ export default function LandingPage() {
           <p className="text-zinc-500 text-xs lg:text-sm italic">&quot;Sync stage plots and backline requirements automatically before the load-in.&quot;</p>
         </div>
       </div>
+
+      {/* NEW: Local Discovery Section */}
+      <HomeDiscovery />
     </div>
   );
 }
