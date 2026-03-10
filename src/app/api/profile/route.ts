@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { bio, negotiationPrefs, media, name } = await req.json();
+    const { bio, negotiationPrefs, media, name, lat, lng } = await req.json();
 
     const dbUser = await prisma.user.findUnique({
       where: { auth0Id: user.sub },
@@ -65,21 +65,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Update the base User record with the new name if provided
     if (name) {
       await prisma.user.update({
         where: { id: dbUser.id },
         data: { name },
       });
     }
-    // - [x] Fix Stripe Checkout Server Action Error <!-- id: 11 -->
-    // - [x] Refine UpgradeButton Error Handling <!-- id: 12 -->
-    // - [x] Debug "Invalid API Key" Error (Added Logs) <!-- id: 13 -->
-    // - [x] Transition Stripe to Live Mode (Stayed in Test Mode) <!-- id: 14 -->
-    // - [x] Sync Stripe Test Mode Keys to Vercel <!-- id: 15 -->
 
     if (dbUser.role === 'BAND') {
-      // Find or Create the Band Profile
       let band = await prisma.band.findUnique({
         where: { userId: dbUser.id }
       });
@@ -93,28 +86,25 @@ export async function POST(req: Request) {
         });
       }
 
-      // CRITICAL: Ensure the user is a member/owner of their own band
       await prisma.bandMember.upsert({
-        where: {
-          bandId_userId: {
-            bandId: band.id,
-            userId: dbUser.id
-          }
-        },
+        where: { bandId_userId: { bandId: band.id, userId: dbUser.id } },
         update: { role: 'OWNER' },
-        create: {
-          bandId: band.id,
-          userId: dbUser.id,
-          role: 'OWNER'
-        }
+        create: { bandId: band.id, userId: dbUser.id, role: 'OWNER' }
       });
 
-      await prisma.band.update({
+      const updatedBand = await prisma.band.update({
         where: { id: band.id },
-        data: { bio, negotiationPrefs, media, name: name || band.name },
+        data: { bio, negotiationPrefs, media, name: name || band.name, lat, lng },
       });
+
+      // SYNC GEOSPATIAL LOCATION
+      if (lat && lng) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "Band" SET location = ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography WHERE id = $3`,
+          lng, lat, updatedBand.id
+        );
+      }
     } else {
-      // Find or Create the Venue Profile
       let venue = await prisma.venue.findUnique({
         where: { userId: dbUser.id }
       });
@@ -128,26 +118,24 @@ export async function POST(req: Request) {
         });
       }
 
-      // CRITICAL: Ensure the user is a member/owner of their own venue
       await prisma.venueMember.upsert({
-        where: {
-          venueId_userId: {
-            venueId: venue.id,
-            userId: dbUser.id
-          }
-        },
+        where: { venueId_userId: { venueId: venue.id, userId: dbUser.id } },
         update: { role: 'OWNER' },
-        create: {
-          venueId: venue.id,
-          userId: dbUser.id,
-          role: 'OWNER'
-        }
+        create: { venueId: venue.id, userId: dbUser.id, role: 'OWNER' }
       });
 
-      await prisma.venue.update({
+      const updatedVenue = await prisma.venue.update({
         where: { id: venue.id },
-        data: { bio, negotiationPrefs, media, name: name || venue.name },
+        data: { bio, negotiationPrefs, media, name: name || venue.name, lat, lng },
       });
+
+      // SYNC GEOSPATIAL LOCATION
+      if (lat && lng) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "Venue" SET location = ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography WHERE id = $3`,
+          lng, lat, updatedVenue.id
+        );
+      }
     }
 
     return NextResponse.json({ success: true });

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Music, Upload, Loader2, CheckCircle, XCircle, Image as ImageIcon } from 'lucide-react';
+import { Music, Upload, Loader2, CheckCircle, XCircle, Image as ImageIcon, MapPin } from 'lucide-react';
 import { AudioPlayer } from '../ui/AudioPlayer';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase-client';
@@ -20,6 +20,8 @@ interface ProfileData {
   } | null;
   media?: MediaItem[] | null;
   audioUrlPreview?: string | null;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 interface ProfileEditorProps {
@@ -36,6 +38,11 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   const [media, setMedia] = useState<MediaItem[]>(initialData?.media || []);
   const [audioUrlPreview, setAudioUrlPreview] = useState(initialData?.audioUrlPreview || '');
   
+  // Geolocation state
+  const [lat, setLat] = useState<number | null>(initialData?.lat || null);
+  const [lng, setLng] = useState<number | null>(initialData?.lng || null);
+  const [detecting, setDetecting] = useState(false);
+
   const [saving, setSaving] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -43,6 +50,28 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const detectLocation = () => {
+    setDetecting(true);
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      setDetecting(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLat(position.coords.latitude);
+        setLng(position.coords.longitude);
+        setDetecting(false);
+        setMessage('Location detected! Save to finalize.');
+      },
+      () => {
+        alert('Unable to retrieve your location');
+        setDetecting(false);
+      }
+    );
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +82,14 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       const response = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, bio, negotiationPrefs: { minRate: Number(minRate), openToNegotiate }, media }),
+        body: JSON.stringify({ 
+          name, 
+          bio, 
+          negotiationPrefs: { minRate: Number(minRate), openToNegotiate }, 
+          media,
+          lat, // FIXED: Now sending location data
+          lng
+        }),
       });
 
       if (!response.ok) throw new Error('Failed to save profile');
@@ -67,42 +103,32 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
 
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    
-    if (!supabase) {
-      setMessage('Error: Supabase client not initialized. Check your environment variables.');
-      return;
-    }
-
+    if (!file || !supabase) return;
     setUploadingAudio(true);
     setMessage('');
 
     try {
-      // 1. Direct Upload to Supabase Storage (Bypasses Vercel 4.5MB limit)
       const fileName = `uploads/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
       const { data, error: storageError } = await supabase.storage
         .from('media')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+        .upload(fileName, file);
 
       if (storageError) throw storageError;
 
-      // 2. Get Public URL
       const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(data.path);
 
-      // 3. Register the upload in our database (Small JSON payload, works on Vercel)
       const regRes = await fetch('/api/artist/register-media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileUrl: publicUrl, fileType: 'audio', fileName: file.name }),
+        body: JSON.stringify({ fileUrl: publicUrl, fileType: 'audio' }),
       });
 
-      if (!regRes.ok) throw new Error('Failed to register file in database');
+      if (!regRes.ok) throw new Error('Failed to register file');
 
       setAudioUrlPreview(publicUrl);
       setMedia(prev => [...prev, { url: publicUrl, type: 'audio', name: file.name }]);
-      setMessage('Audio uploaded directly to Supabase!');
+      setMessage('Audio uploaded successfully!');
     } catch (err: unknown) {
-      console.error('Upload Error:', err);
       setMessage(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploadingAudio(false);
@@ -112,7 +138,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !supabase) return;
     setUploadingImage(true);
     setMessage('');
 
@@ -129,7 +155,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       const regRes = await fetch('/api/artist/register-media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileUrl: publicUrl, fileType: 'image', fileName: file.name }),
+        body: JSON.stringify({ fileUrl: publicUrl, fileType: 'image' }),
       });
 
       if (!regRes.ok) throw new Error('Failed to register image');
@@ -147,9 +173,25 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   return (
     <div className="space-y-12">
       <form onSubmit={handleSave} className="space-y-8">
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Display Name</label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Official Name..." className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold" />
+        {/* Name & Location Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Display Name</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Official Name..." className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold" />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Geospatial Sync</label>
+            <button
+              type="button"
+              onClick={detectLocation}
+              disabled={detecting}
+              className={`w-full p-4 rounded-2xl border flex items-center justify-center gap-3 transition-all font-bold uppercase italic text-xs tracking-widest ${lat && lng ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-purple-500/50 hover:text-white'}`}
+            >
+              {detecting ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
+              {lat && lng ? 'Location Synced' : 'Set Current Location'}
+            </button>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -171,6 +213,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
         <button type="submit" disabled={saving} className={`w-full py-4 rounded-full font-black uppercase italic tracking-tighter text-xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl ${role === 'BAND' ? 'bg-purple-600 hover:bg-purple-500' : 'bg-blue-600 hover:bg-blue-500'} ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}>
           {saving ? 'Syncing...' : 'Save Profile Changes'}
         </button>
+        
         {message && (
           <div className={`flex items-center justify-center gap-2 font-bold uppercase italic text-sm tracking-tight ${message.includes('Error') || message.includes('failed') ? 'text-red-500' : 'text-green-500'}`}>
             {message.includes('Error') || message.includes('failed') ? <XCircle size={16} /> : <CheckCircle size={16} />}
@@ -219,7 +262,8 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
         <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm space-y-8">
           <div className="relative group">
             <input type="file" accept="image/*" onChange={handleImageUpload} ref={imageInputRef} className="hidden" />
-            <button onClick={() => imageInputRef.current?.click()} disabled={uploadingImage} className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+            <button onClick={() => imageInputRef.current?.click()} disabled={uploadingImage} className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group"
+            >
               <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
                 {uploadingImage ? <Loader2 className="animate-spin text-white" /> : <Upload className="text-zinc-400 group-hover:text-white" />}
               </div>
