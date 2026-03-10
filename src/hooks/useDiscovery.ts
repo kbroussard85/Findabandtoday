@@ -22,7 +22,9 @@ export function useDiscovery({ lat, lng, radius, role, query, genre, limit = DEF
   const [hasMore, setHasMore] = useState(true);
 
   const fetchDiscovery = useCallback(async (currentOffset: number, isInitial: boolean) => {
-    if (lat === null || lng === null) return;
+    // If we have a name query, we don't strictly NEED lat/lng anymore (Global Search)
+    // But if we have no query AND no location, we can't search
+    if (!query && (lat === null || lng === null)) return;
 
     if (isInitial) {
       setLoading(true);
@@ -34,10 +36,14 @@ export function useDiscovery({ lat, lng, radius, role, query, genre, limit = DEF
 
     setError(null);
     try {
+      // Use defaults if location is missing but name query is present
+      const safeLat = lat ?? 0;
+      const safeLng = lng ?? 0;
       const qParam = query ? `&q=${encodeURIComponent(query)}` : '';
       const gParam = genre ? `&genre=${encodeURIComponent(genre)}` : '';
+      
       const response = await fetch(
-        `/api/discovery?lat=${lat}&lng=${lng}&radius=${radius}&role=${role}&limit=${limit}&offset=${currentOffset}${qParam}${gParam}`
+        `/api/discovery?lat=${safeLat}&lng=${safeLng}&radius=${radius}&role=${role}&limit=${limit}&offset=${currentOffset}${qParam}${gParam}`
       );
       
       if (!response.ok) {

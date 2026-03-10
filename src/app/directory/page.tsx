@@ -22,6 +22,7 @@ function DirectoryContent() {
   const [citySearch, setCitySearch] = useState('');
   const [isGeocoding, setIsGeocoding] = useState(false);
 
+  // FIXED: The hook now correctly handles missing lat/lng when a name query 'q' exists
   const { data, loading, loadingMore, error, loadMore, hasMore } = useDiscovery({ 
     lat, 
     lng, 
@@ -31,7 +32,6 @@ function DirectoryContent() {
     query: q || undefined 
   });
 
-  // For demo purposes, assuming user is not premium to show the blurred UI
   const isPremium = false; 
 
   const handleCitySearch = async (e: React.FormEvent) => {
@@ -57,15 +57,17 @@ function DirectoryContent() {
     }
   };
 
-  if (!lat || !lng) {
+  // NEW: Only block the screen if there is NO location AND NO search query.
+  // This allows people to search for "Ken Carl" even if they haven't shared their location.
+  if (!lat && !lng && !q) {
     return (
-      <div className="max-w-xl mx-auto py-20 px-8 text-center space-y-12">
+      <div className="max-w-xl mx-auto py-20 px-8 text-center space-y-12 animate-in fade-in duration-700">
         <div className="space-y-4">
           <div className="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-8">
             <MapPin className="text-purple-500" size={40} />
           </div>
           <h1 className="text-4xl font-black uppercase italic tracking-tighter">Locate Your <span className="text-purple-500">Scene</span></h1>
-          <p className="text-zinc-400">Discovery requires your location to find the best matches within your radius.</p>
+          <p className="text-zinc-400">Discovery requires your location to find the best local matches, or use the search bar above to find a specific artist.</p>
         </div>
 
         <div className="space-y-6">
@@ -90,7 +92,7 @@ function DirectoryContent() {
                 placeholder="ENTER CITY OR ZIP..."
                 value={citySearch}
                 onChange={(e) => setCitySearch(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 px-6 py-4 rounded-xl font-bold uppercase italic text-sm focus:ring-2 focus:ring-purple-500 transition-all outline-none pr-12"
+                className="w-full bg-zinc-900 border border-zinc-800 px-6 py-4 rounded-xl font-bold uppercase italic text-sm focus:ring-2 focus:ring-purple-500 transition-all outline-none pr-12 text-white"
               />
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
             </div>
@@ -103,12 +105,6 @@ function DirectoryContent() {
             </button>
           </form>
         </div>
-
-        {geoError && permissionStatus === 'denied' && (
-          <p className="text-xs text-red-500 font-bold uppercase tracking-widest">
-            Location access was denied. Please use the search box above.
-          </p>
-        )}
       </div>
     );
   }
@@ -125,7 +121,7 @@ function DirectoryContent() {
             )}
           </h1>
           <p className="text-zinc-400 text-lg max-w-2xl font-medium">
-            {q ? `Showing results for "${q}" within your selected radius.` : 'Browse verified artists and venues within your radius. Use the filters below to refine your search.'}
+            {q ? `Showing results for "${q}" across the platform.` : 'Browse verified artists and venues within your radius.'}
           </p>
         </div>
         
@@ -137,10 +133,9 @@ function DirectoryContent() {
         </button>
       </header>
 
-      {/* AI Maximizer Section */}
-      <MaximizerPicks lat={lat} lng={lng} radius={radius} />
+      {/* AI Section only shows if we have a location */}
+      {lat && lng && <MaximizerPicks lat={lat} lng={lng} radius={radius} />}
       
-      {/* Filters Bar */}
       <div className="space-y-6">
         <div className="bg-zinc-900/50 border border-zinc-800 p-6 lg:p-8 rounded-3xl backdrop-blur-sm flex flex-col md:flex-row gap-8 items-center justify-between">
           <div className="flex flex-col gap-4 w-full md:w-1/3">
@@ -181,7 +176,7 @@ function DirectoryContent() {
             <select 
               value={genre} 
               onChange={(e) => setGenre(e.target.value)}
-              className="bg-zinc-800 border-none rounded-xl px-6 py-3 font-bold uppercase italic text-sm focus:ring-2 focus:ring-purple-500 transition-all outline-none min-w-[180px]"
+              className="bg-zinc-800 border-none rounded-xl px-6 py-3 font-bold uppercase italic text-sm focus:ring-2 focus:ring-purple-500 transition-all outline-none min-w-[180px] text-white"
             >
               <option value="">All Genres</option>
               {POPULAR_GENRES.map(g => (
@@ -190,51 +185,24 @@ function DirectoryContent() {
             </select>
           </div>
         </div>
-
-        {/* Quick Genre Chips */}
-        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-          <button 
-            onClick={() => setGenre('')}
-            className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${genre === '' ? 'bg-white text-black border-white' : 'bg-zinc-900 text-zinc-500 border-zinc-800 hover:border-zinc-700'}`}
-          >
-            All
-          </button>
-          {POPULAR_GENRES.map(g => (
-            <button 
-              key={g}
-              onClick={() => setGenre(g)}
-              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${genre === g ? 'bg-purple-600 text-white border-purple-600' : 'bg-zinc-900 text-zinc-500 border-zinc-800 hover:border-zinc-700'}`}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Results Section */}
       <div className="min-h-[400px] relative">
-        {loading && !loadingMore && (
+        {(loading && !loadingMore) ? (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10 rounded-3xl">
             <div className="flex flex-col items-center gap-4">
               <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Syncing Results...</span>
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Scanning local scene...</span>
             </div>
           </div>
-        )}
-        
-        {error && (
-          <div className="p-12 text-center bg-red-900/10 border border-red-900/20 rounded-3xl">
-            <p className="text-red-500 font-bold uppercase tracking-tighter italic text-xl">{error}</p>
-          </div>
-        )}
-        
-        {!loading && !error && (
+        ) : (
           <>
             {data.length === 0 ? (
-              <div className="p-20 text-center space-y-4">
+              <div className="p-20 text-center space-y-4 border border-zinc-800 rounded-3xl animate-in fade-in duration-500">
                 <Music className="mx-auto text-zinc-800" size={60} />
                 <h3 className="text-2xl font-black uppercase italic text-zinc-600">No matches found</h3>
-                <p className="text-zinc-500">Try expanding your radius or selecting a different genre.</p>
+                <p className="text-zinc-500">Try expanding your radius or searching for a different name.</p>
               </div>
             ) : (
               <DiscoveryGrid 
