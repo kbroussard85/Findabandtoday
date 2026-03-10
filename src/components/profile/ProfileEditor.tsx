@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { Music, Upload, Loader2, CheckCircle, XCircle, Image as ImageIcon } from 'lucide-react';
 import { AudioPlayer } from '../ui/AudioPlayer';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase-client';
 
 interface MediaItem {
   url: string;
@@ -52,22 +53,13 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       const response = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          bio,
-          negotiationPrefs: {
-            minRate: Number(minRate),
-            openToNegotiate,
-          },
-          media,
-        }),
+        body: JSON.stringify({ name, bio, negotiationPrefs: { minRate: Number(minRate), openToNegotiate }, media }),
       });
 
       if (!response.ok) throw new Error('Failed to save profile');
       setMessage('Profile updated successfully!');
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Error saving profile';
-      setMessage(errorMessage);
+      setMessage(err instanceof Error ? err.message : 'Error saving profile');
     } finally {
       setSaving(false);
     }
@@ -79,20 +71,32 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
     setUploadingAudio(true);
     setMessage('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const res = await fetch('/api/artist/upload-audio', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.success) {
-        setAudioUrlPreview(data.url);
-        setMedia(prev => [...prev, { url: data.url, type: 'audio', name: file.name }]);
-        setMessage('Audio uploaded successfully!');
-      } else {
-        throw new Error(data.error || 'Upload failed');
-      }
+      // 1. Direct Upload to Supabase Storage (Bypasses Vercel 4.5MB limit)
+      const fileName = `uploads/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      const { data, error: storageError } = await supabase.storage
+        .from('media')
+        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+      if (storageError) throw storageError;
+
+      // 2. Get Public URL
+      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(data.path);
+
+      // 3. Register the upload in our database (Small JSON payload, works on Vercel)
+      const regRes = await fetch('/api/artist/register-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileUrl: publicUrl, fileType: 'audio', fileName: file.name }),
+      });
+
+      if (!regRes.ok) throw new Error('Failed to register file in database');
+
+      setAudioUrlPreview(publicUrl);
+      setMedia(prev => [...prev, { url: publicUrl, type: 'audio', name: file.name }]);
+      setMessage('Audio uploaded directly to Supabase!');
     } catch (err: unknown) {
+      console.error('Upload Error:', err);
       setMessage(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploadingAudio(false);
@@ -106,18 +110,26 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
     setUploadingImage(true);
     setMessage('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const res = await fetch('/api/artist/upload-image', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.success) {
-        setMedia(prev => [...prev, { url: data.url, type: 'image', name: data.name }]);
-        setMessage('Image uploaded successfully!');
-      } else {
-        throw new Error(data.error || 'Upload failed');
-      }
+      const fileName = `uploads/images/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      const { data, error: storageError } = await supabase.storage
+        .from('media')
+        .upload(fileName, file);
+
+      if (storageError) throw storageError;
+
+      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(data.path);
+
+      const regRes = await fetch('/api/artist/register-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileUrl: publicUrl, fileType: 'image', fileName: file.name }),
+      });
+
+      if (!regRes.ok) throw new Error('Failed to register image');
+
+      setMedia(prev => [...prev, { url: publicUrl, type: 'image', name: file.name }]);
+      setMessage('Image uploaded successfully!');
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : 'Upload failed');
     } finally {
@@ -131,55 +143,26 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       <form onSubmit={handleSave} className="space-y-8">
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Display Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Official Name..."
-            className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold"
-          />
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Official Name..." className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold" />
         </div>
 
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Bio / Description</label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell the world about yourself..."
-            className="w-full min-h-[180px] p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl text-white outline-none focus:border-purple-500/50 transition-all font-medium resize-none leading-relaxed"
-          />
+          <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell the world about yourself..." className="w-full min-h-[180px] p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl text-white outline-none focus:border-purple-500/50 transition-all font-medium resize-none leading-relaxed" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Minimum Rate ($)</label>
-            <input
-              type="number"
-              value={minRate}
-              onChange={(e) => setMinRate(e.target.value)}
-              className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-mono font-bold"
-            />
+            <input type="number" value={minRate} onChange={(e) => setMinRate(e.target.value)} className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-mono font-bold" />
           </div>
           <div className="flex items-center gap-4 bg-zinc-900/30 border border-zinc-800 p-4 rounded-2xl">
-            <input
-              type="checkbox"
-              id="negotiate"
-              checked={openToNegotiate}
-              onChange={(e) => setOpenToNegotiate(e.target.checked)}
-              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-purple-500 focus:ring-purple-500/20"
-            />
+            <input type="checkbox" id="negotiate" checked={openToNegotiate} onChange={(e) => setOpenToNegotiate(e.target.checked)} className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-purple-500 focus:ring-purple-500/20" />
             <label htmlFor="negotiate" className="text-sm font-bold uppercase italic text-zinc-300 cursor-pointer">Open to Negotiation</label>
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className={`w-full py-4 rounded-full font-black uppercase italic tracking-tighter text-xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl ${role === 'BAND'
-            ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/20'
-            : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
-            } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
+        <button type="submit" disabled={saving} className={`w-full py-4 rounded-full font-black uppercase italic tracking-tighter text-xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl ${role === 'BAND' ? 'bg-purple-600 hover:bg-purple-500' : 'bg-blue-600 hover:bg-blue-500'} ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}>
           {saving ? 'Syncing...' : 'Save Profile Changes'}
         </button>
         {message && (
@@ -207,24 +190,20 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
 
           <div className="relative group">
             <input type="file" accept="audio/*" onChange={handleAudioUpload} ref={audioInputRef} className="hidden" />
-            <button
-              onClick={() => audioInputRef.current?.click()}
-              disabled={uploadingAudio}
-              className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group"
-            >
+            <button onClick={() => audioInputRef.current?.click()} disabled={uploadingAudio} className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group">
               <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-purple-600 transition-colors">
                 {uploadingAudio ? <Loader2 className="animate-spin text-white" /> : <Upload className="text-zinc-400 group-hover:text-white" />}
               </div>
               <div className="text-center">
-                <p className="text-sm font-black uppercase italic tracking-widest text-white">{uploadingAudio ? 'Uploading...' : 'Upload New Audio Demo'}</p>
-                <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">MP3, WAV, or OGG up to 10MB</p>
+                <p className="text-sm font-black uppercase italic tracking-widest text-white">{uploadingAudio ? 'Uploading Directly...' : 'Upload New Audio Demo'}</p>
+                <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">Bypasses Vercel size limits</p>
               </div>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Visual Gallery Section (Now Supabase) */}
+      {/* Visual Gallery Section */}
       <div className="space-y-6 pt-12 border-t border-zinc-800">
         <div className="flex items-center gap-4 mb-2">
           <ImageIcon className="text-blue-500" size={20} />
@@ -234,17 +213,13 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
         <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm space-y-8">
           <div className="relative group">
             <input type="file" accept="image/*" onChange={handleImageUpload} ref={imageInputRef} className="hidden" />
-            <button
-              onClick={() => imageInputRef.current?.click()}
-              disabled={uploadingImage}
-              className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group"
-            >
+            <button onClick={() => imageInputRef.current?.click()} disabled={uploadingImage} className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
               <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
                 {uploadingImage ? <Loader2 className="animate-spin text-white" /> : <Upload className="text-zinc-400 group-hover:text-white" />}
               </div>
               <div className="text-center">
                 <p className="text-sm font-black uppercase italic tracking-widest text-white">{uploadingImage ? 'Uploading Image...' : 'Upload New Photo'}</p>
-                <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">PNG, JPG or WEBP up to 5MB</p>
+                <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">PNG, JPG or WEBP</p>
               </div>
             </button>
           </div>
