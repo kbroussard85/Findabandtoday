@@ -8,25 +8,30 @@ const prismaClientSingleton = () => {
           const queryPart = query ? `%${query.trim()}%` : null;
           const genrePart = genre || null;
 
-          console.log('[PRISMA_DEBUG] Querying Bands with query:', queryPart);
-
+          // If there is a query, we do a wide search. If no query, we do a local search.
           return prisma.$queryRaw`
             SELECT DISTINCT b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview"
             FROM "Band" b
             LEFT JOIN "_BandGenres" bg ON b.id = bg."A"
             LEFT JOIN "Genre" g ON bg."B" = g.id
             WHERE (
-              -- 1. If it's a specific text match, we allow it GLOBAL (regardless of location)
+              -- Match 1: Text search match (Global)
               (${queryPart} IS NOT NULL AND (b.name ILIKE ${queryPart} OR b.bio ILIKE ${queryPart}))
               OR
-              -- 2. If no query, or if it's not a name match, it must be within radius
-              ST_DWithin(
-                b.location,
-                ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
-                ${radiusMeters}
+              -- Match 2: Within radius (Local) - only if no query or if it's just a general browse
+              (
+                b.location IS NOT NULL AND 
+                ST_DWithin(
+                  b.location,
+                  ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+                  ${radiusMeters}
+                )
               )
             )
+            -- Apply genre filter ONLY if one is selected
             AND (${genrePart} IS NULL OR g.name = ${genrePart})
+            -- If we have a text query, we MUST still satisfy the text match if radius failed
+            AND (${queryPart} IS NULL OR b.name ILIKE ${queryPart} OR b.bio ILIKE ${queryPart} OR ST_DWithin(b.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}))
             ORDER BY b.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
@@ -45,13 +50,17 @@ const prismaClientSingleton = () => {
             WHERE (
               (${queryPart} IS NOT NULL AND (v.name ILIKE ${queryPart} OR v.bio ILIKE ${queryPart}))
               OR
-              ST_DWithin(
-                v.location,
-                ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
-                ${radiusMeters}
+              (
+                v.location IS NOT NULL AND 
+                ST_DWithin(
+                  v.location,
+                  ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+                  ${radiusMeters}
+                )
               )
             )
             AND (${genrePart} IS NULL OR g.name = ${genrePart})
+            AND (${queryPart} IS NULL OR v.name ILIKE ${queryPart} OR v.bio ILIKE ${queryPart} OR ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}))
             ORDER BY v.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
