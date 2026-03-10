@@ -2,6 +2,7 @@
 import React, { useState, Suspense } from 'react';
 import { useDiscovery } from '@/hooks/useDiscovery';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useProfile } from '@/hooks/useProfile';
 import { DiscoveryGrid } from '@/components/discovery/DiscoveryGrid';
 import { useSearchParams } from 'next/navigation';
 import { MaximizerPicks } from '@/components/ai/MaximizerPicks';
@@ -16,6 +17,7 @@ function DirectoryContent() {
   const q = searchParams.get('q') || '';
 
   const { lat, lng, loading: geoLoading, getLocation, setManualLocation } = useGeolocation();
+  const { dbUser } = useProfile();
   const [radius, setRadius] = useState<number>(50);
   const [role, setRole] = useState<'BAND' | 'VENUE'>('BAND');
   const [genre, setGenre] = useState<string>('');
@@ -32,7 +34,7 @@ function DirectoryContent() {
     query: q || undefined 
   });
 
-  const isPremium = false; 
+  const isPremium = dbUser?.isPaid || false; 
 
   const handleCitySearch = async (e: React.FormEvent) => {
     e.preventDefault();

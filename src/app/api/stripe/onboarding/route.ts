@@ -25,7 +25,7 @@ export async function POST() {
     if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     // 1. Create Connect Account if doesn't exist
-    let accountId = dbUser.stripeCustomerId; // Using this field for Connect ID for now
+    let accountId = dbUser.stripeAccountId;
 
     if (!accountId) {
       const account = await createConnectAccount(dbUser.email, dbUser.id);
@@ -33,7 +33,7 @@ export async function POST() {
 
       await prisma.user.update({
         where: { id: dbUser.id },
-        data: { stripeCustomerId: accountId },
+        data: { stripeAccountId: accountId },
       });
     }
 

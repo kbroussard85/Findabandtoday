@@ -17,6 +17,7 @@ model User {
   email              String        @unique
   role               UserRole
   stripeCustomerId   String?       @unique
+  stripeAccountId    String?       @unique
   isPaid             Boolean       @default(false)
   subscriptionTier   String?
   createdAt          DateTime      @default(now())

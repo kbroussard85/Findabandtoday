@@ -19,7 +19,7 @@ export async function triggerGigPayout(gigId: string) {
   if (gig.status !== GigStatus.COMPLETED) throw new Error('Gig is not marked as COMPLETED');
   if (gig.payoutStatus === PayoutStatus.RELEASED_TO_BAND) throw new Error('Gig already paid');
 
-  const destinationAccount = gig.band.user.stripeCustomerId;
+  const destinationAccount = gig.band.user.stripeAccountId;
   if (!destinationAccount) throw new Error('Band has no Connect account');
 
   // Calculate platform fee (e.g., 5%)
