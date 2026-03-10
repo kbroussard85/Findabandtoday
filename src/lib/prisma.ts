@@ -7,29 +7,36 @@ const prismaClientSingleton = () => {
         async findNearby(lat: number, lng: number, radiusMeters: number, query?: string, genre?: string, limit: number = 20, offset: number = 0) {
           const queryPart = query ? `%${query.trim()}%` : null;
           const genrePart = genre || null;
+          
+          // Check if we have a real location (not just 0,0)
+          const hasLocation = lat !== 0 || lng !== 0;
 
-          // CASCADE LOGIC:
-          // 1. First Priority: In Location
-          // 2. Second Priority: Match Genre (if provided)
-          // 3. Third Priority: Everyone else
           return prisma.$queryRaw`
             SELECT DISTINCT b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview",
               CASE 
-                -- Priority 1: Text match (User is specifically looking for you)
+                -- Priority 1: Direct name match
                 WHEN (${queryPart} IS NOT NULL AND (b.name ILIKE ${queryPart} OR b.bio ILIKE ${queryPart})) THEN 1
-                -- Priority 2: Within Radius
-                WHEN ST_DWithin(b.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}) THEN 2
-                -- Priority 3: Match Genre
-                WHEN (${genrePart} IS NOT NULL AND EXISTS (SELECT 1 FROM "_BandGenres" bg JOIN "Genre" g ON bg."B" = g.id WHERE bg."A" = b.id AND g.name = ${genrePart})) THEN 3
-                -- Priority 4: Fallback (Everyone else)
-                ELSE 4
+                -- Priority 2: Within Radius (Only if location is provided)
+                WHEN (${hasLocation} AND b.location IS NOT NULL AND ST_DWithin(b.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters})) THEN 2
+                -- Priority 3: Everyone else (Global Fallback)
+                ELSE 3
               END as search_priority
             FROM "Band" b
             LEFT JOIN "_BandGenres" bg ON b.id = bg."A"
             LEFT JOIN "Genre" g ON bg."B" = g.id
-            WHERE 
-              -- If a query exists, we MUST match it OR be part of the fallback browse
-              (${queryPart} IS NULL OR b.name ILIKE ${queryPart} OR b.bio ILIKE ${queryPart} OR 1=1)
+            WHERE (
+              -- If no location and no query, show EVERYONE (1=1)
+              -- If location exists, ST_DWithin is enforced unless a query matches
+              (${!hasLocation} AND ${queryPart} IS NULL) 
+              OR 
+              (${queryPart} IS NOT NULL AND (b.name ILIKE ${queryPart} OR b.bio ILIKE ${queryPart}))
+              OR
+              (${hasLocation} AND b.location IS NOT NULL AND ST_DWithin(b.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}))
+              OR
+              -- Final fallback to ensure the grid is NEVER empty if data exists
+              (${queryPart} IS NULL)
+            )
+            AND (${genrePart} IS NULL OR g.name = ${genrePart})
             ORDER BY search_priority ASC, b.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
@@ -39,20 +46,28 @@ const prismaClientSingleton = () => {
         async findNearby(lat: number, lng: number, radiusMeters: number, query?: string, genre?: string, limit: number = 20, offset: number = 0) {
           const queryPart = query ? `%${query.trim()}%` : null;
           const genrePart = genre || null;
+          const hasLocation = lat !== 0 || lng !== 0;
 
           return prisma.$queryRaw`
             SELECT DISTINCT v.id, v.name, v.lat, v.lng, v.capacity, v.bio, v.media,
               CASE 
                 WHEN (${queryPart} IS NOT NULL AND (v.name ILIKE ${queryPart} OR v.bio ILIKE ${queryPart})) THEN 1
-                WHEN ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}) THEN 2
-                WHEN (${genrePart} IS NOT NULL AND EXISTS (SELECT 1 FROM "_VenueGenres" vg JOIN "Genre" g ON vg."B" = g.id WHERE vg."A" = v.id AND g.name = ${genrePart})) THEN 3
-                ELSE 4
+                WHEN (${hasLocation} AND v.location IS NOT NULL AND ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters})) THEN 2
+                ELSE 3
               END as search_priority
             FROM "Venue" v
             LEFT JOIN "_VenueGenres" vg ON v.id = vg."A"
             LEFT JOIN "Genre" g ON vg."B" = g.id
-            WHERE 
-              (${queryPart} IS NULL OR v.name ILIKE ${queryPart} OR v.bio ILIKE ${queryPart} OR 1=1)
+            WHERE (
+              (${!hasLocation} AND ${queryPart} IS NULL) 
+              OR 
+              (${queryPart} IS NOT NULL AND (v.name ILIKE ${queryPart} OR v.bio ILIKE ${queryPart}))
+              OR
+              (${hasLocation} AND v.location IS NOT NULL AND ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}))
+              OR
+              (${queryPart} IS NULL)
+            )
+            AND (${genrePart} IS NULL OR g.name = ${genrePart})
             ORDER BY search_priority ASC, v.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
