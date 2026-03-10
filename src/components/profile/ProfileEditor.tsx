@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { UploadDropzone } from '@/lib/uploadthing';
-import { Music, Upload, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Music, Upload, Loader2, CheckCircle, XCircle, Image as ImageIcon } from 'lucide-react';
 import { AudioPlayer } from '../ui/AudioPlayer';
+import Image from 'next/image';
 
 interface MediaItem {
   url: string;
@@ -37,8 +37,11 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   
   const [saving, setSaving] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState('');
+  
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +54,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
-          bio, 
+          bio,
           negotiationPrefs: {
             minRate: Number(minRate),
             openToNegotiate,
@@ -64,7 +67,6 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       setMessage('Profile updated successfully!');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Error saving profile';
-      console.error('Save Error:', errorMessage);
       setMessage(errorMessage);
     } finally {
       setSaving(false);
@@ -74,7 +76,6 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploadingAudio(true);
     setMessage('');
 
@@ -82,28 +83,46 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/artist/upload-audio', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const res = await fetch('/api/artist/upload-audio', { method: 'POST', body: formData });
       const data = await res.json();
-
       if (data.success) {
         setAudioUrlPreview(data.url);
-        const newMediaItem = { url: data.url, type: 'audio', name: file.name };
-        setMedia(prev => [...prev, newMediaItem]);
+        setMedia(prev => [...prev, { url: data.url, type: 'audio', name: file.name }]);
         setMessage('Audio uploaded successfully!');
       } else {
         throw new Error(data.error || 'Upload failed');
       }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Upload failed';
-      console.error('Audio upload error:', errorMessage);
-      setMessage(`Upload Error: ${errorMessage}`);
+      setMessage(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploadingAudio(false);
       if (audioInputRef.current) audioInputRef.current.value = '';
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    setMessage('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/artist/upload-image', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        setMedia(prev => [...prev, { url: data.url, type: 'image', name: data.name }]);
+        setMessage('Image uploaded successfully!');
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploadingImage(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
     }
   };
 
@@ -164,14 +183,14 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           {saving ? 'Syncing...' : 'Save Profile Changes'}
         </button>
         {message && (
-          <div className={`flex items-center justify-center gap-2 font-bold uppercase italic text-sm tracking-tight ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
-            {message.includes('Error') ? <XCircle size={16} /> : <CheckCircle size={16} />}
+          <div className={`flex items-center justify-center gap-2 font-bold uppercase italic text-sm tracking-tight ${message.includes('Error') || message.includes('failed') ? 'text-red-500' : 'text-green-500'}`}>
+            {message.includes('Error') || message.includes('failed') ? <XCircle size={16} /> : <CheckCircle size={16} />}
             {message}
           </div>
         )}
       </form>
 
-      {/* Audio Upload Section */}
+      {/* Audio Showcase Section */}
       <div id="audio-showcase-section" className="space-y-6 pt-12 border-t border-zinc-800">
         <div className="flex items-center gap-4 mb-2">
           <Music className="text-purple-500" size={20} />
@@ -187,13 +206,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           )}
 
           <div className="relative group">
-            <input 
-              type="file" 
-              accept="audio/*" 
-              onChange={handleAudioUpload}
-              ref={audioInputRef}
-              className="hidden"
-            />
+            <input type="file" accept="audio/*" onChange={handleAudioUpload} ref={audioInputRef} className="hidden" />
             <button
               onClick={() => audioInputRef.current?.click()}
               disabled={uploadingAudio}
@@ -203,9 +216,7 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
                 {uploadingAudio ? <Loader2 className="animate-spin text-white" /> : <Upload className="text-zinc-400 group-hover:text-white" />}
               </div>
               <div className="text-center">
-                <p className="text-sm font-black uppercase italic tracking-widest text-white">
-                  {uploadingAudio ? 'Uploading...' : 'Upload New Audio Demo'}
-                </p>
+                <p className="text-sm font-black uppercase italic tracking-widest text-white">{uploadingAudio ? 'Uploading...' : 'Upload New Audio Demo'}</p>
                 <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">MP3, WAV, or OGG up to 10MB</p>
               </div>
             </button>
@@ -213,48 +224,39 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
         </div>
       </div>
 
-      <div className="relative py-12">
-        <div className="absolute inset-0 flex items-center" aria-hidden="true">
-          <div className="w-full border-t border-zinc-800"></div>
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-black px-6 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Visual Gallery</span>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm">
-          <UploadDropzone
-            endpoint={role === 'BAND' ? "bandMedia" : "venueMedia"}
-            onClientUploadComplete={(res) => {
-              const newMedia = [...media, ...res.map(file => ({
-                url: file.url,
-                name: file.name,
-                type: file.type
-              }))];
-              setMedia(newMedia);
-            }}
-            onUploadError={(error: Error) => {
-              console.error(`Upload error: ${error.message}`);
-            }}
-            appearance={{
-              container: { border: '2px dashed #27272a', background: 'transparent' },
-              label: { color: '#71717a', fontSize: '0.875rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' },
-              button: { background: role === 'BAND' ? '#A855F7' : '#3B82F6', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase' }
-            }}
-          />
+      {/* Visual Gallery Section (Now Supabase) */}
+      <div className="space-y-6 pt-12 border-t border-zinc-800">
+        <div className="flex items-center gap-4 mb-2">
+          <ImageIcon className="text-blue-500" size={20} />
+          <h2 className="text-xl font-black uppercase italic tracking-tight">Visual Gallery</h2>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-8">
-          {media.map((item, idx) => (
-            <div key={idx} className="group relative bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 aspect-square hover:border-zinc-700 transition-all">
-              <span className="text-2xl filter grayscale group-hover:grayscale-0 transition-all">
-                {item.type.includes('image') ? '📸' : (item.type.includes('video') ? '🎬' : '🎵')}
-              </span>
-              <p className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500 text-center line-clamp-1 w-full">{item.name}</p>
-              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500"></div>
-            </div>
-          ))}
+        <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm space-y-8">
+          <div className="relative group">
+            <input type="file" accept="image/*" onChange={handleImageUpload} ref={imageInputRef} className="hidden" />
+            <button
+              onClick={() => imageInputRef.current?.click()}
+              disabled={uploadingImage}
+              className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group"
+            >
+              <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                {uploadingImage ? <Loader2 className="animate-spin text-white" /> : <Upload className="text-zinc-400 group-hover:text-white" />}
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-black uppercase italic tracking-widest text-white">{uploadingImage ? 'Uploading Image...' : 'Upload New Photo'}</p>
+                <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">PNG, JPG or WEBP up to 5MB</p>
+              </div>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {media.filter(m => m.type.includes('image')).map((item, idx) => (
+              <div key={idx} className="group relative bg-black border border-zinc-800 rounded-2xl overflow-hidden aspect-square hover:border-zinc-600 transition-all shadow-xl">
+                <Image src={item.url} alt="Gallery Item" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
