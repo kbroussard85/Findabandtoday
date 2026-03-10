@@ -2,9 +2,22 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@auth0/nextjs-auth0';
 
+interface DiscoveryResult {
+  id: string;
+  name: string;
+  bio?: string;
+  media?: unknown;
+  availability?: unknown;
+  negotiationPrefs?: unknown;
+  audioUrlPreview?: string;
+}
+
 export async function GET(req: Request) {
+  const url = new URL(req.url);
+  console.log('[DISCOVERY_DEBUG] Request received:', url.search);
+
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = url;
     const latParam = searchParams.get('lat');
     const lngParam = searchParams.get('lng');
     const radiusParam = searchParams.get('radius') || '50';
@@ -15,6 +28,7 @@ export async function GET(req: Request) {
     const offsetParam = searchParams.get('offset') || '0';
 
     if (!latParam || !lngParam) {
+      console.error('[DISCOVERY_DEBUG] Missing coordinates');
       return NextResponse.json({ error: 'Missing lat or lng' }, { status: 400 });
     }
 
@@ -24,11 +38,8 @@ export async function GET(req: Request) {
     const limit = parseInt(limitParam);
     const offset = parseInt(offsetParam);
 
-    if (isNaN(lat) || isNaN(lng) || isNaN(radiusMiles) || isNaN(limit) || isNaN(offset)) {
-      return NextResponse.json({ error: 'Invalid search parameters' }, { status: 400 });
-    }
+    console.log(`[DISCOVERY_DEBUG] Params: lat=${lat}, lng=${lng}, radius=${radiusMiles}, role=${roleParam}`);
 
-    // 1. SAFE SESSION CHECK: Don't let Auth0 failures block public discovery
     let isPremium = false;
     try {
       const session = await getSession();
@@ -38,50 +49,49 @@ export async function GET(req: Request) {
           select: { isPaid: true }
         });
         isPremium = dbUser?.isPaid || false;
+        console.log('[DISCOVERY_DEBUG] Session found, premium:', isPremium);
       }
-    } catch (e) {
-      // User is likely just not logged in, which is fine for discovery
-      console.log('[DISCOVERY] Public request (no session)');
+    } catch {
+      console.log('[DISCOVERY_DEBUG] No active session (expected for public visitors)');
     }
 
     const radiusInMeters = radiusMiles * 1609.34;
 
-    let results: Array<{
-      id: string;
-      name: string;
-      bio?: string;
-      media?: unknown;
-      availability?: unknown;
-      negotiationPrefs?: unknown;
-      audioUrlPreview?: string;
-    }>;
+    let results: DiscoveryResult[] = [];
 
-    // 2. Fetch using our optimized findNearby extension
-    if (roleParam.toUpperCase() === 'BAND') {
-      results = await prisma.band.findNearby(
-        lat, 
-        lng, 
-        radiusInMeters, 
-        queryParam || undefined, 
-        genreParam || undefined,
-        limit, 
-        offset
-      ) as typeof results;
-    } else {
-      results = await prisma.venue.findNearby(
-        lat, 
-        lng, 
-        radiusInMeters, 
-        queryParam || undefined, 
-        genreParam || undefined,
-        limit, 
-        offset
-      ) as typeof results;
+    try {
+      if (roleParam.toUpperCase() === 'BAND') {
+        console.log('[DISCOVERY_DEBUG] Querying Bands...');
+        results = await prisma.band.findNearby(
+          lat, 
+          lng, 
+          radiusInMeters, 
+          queryParam || undefined, 
+          genreParam || undefined,
+          limit, 
+          offset
+        ) as DiscoveryResult[];
+      } else {
+        console.log('[DISCOVERY_DEBUG] Querying Venues...');
+        results = await prisma.venue.findNearby(
+          lat, 
+          lng, 
+          radiusInMeters, 
+          queryParam || undefined, 
+          genreParam || undefined,
+          limit, 
+          offset
+        ) as DiscoveryResult[];
+      }
+      console.log(`[DISCOVERY_DEBUG] Found ${results.length} results`);
+    } catch (dbError: unknown) {
+      const dbMessage = dbError instanceof Error ? dbError.message : 'Database error';
+      console.error('[DISCOVERY_DEBUG] DATABASE QUERY FAILED:', dbMessage);
+      return NextResponse.json({ data: [], warning: 'Geospatial search unavailable' });
     }
 
-    // 3. GATING LOGIC: If not premium, strip sensitive data
     const gatedResults = results.map(item => {
-      const sanitized = { ...item } as Record<string, unknown>;
+      const sanitized = { ...item };
       if (!isPremium) {
         delete sanitized.availability;
         delete sanitized.negotiationPrefs;
@@ -92,7 +102,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ data: gatedResults });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[DISCOVERY_API_FATAL]:', message);
-    return NextResponse.json({ error: 'Failed to synchronize local scene' }, { status: 500 });
+    console.error('[DISCOVERY_DEBUG] FATAL ERROR:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
