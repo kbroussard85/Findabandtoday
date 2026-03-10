@@ -15,15 +15,14 @@ function DirectoryContent() {
   const searchParams = useSearchParams();
   const q = searchParams.get('q') || '';
 
-  const { lat, lng, loading: geoLoading, error: geoError, permissionStatus, getLocation, setManualLocation } = useGeolocation();
+  const { lat, lng, loading: geoLoading, getLocation, setManualLocation } = useGeolocation();
   const [radius, setRadius] = useState<number>(50);
   const [role, setRole] = useState<'BAND' | 'VENUE'>('BAND');
   const [genre, setGenre] = useState<string>('');
   const [citySearch, setCitySearch] = useState('');
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // FIXED: The hook now correctly handles missing lat/lng when a name query 'q' exists
-  const { data, loading, loadingMore, error, loadMore, hasMore } = useDiscovery({ 
+  const { data, loading, loadingMore, loadMore, hasMore } = useDiscovery({ 
     lat, 
     lng, 
     radius, 
@@ -44,8 +43,8 @@ function DirectoryContent() {
       const results = await response.json();
       
       if (results && results.length > 0) {
-        const { lat, lon } = results[0];
-        setManualLocation(parseFloat(lat), parseFloat(lon));
+        const { lat: newLat, lon: newLon } = results[0];
+        setManualLocation(parseFloat(newLat), parseFloat(newLon));
       } else {
         alert('Location not found. Please try a different city or zip code.');
       }
@@ -57,8 +56,6 @@ function DirectoryContent() {
     }
   };
 
-  // NEW: Only block the screen if there is NO location AND NO search query.
-  // This allows people to search for "Ken Carl" even if they haven't shared their location.
   if (!lat && !lng && !q) {
     return (
       <div className="max-w-xl mx-auto py-20 px-8 text-center space-y-12 animate-in fade-in duration-700">
@@ -133,7 +130,6 @@ function DirectoryContent() {
         </button>
       </header>
 
-      {/* AI Section only shows if we have a location */}
       {lat && lng && <MaximizerPicks lat={lat} lng={lng} radius={radius} />}
       
       <div className="space-y-6">
@@ -187,7 +183,6 @@ function DirectoryContent() {
         </div>
       </div>
 
-      {/* Results Section */}
       <div className="min-h-[400px] relative">
         {(loading && !loadingMore) ? (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10 rounded-3xl">
