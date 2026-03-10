@@ -53,7 +53,7 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
         <div className="flex justify-between items-center">
           <ProfileToggle isPreview={isPreview} setIsPreview={setIsPreview} />
           <Link 
-            href={`/profile/${encodeURIComponent(dbUser.auth0Id)}`}
+            href={`/profile/${dbUser.id}`}
             className="flex items-center gap-2 text-[10px] font-black uppercase italic tracking-widest text-zinc-500 hover:text-purple-400 transition-colors"
           >
             <ExternalLink size={14} /> View Live URL
@@ -65,7 +65,7 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
             <span className="text-[10px] font-black uppercase tracking-tighter text-purple-400">Live Preview Mode</span>
           </div>
           <iframe 
-            src={`/profile/${encodeURIComponent(dbUser.auth0Id)}`} 
+            src={`/profile/${dbUser.id}`} 
             className="w-full h-full min-h-[80vh] border-0"
             title="Profile Preview"
           />

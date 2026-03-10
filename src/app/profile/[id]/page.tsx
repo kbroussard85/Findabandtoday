@@ -12,9 +12,20 @@ interface PublicProfileProps {
 
 export default async function PublicProfilePage({ params }: PublicProfileProps) {
   const { id } = await params;
+  
+  // Decode the ID in case it was passed encoded
+  const decodedId = decodeURIComponent(id);
 
-  const dbUser = await prisma.user.findUnique({
-    where: { auth0Id: id },
+  console.log('[DEBUG] Loading Public Profile for ID:', decodedId);
+
+  // Search by either Auth0 ID OR internal Database ID for maximum reliability
+  const dbUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { auth0Id: decodedId },
+        { id: decodedId }
+      ]
+    },
     include: {
       bandProfile: {
         include: { availabilities: true }
@@ -25,7 +36,10 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
     },
   });
 
-  if (!dbUser) return notFound();
+  if (!dbUser) {
+    console.error('[DEBUG] User not found for ID:', decodedId);
+    return notFound();
+  }
 
   const isBand = dbUser.role === 'BAND';
   const profile = isBand ? dbUser.bandProfile : dbUser.venueProfile;
@@ -96,7 +110,6 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
       {/* Profile Content */}
       <main className="max-w-7xl mx-auto p-8 lg:p-20 grid grid-cols-1 lg:grid-cols-3 gap-16">
         <div className="lg:col-span-2 space-y-16">
-          {/* Bio Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-3">
               <Info className={isBand ? 'text-purple-500' : 'text-blue-500'} size={24} />
@@ -107,7 +120,6 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
             </p>
           </section>
 
-          {/* Media Section */}
           <section className="space-y-8">
             <div className="flex items-center gap-3">
               <Music className={isBand ? 'text-purple-500' : 'text-blue-500'} size={24} />
@@ -133,7 +145,6 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
 
         {/* Sidebar Info */}
         <aside className="space-y-12">
-          {/* Availability */}
           <section className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-3xl space-y-6 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <Calendar className={isBand ? 'text-purple-500' : 'text-blue-500'} size={20} />
@@ -157,7 +168,6 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
             </button>
           </section>
 
-          {/* Booking Stats */}
           <section className="p-8 border border-zinc-800 rounded-3xl space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Booking Terms</h4>
             <div className="space-y-4">
