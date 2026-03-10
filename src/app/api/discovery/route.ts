@@ -3,46 +3,49 @@ import prisma from '@/lib/prisma';
 import { getSession } from '@auth0/nextjs-auth0';
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const latParam = searchParams.get('lat');
-  const lngParam = searchParams.get('lng');
-  const radiusParam = searchParams.get('radius') || '50';
-  const roleParam = searchParams.get('role') || 'BAND';
-  const queryParam = searchParams.get('q');
-  const genreParam = searchParams.get('genre');
-  const limitParam = searchParams.get('limit') || '20';
-  const offsetParam = searchParams.get('offset') || '0';
-
-  if (!latParam || !lngParam) {
-    return NextResponse.json({ error: 'Missing lat or lng' }, { status: 400 });
-  }
-
-  const lat = parseFloat(latParam);
-  const lng = parseFloat(lngParam);
-  const radiusMiles = parseFloat(radiusParam);
-  const limit = parseInt(limitParam);
-  const offset = parseInt(offsetParam);
-
-  if (isNaN(lat) || isNaN(lng) || isNaN(radiusMiles) || isNaN(limit) || isNaN(offset)) {
-    return NextResponse.json({ error: 'Invalid coordinates, radius, limit, or offset' }, { status: 400 });
-  }
-
-  // Get current user session to check for premium status
-  const session = await getSession();
-  let isPremium = false;
-
-  if (session?.user) {
-    const dbUser = await prisma.user.findUnique({
-      where: { auth0Id: session.user.sub },
-      select: { isPaid: true }
-    });
-    isPremium = dbUser?.isPaid || false;
-  }
-
-  // Convert miles to meters for PostGIS (1 mile = 1609.34 meters)
-  const radiusInMeters = radiusMiles * 1609.34;
-
   try {
+    const { searchParams } = new URL(req.url);
+    const latParam = searchParams.get('lat');
+    const lngParam = searchParams.get('lng');
+    const radiusParam = searchParams.get('radius') || '50';
+    const roleParam = searchParams.get('role') || 'BAND';
+    const queryParam = searchParams.get('q');
+    const genreParam = searchParams.get('genre');
+    const limitParam = searchParams.get('limit') || '20';
+    const offsetParam = searchParams.get('offset') || '0';
+
+    if (!latParam || !lngParam) {
+      return NextResponse.json({ error: 'Missing lat or lng' }, { status: 400 });
+    }
+
+    const lat = parseFloat(latParam);
+    const lng = parseFloat(lngParam);
+    const radiusMiles = parseFloat(radiusParam);
+    const limit = parseInt(limitParam);
+    const offset = parseInt(offsetParam);
+
+    if (isNaN(lat) || isNaN(lng) || isNaN(radiusMiles) || isNaN(limit) || isNaN(offset)) {
+      return NextResponse.json({ error: 'Invalid search parameters' }, { status: 400 });
+    }
+
+    // 1. SAFE SESSION CHECK: Don't let Auth0 failures block public discovery
+    let isPremium = false;
+    try {
+      const session = await getSession();
+      if (session?.user) {
+        const dbUser = await prisma.user.findUnique({
+          where: { auth0Id: session.user.sub },
+          select: { isPaid: true }
+        });
+        isPremium = dbUser?.isPaid || false;
+      }
+    } catch (e) {
+      // User is likely just not logged in, which is fine for discovery
+      console.log('[DISCOVERY] Public request (no session)');
+    }
+
+    const radiusInMeters = radiusMiles * 1609.34;
+
     let results: Array<{
       id: string;
       name: string;
@@ -53,6 +56,7 @@ export async function GET(req: Request) {
       audioUrlPreview?: string;
     }>;
 
+    // 2. Fetch using our optimized findNearby extension
     if (roleParam.toUpperCase() === 'BAND') {
       results = await prisma.band.findNearby(
         lat, 
@@ -75,11 +79,10 @@ export async function GET(req: Request) {
       ) as typeof results;
     }
 
-    // GATING LOGIC: If not premium, strip sensitive data before sending
+    // 3. GATING LOGIC: If not premium, strip sensitive data
     const gatedResults = results.map(item => {
       const sanitized = { ...item } as Record<string, unknown>;
       if (!isPremium) {
-        // Strip sensitive fields
         delete sanitized.availability;
         delete sanitized.negotiationPrefs;
       }
@@ -87,8 +90,9 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.json({ data: gatedResults });
-  } catch (error) {
-    console.error('Discovery API Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch discovery results' }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[DISCOVERY_API_FATAL]:', message);
+    return NextResponse.json({ error: 'Failed to synchronize local scene' }, { status: 500 });
   }
 }
