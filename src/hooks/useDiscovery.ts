@@ -22,9 +22,8 @@ export function useDiscovery({ lat, lng, radius, role, query, genre, limit = DEF
   const [hasMore, setHasMore] = useState(true);
 
   const fetchDiscovery = useCallback(async (currentOffset: number, isInitial: boolean) => {
-    // If we have a name query, we don't strictly NEED lat/lng anymore (Global Search)
-    // But if we have no query AND no location, we can't search
-    if (!query && (lat === null || lng === null)) return;
+    // NEW: We NO LONGER block if lat/lng are missing. 
+    // If they are missing, we pass 0,0 which our Cascade Logic now handles as Global.
 
     if (isInitial) {
       setLoading(true);
@@ -36,7 +35,6 @@ export function useDiscovery({ lat, lng, radius, role, query, genre, limit = DEF
 
     setError(null);
     try {
-      // Use defaults if location is missing but name query is present
       const safeLat = lat ?? 0;
       const safeLng = lng ?? 0;
       const qParam = query ? `&q=${encodeURIComponent(query)}` : '';
