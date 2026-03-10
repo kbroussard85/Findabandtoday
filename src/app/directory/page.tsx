@@ -6,7 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { DiscoveryGrid } from '@/components/discovery/DiscoveryGrid';
 import { useSearchParams } from 'next/navigation';
 import { MaximizerPicks } from '@/components/ai/MaximizerPicks';
-import { MapPin, Navigation, Search, Loader2, Music } from 'lucide-react';
+import { Navigation, Search, Loader2, Music } from 'lucide-react';
 
 const POPULAR_GENRES = [
   'Rock', 'Blues', 'Country', 'Jazz', 'Electronic', 'Indie', 'Metal', 'Pop', 'R&B', 'Folk'
