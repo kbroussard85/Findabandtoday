@@ -41,7 +41,7 @@ export async function createUpgradeSession(formData: FormData) {
             try {
                 await stripe.customers.retrieve(stripeCustomerId);
                 console.log(`[STRIPE] Verified existing customer: ${stripeCustomerId}`);
-            } catch (err) {
+            } catch {
                 console.log(`[STRIPE] Customer ID ${stripeCustomerId} not found in this account. Creating new one.`);
                 needsNewCustomer = true;
             }

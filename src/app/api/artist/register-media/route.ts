@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const session = await getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { fileUrl, fileType, fileName } = await req.json();
+    const { fileUrl, fileType } = await req.json();
 
     const auth0Id = session.user.sub;
     const dbUser = await prisma.user.findUnique({ where: { auth0Id } });
