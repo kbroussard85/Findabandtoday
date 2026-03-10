@@ -68,6 +68,12 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    if (!supabase) {
+      setMessage('Error: Supabase client not initialized. Check your environment variables.');
+      return;
+    }
+
     setUploadingAudio(true);
     setMessage('');
 
