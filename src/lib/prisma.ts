@@ -13,6 +13,7 @@ const prismaClientSingleton = () => {
 
           return prisma.$queryRaw`
             SELECT DISTINCT b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview",
+              COALESCE(AVG(r.stars), 0) as average_rating,
               CASE 
                 -- Priority 1: Direct name match
                 WHEN (${queryPart}::text IS NOT NULL AND (b.name ILIKE ${queryPart}::text OR b.bio ILIKE ${queryPart}::text)) THEN 1
@@ -24,6 +25,7 @@ const prismaClientSingleton = () => {
             FROM "Band" b
             LEFT JOIN "_BandGenres" bg ON b.id = bg."A"
             LEFT JOIN "Genre" g ON bg."B" = g.id
+            LEFT JOIN "Rating" r ON b.id = r."bandId"
             WHERE (
               -- If no location and no query, show EVERYONE (1=1)
               -- If location exists, ST_DWithin is enforced unless a query matches
@@ -37,7 +39,8 @@ const prismaClientSingleton = () => {
               (${queryPart}::text IS NULL)
             )
             AND (${genrePart}::text IS NULL OR g.name = ${genrePart}::text)
-            ORDER BY search_priority ASC, b.name ASC
+            GROUP BY b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview", b.location
+            ORDER BY search_priority ASC, average_rating DESC, b.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
         },

@@ -3,16 +3,39 @@ import React, { useRef, useState, useEffect } from 'react';
 import { BlurredField } from '../ui/BlurredField';
 import { Artist } from '@/types';
 import Image from 'next/image';
-import { Play, Pause, Music } from 'lucide-react';
+import { Play, Pause, Music, Star } from 'lucide-react';
 
 interface ArtistCardProps {
   artist: Artist;
   isPremium: boolean;
+  showRating?: boolean;
+  index?: number;
 }
 
-export function ArtistCard({ artist, isPremium }: ArtistCardProps) {
+export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardProps) {
   const mediaRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [userRating, setUserRating] = useState(0);
+  const [isRating, setIsRating] = useState(false);
+
+  const handleRate = async (stars: number) => {
+    setIsRating(true);
+    try {
+      const res = await fetch(`/api/artist/${artist.id}/rate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stars })
+      });
+      if (res.ok) {
+        setUserRating(stars);
+        // Could refresh discovery here, but for now just update local state
+      }
+    } catch (err) {
+      console.error('Failed to rate:', err);
+    } finally {
+      setIsRating(false);
+    }
+  };
   
   // Find the best thumbnail (first image in media)
   const thumbnail = React.useMemo(() => {
@@ -93,6 +116,15 @@ export function ArtistCard({ artist, isPremium }: ArtistCardProps) {
           </div>
         )}
 
+        {/* Top 10 Badge (Venue Only) */}
+        {showRating && index !== undefined && index < 10 && (artist.average_rating || 0) > 0 && (
+          <div className="absolute top-4 left-4 bg-yellow-500 text-black px-3 py-1 rounded-full z-20 shadow-xl border border-yellow-400">
+            <span className="text-[10px] font-black uppercase tracking-tighter">
+              TOP {index + 1} REGIONAL
+            </span>
+          </div>
+        )}
+
         {/* Hidden Audio Element */}
         {audioUrl && (
           <audio 
@@ -151,6 +183,35 @@ export function ArtistCard({ artist, isPremium }: ArtistCardProps) {
           </div>
         </BlurredField>
       </div>
+
+      {/* Hidden Rating Interface (VENUE ONLY) */}
+      {showRating && (
+        <div className="pt-4 mt-4 border-t border-zinc-800/50 flex flex-col gap-2">
+          <div className="flex justify-between items-center">
+            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600 italic">Industry Rating</span>
+            <div className="flex items-center gap-1">
+              <Star size={10} fill={ (artist.average_rating || 0) > 0 ? "white" : "none"} className={(artist.average_rating || 0) > 0 ? "text-white" : "text-zinc-700"} />
+              <span className="text-[10px] font-black text-white">{artist.average_rating ? Number(artist.average_rating).toFixed(1) : 'N/A'}</span>
+            </div>
+          </div>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <button
+                key={s}
+                disabled={isRating}
+                onClick={() => handleRate(s)}
+                className="hover:scale-110 transition-transform disabled:opacity-50"
+              >
+                <Star 
+                  size={14} 
+                  fill={s <= (userRating || 0) ? "#a855f7" : "none"} 
+                  className={s <= (userRating || 0) ? "text-purple-500" : "text-zinc-800"} 
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

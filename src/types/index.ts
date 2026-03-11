@@ -17,6 +17,7 @@ export interface Artist {
   media?: MediaItem[] | null;
   backlineInfo?: string | null;
   genres?: Genre[] | null;
+  average_rating?: number;
   negotiationPrefs?: {
     minRate?: number;
     openToNegotiate?: boolean;

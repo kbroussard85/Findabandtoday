@@ -33,8 +33,14 @@ export function DiscoveryGrid({
   return (
     <div className="space-y-12">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {items.map((item) => (
-          <ArtistCard key={item.id} artist={item} isPremium={isPremium} />
+        {items.map((item, idx) => (
+          <ArtistCard 
+            key={item.id} 
+            artist={item} 
+            isPremium={isPremium} 
+            showRating={!!item.average_rating || isPremium} // Show rating UI if data exists or user is premium
+            index={idx}
+          />
         ))}
       </div>
 

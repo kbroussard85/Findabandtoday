@@ -30,13 +30,14 @@ export async function GET(req: Request) {
     const limit = parseInt(limitParam);
     const offset = parseInt(offsetParam);
 
+    let dbUser = null;
     let isPremium = false;
     try {
       const session = await getSession();
       if (session?.user) {
-        const dbUser = await prisma.user.findUnique({
+        dbUser = await prisma.user.findUnique({
           where: { auth0Id: session.user.sub },
-          select: { isPaid: true }
+          select: { isPaid: true, role: true }
         });
         isPremium = dbUser?.isPaid || false;
       }
@@ -83,6 +84,11 @@ export async function GET(req: Request) {
     const gatedResults = results.map(item => {
       const sanitized = { ...item };
       /* eslint-disable @typescript-eslint/no-explicit-any */
+      // Only reveal average_rating to VENUE roles
+      if (dbUser?.role !== 'VENUE') {
+        delete (sanitized as any).average_rating;
+      }
+
       if (!isPremium) {
         delete (sanitized as any).availability;
         delete (sanitized as any).negotiationPrefs;

@@ -63,6 +63,7 @@ model Band {
   members          BandMember[]
   gigs             Gig[]
   genres           Genre[]                   @relation("BandGenres")
+  ratings          Rating[]
 
   @@index([location], type: Gist)
 }
@@ -85,8 +86,23 @@ model Venue {
   user             User                      @relation(fields: [userId], references: [id])
   members          VenueMember[]
   genres           Genre[]                   @relation("VenueGenres")
+  givenRatings     Rating[]
 
   @@index([location], type: Gist)
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  bandId    String
+  venueId   String
+  stars     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  band      Band     @relation(fields: [bandId], references: [id], onDelete: Cascade)
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([bandId, venueId])
+  @@index([bandId])
 }
 
 model Genre {
