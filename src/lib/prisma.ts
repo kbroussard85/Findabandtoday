@@ -39,7 +39,7 @@ const prismaClientSingleton = () => {
               (${queryPart}::text IS NULL)
             )
             AND (${genrePart}::text IS NULL OR g.name = ${genrePart}::text)
-            GROUP BY b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview", b.location
+            GROUP BY b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview", b.location, queryPart, hasLocation, radiusMeters, lng, lat
             ORDER BY search_priority ASC, average_rating DESC, b.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
@@ -71,6 +71,7 @@ const prismaClientSingleton = () => {
               (${queryPart}::text IS NULL)
             )
             AND (${genrePart}::text IS NULL OR g.name = ${genrePart}::text)
+            GROUP BY v.id, v.name, v.lat, v.lng, v.capacity, v.bio, v.media, v.location, queryPart, hasLocation, radiusMeters, lng, lat
             ORDER BY search_priority ASC, v.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
