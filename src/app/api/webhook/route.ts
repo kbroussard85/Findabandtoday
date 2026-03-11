@@ -4,11 +4,16 @@ import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 
 // Use the exact string type expected by the Stripe SDK or cast to unknown first
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27.acacia' as unknown as Stripe.LatestApiVersion,
-});
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-01-27.acacia' as unknown as Stripe.LatestApiVersion,
+    })
+  : null;
 
 export async function POST(req: Request) {
+    if (!stripe) {
+        return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 });
+    }
     const body = await req.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature') as string;
