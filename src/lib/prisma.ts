@@ -12,8 +12,8 @@ const prismaClientSingleton = () => {
           const hasLocation = lat !== 0 || lng !== 0;
 
           return prisma.$queryRaw`
-            SELECT DISTINCT b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview",
-              COALESCE(AVG(r.stars), 0) as average_rating,
+            SELECT b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview",
+              COALESCE((SELECT AVG(stars) FROM "Rating" WHERE "bandId" = b.id), 0) as average_rating,
               CASE 
                 -- Priority 1: Direct name match
                 WHEN (${queryPart}::text IS NOT NULL AND (b.name ILIKE ${queryPart}::text OR b.bio ILIKE ${queryPart}::text)) THEN 1
@@ -25,7 +25,6 @@ const prismaClientSingleton = () => {
             FROM "Band" b
             LEFT JOIN "_BandGenres" bg ON b.id = bg."A"
             LEFT JOIN "Genre" g ON bg."B" = g.id
-            LEFT JOIN "Rating" r ON b.id = r."bandId"
             WHERE (
               -- If no location and no query, show EVERYONE (1=1)
               -- If location exists, ST_DWithin is enforced unless a query matches
@@ -39,7 +38,7 @@ const prismaClientSingleton = () => {
               (${queryPart}::text IS NULL)
             )
             AND (${genrePart}::text IS NULL OR g.name = ${genrePart}::text)
-            GROUP BY b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview", b.location, queryPart, hasLocation, radiusMeters, lng, lat
+            GROUP BY b.id
             ORDER BY search_priority ASC, average_rating DESC, b.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
@@ -52,7 +51,7 @@ const prismaClientSingleton = () => {
           const hasLocation = lat !== 0 || lng !== 0;
 
           return prisma.$queryRaw`
-            SELECT DISTINCT v.id, v.name, v.lat, v.lng, v.capacity, v.bio, v.media,
+            SELECT v.id, v.name, v.lat, v.lng, v.capacity, v.bio, v.media,
               CASE 
                 WHEN (${queryPart}::text IS NOT NULL AND (v.name ILIKE ${queryPart}::text OR v.bio ILIKE ${queryPart}::text)) THEN 1
                 WHEN (${hasLocation}::boolean AND v.location IS NOT NULL AND ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters})) THEN 2
@@ -71,7 +70,7 @@ const prismaClientSingleton = () => {
               (${queryPart}::text IS NULL)
             )
             AND (${genrePart}::text IS NULL OR g.name = ${genrePart}::text)
-            GROUP BY v.id, v.name, v.lat, v.lng, v.capacity, v.bio, v.media, v.location, queryPart, hasLocation, radiusMeters, lng, lat
+            GROUP BY v.id
             ORDER BY search_priority ASC, v.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
