@@ -15,9 +15,9 @@ const prismaClientSingleton = () => {
             SELECT DISTINCT b.id, b.name, b.lat, b.lng, b.bio, b.media, b."audioUrlPreview",
               CASE 
                 -- Priority 1: Direct name match
-                WHEN (${queryPart} IS NOT NULL AND (b.name ILIKE ${queryPart} OR b.bio ILIKE ${queryPart})) THEN 1
+                WHEN (${queryPart}::text IS NOT NULL AND (b.name ILIKE ${queryPart}::text OR b.bio ILIKE ${queryPart}::text)) THEN 1
                 -- Priority 2: Within Radius (Only if location is provided)
-                WHEN (${hasLocation} AND b.location IS NOT NULL AND ST_DWithin(b.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters})) THEN 2
+                WHEN (${hasLocation}::boolean AND b.location IS NOT NULL AND ST_DWithin(b.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters})) THEN 2
                 -- Priority 3: Everyone else (Global Fallback)
                 ELSE 3
               END as search_priority
@@ -27,16 +27,16 @@ const prismaClientSingleton = () => {
             WHERE (
               -- If no location and no query, show EVERYONE (1=1)
               -- If location exists, ST_DWithin is enforced unless a query matches
-              (${!hasLocation} AND ${queryPart} IS NULL) 
+              (${!hasLocation}::boolean AND ${queryPart}::text IS NULL) 
               OR 
-              (${queryPart} IS NOT NULL AND (b.name ILIKE ${queryPart} OR b.bio ILIKE ${queryPart}))
+              (${queryPart}::text IS NOT NULL AND (b.name ILIKE ${queryPart}::text OR b.bio ILIKE ${queryPart}::text))
               OR
-              (${hasLocation} AND b.location IS NOT NULL AND ST_DWithin(b.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}))
+              (${hasLocation}::boolean AND b.location IS NOT NULL AND ST_DWithin(b.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}))
               OR
               -- Final fallback to ensure the grid is NEVER empty if data exists
-              (${queryPart} IS NULL)
+              (${queryPart}::text IS NULL)
             )
-            AND (${genrePart} IS NULL OR g.name = ${genrePart})
+            AND (${genrePart}::text IS NULL OR g.name = ${genrePart}::text)
             ORDER BY search_priority ASC, b.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
@@ -51,23 +51,23 @@ const prismaClientSingleton = () => {
           return prisma.$queryRaw`
             SELECT DISTINCT v.id, v.name, v.lat, v.lng, v.capacity, v.bio, v.media,
               CASE 
-                WHEN (${queryPart} IS NOT NULL AND (v.name ILIKE ${queryPart} OR v.bio ILIKE ${queryPart})) THEN 1
-                WHEN (${hasLocation} AND v.location IS NOT NULL AND ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters})) THEN 2
+                WHEN (${queryPart}::text IS NOT NULL AND (v.name ILIKE ${queryPart}::text OR v.bio ILIKE ${queryPart}::text)) THEN 1
+                WHEN (${hasLocation}::boolean AND v.location IS NOT NULL AND ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters})) THEN 2
                 ELSE 3
               END as search_priority
             FROM "Venue" v
             LEFT JOIN "_VenueGenres" vg ON v.id = vg."A"
             LEFT JOIN "Genre" g ON vg."B" = g.id
             WHERE (
-              (${!hasLocation} AND ${queryPart} IS NULL) 
+              (${!hasLocation}::boolean AND ${queryPart}::text IS NULL) 
               OR 
-              (${queryPart} IS NOT NULL AND (v.name ILIKE ${queryPart} OR v.bio ILIKE ${queryPart}))
+              (${queryPart}::text IS NOT NULL AND (v.name ILIKE ${queryPart}::text OR v.bio ILIKE ${queryPart}::text))
               OR
-              (${hasLocation} AND v.location IS NOT NULL AND ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}))
+              (${hasLocation}::boolean AND v.location IS NOT NULL AND ST_DWithin(v.location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusMeters}))
               OR
-              (${queryPart} IS NULL)
+              (${queryPart}::text IS NULL)
             )
-            AND (${genrePart} IS NULL OR g.name = ${genrePart})
+            AND (${genrePart}::text IS NULL OR g.name = ${genrePart}::text)
             ORDER BY search_priority ASC, v.name ASC
             LIMIT ${limit} OFFSET ${offset}
           `;
