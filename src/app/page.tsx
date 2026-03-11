@@ -38,7 +38,7 @@ export default function LandingPage() {
 
         {/* Right Side: VENUES */}
         <section className="relative flex-1 group overflow-hidden min-h-[50vh] md:min-h-0">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514525253361-bee8718a340b?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-40 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"></div>
+          <div className="absolute inset-0 bg-[url('/images/find-a-band-bg.jpg')] bg-cover bg-center opacity-40 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
 
           <div className="relative h-full flex flex-col justify-end p-8 lg:p-20 space-y-6">
