@@ -1,6 +1,14 @@
 import React from 'react';
 import { InventoryCalendar } from '@/components/venue/InventoryCalendar';
 import { AgreementVault } from '@/components/venue/AgreementVault';
+import { SubmissionStack } from '@/components/venue/SubmissionStack';
+
+// Mock data for the submission stack
+const MOCK_SUBMISSIONS = [
+  { id: '1', band_name: 'Neon Horizon', stats: { followers: '12.4k', avg_draw: '150', payout: '$800' } },
+  { id: '2', band_name: 'The Midnight Echo', stats: { followers: '8.2k', avg_draw: '90', payout: '$450' } },
+  { id: '3', band_name: 'Crimson Sky', stats: { followers: '24k', avg_draw: '300', payout: '$1200' } }
+];
 
 export default async function VenueDashboardPage() {
   return (
@@ -22,12 +30,9 @@ export default async function VenueDashboardPage() {
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 min-h-[400px]">
               <h2 className="text-2xl font-bold mb-4">Pending Submissions</h2>
-              <p className="text-gray-500 mb-8 text-sm">Select an open date on your calendar to view band submissions.</p>
+              <p className="text-gray-500 mb-8 text-sm">Review incoming requests for your selected dates.</p>
               
-              {/* Submission Stack Placeholder for Plan 03 */}
-              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-xl text-gray-400">
-                <span className="italic">Submission deck will appear here</span>
-              </div>
+              <SubmissionStack initialSubmissions={MOCK_SUBMISSIONS} />
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
