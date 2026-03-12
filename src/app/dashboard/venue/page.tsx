@@ -1,0 +1,44 @@
+import React from 'react';
+import { InventoryCalendar } from '@/components/venue/InventoryCalendar';
+import { AgreementVault } from '@/components/venue/AgreementVault';
+
+export default async function VenueDashboardPage() {
+  return (
+    <div className="min-h-screen bg-gray-50 text-black py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <header>
+          <h1 className="text-4xl font-black uppercase italic tracking-tight text-gray-900">
+            Venue <span className="text-indigo-600">Command</span>
+          </h1>
+          <p className="text-gray-500 mt-2 font-medium">Manage your dates, review submissions, and automate contracts.</p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1 space-y-8">
+            <InventoryCalendar />
+            <AgreementVault />
+          </div>
+          
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 min-h-[400px]">
+              <h2 className="text-2xl font-bold mb-4">Pending Submissions</h2>
+              <p className="text-gray-500 mb-8 text-sm">Select an open date on your calendar to view band submissions.</p>
+              
+              {/* Submission Stack Placeholder for Plan 03 */}
+              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-xl text-gray-400">
+                <span className="italic">Submission deck will appear here</span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-2xl font-bold mb-4">Past Shows</h2>
+              <div className="text-gray-500 text-sm italic">
+                Historical payout and attendance data will populate here after your events.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
