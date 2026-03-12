@@ -6,6 +6,7 @@ import { InventoryCalendar } from '@/components/venue/InventoryCalendar';
 import { AgreementVault } from '@/components/venue/AgreementVault';
 import { SubmissionStack } from '@/components/venue/SubmissionStack';
 import { UpgradeButton } from '@/components/profile/UpgradeButton';
+import { VenueSubNav } from '@/components/venue/VenueSubNav';
 
 interface MediaItem {
   url: string;
@@ -71,60 +72,63 @@ export default async function VenueDashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 text-black py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-12">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-gray-200 pb-10">
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-indigo-500">
+      <VenueSubNav />
+      
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 space-y-16">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-zinc-800 pb-12">
           <div className="space-y-2">
-            <h1 className="text-5xl font-black uppercase italic tracking-tighter text-gray-900">
-              Venue <span className="text-indigo-600">Command</span>
+            <h1 className="text-6xl font-black uppercase italic tracking-tighter text-white">
+              Venue <span className="text-indigo-500">Command</span>
             </h1>
-            <p className="text-gray-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-              <span className="text-indigo-600">●</span> {profile?.name || dbUser.name}&apos;s Dashboard
+            <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> 
+              {profile?.name || dbUser.name}&apos;s Live Operations
             </p>
           </div>
 
-          <div className="flex items-center gap-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-8 bg-zinc-900/50 backdrop-blur-xl p-6 rounded-[2rem] border border-zinc-800 shadow-2xl shadow-indigo-500/5">
             <div className="text-right">
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Account Status</p>
-              <p className={`text-sm font-bold uppercase italic ${dbUser.isPaid ? 'text-green-600' : 'text-gray-500'}`}>
-                {dbUser.subscriptionTier?.replace('_', ' ') || 'Free Tier'}
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Command Level</p>
+              <p className={`text-sm font-black uppercase italic ${dbUser.isPaid ? 'text-indigo-400' : 'text-zinc-600'}`}>
+                {dbUser.subscriptionTier?.replace('_', ' ') || 'Basic Hub'}
               </p>
             </div>
             {!dbUser.isPaid && <UpgradeButton role="VENUE" />}
-            <div className={`w-3 h-3 rounded-full ${dbUser.isPaid ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+            <div className={`w-4 h-4 rounded-full ${dbUser.isPaid ? 'bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.6)]' : 'bg-zinc-800'}`} />
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-1 space-y-10">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-black italic">01</div>
-                <h3 className="text-xl font-black uppercase italic tracking-tight">Calendar Control</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          <div className="lg:col-span-4 space-y-12">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-sm font-black italic shadow-lg shadow-indigo-900/40">01</div>
+                <h3 className="text-2xl font-black uppercase italic tracking-tight">Availability</h3>
               </div>
               <InventoryCalendar />
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-black italic">02</div>
-                <h3 className="text-xl font-black uppercase italic tracking-tight">Agreement Vault</h3>
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-sm font-black italic shadow-lg shadow-indigo-900/40">02</div>
+                <h3 className="text-2xl font-black uppercase italic tracking-tight">Contract Brain</h3>
               </div>
               <AgreementVault />
             </div>
           </div>
           
-          <div className="lg:col-span-2 space-y-12">
-            <section className="bg-white rounded-3xl shadow-xl shadow-indigo-900/5 border border-gray-100 p-8 min-h-[500px] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-10 -mt-10 opacity-50" />
+          <div className="lg:col-span-8 space-y-16">
+            <section className="bg-zinc-900/30 rounded-[3rem] border border-zinc-800/50 p-10 min-h-[600px] relative overflow-hidden backdrop-blur-sm">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -mr-32 -mt-32 blur-[80px]" />
               
-              <div className="relative z-10 space-y-8">
-                <div className="flex justify-between items-center">
+              <div className="relative z-10 space-y-10">
+                <div className="flex justify-between items-center border-b border-zinc-800 pb-8">
                   <div>
-                    <h2 className="text-3xl font-black uppercase italic tracking-tighter">Pending Submissions</h2>
-                    <p className="text-gray-400 font-medium text-sm mt-1 uppercase tracking-wider">Tinder-style Band Selection</p>
+                    <h2 className="text-4xl font-black uppercase italic tracking-tighter">Submissions</h2>
+                    <p className="text-zinc-500 font-bold text-xs mt-2 uppercase tracking-widest">Swipe to book the perfect act</p>
                   </div>
-                  <div className="bg-indigo-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  <div className="bg-zinc-800 text-indigo-400 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-zinc-700">
                     Live Queue
                   </div>
                 </div>
@@ -133,24 +137,31 @@ export default async function VenueDashboardPage() {
               </div>
             </section>
 
-            <section className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-2xl font-black uppercase italic tracking-tight mb-6">Past Show Analytics</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Total Payouts</p>
-                  <p className="text-2xl font-black italic">$0.00</p>
+            <section className="bg-zinc-900/20 rounded-[3rem] border border-zinc-800 p-10 space-y-10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-black uppercase italic tracking-tight">Financial Intelligence</h2>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 italic">Historical Data</span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 group hover:border-indigo-500/30 transition-colors">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Total Payouts</p>
+                  <p className="text-4xl font-black italic text-white group-hover:text-indigo-400 transition-colors">$0.00</p>
                 </div>
-                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Avg Attendance</p>
-                  <p className="text-2xl font-black italic">0</p>
+                <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 group hover:border-indigo-500/30 transition-colors">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Avg Draw</p>
+                  <p className="text-4xl font-black italic text-white group-hover:text-indigo-400 transition-colors">0</p>
                 </div>
-                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Show Count</p>
-                  <p className="text-2xl font-black italic">0</p>
+                <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 group hover:border-indigo-500/30 transition-colors">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Events</p>
+                  <p className="text-4xl font-black italic text-white group-hover:text-indigo-400 transition-colors">0</p>
                 </div>
               </div>
-              <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-2xl">
-                <p className="text-gray-400 text-sm font-bold uppercase italic tracking-widest">Historical data will populate after your first show</p>
+              
+              <div className="text-center py-20 border-2 border-dashed border-zinc-800 rounded-[2.5rem] bg-zinc-950/50 group">
+                <p className="text-zinc-600 text-sm font-black uppercase italic tracking-widest group-hover:text-zinc-400 transition-colors">
+                  Data stream will activate after your first booking confirmation
+                </p>
               </div>
             </section>
           </div>
