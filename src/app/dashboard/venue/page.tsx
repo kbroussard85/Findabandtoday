@@ -2,6 +2,7 @@ import React from 'react';
 import { InventoryCalendar } from '@/components/venue/InventoryCalendar';
 import { AgreementVault } from '@/components/venue/AgreementVault';
 import { SubmissionStack } from '@/components/venue/SubmissionStack';
+import { UpgradeButton } from '@/components/profile/UpgradeButton';
 
 // Mock data for the submission stack
 const MOCK_SUBMISSIONS = [
@@ -14,11 +15,14 @@ export default async function VenueDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 text-black py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        <header>
-          <h1 className="text-4xl font-black uppercase italic tracking-tight text-gray-900">
-            Venue <span className="text-indigo-600">Command</span>
-          </h1>
-          <p className="text-gray-500 mt-2 font-medium">Manage your dates, review submissions, and automate contracts.</p>
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h1 className="text-4xl font-black uppercase italic tracking-tight text-gray-900">
+              Venue <span className="text-indigo-600">Command</span>
+            </h1>
+            <p className="text-gray-500 mt-2 font-medium">Manage your dates, review submissions, and automate contracts.</p>
+          </div>
+          <UpgradeButton role="VENUE" />
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
