@@ -87,6 +87,8 @@ model Venue {
   members          VenueMember[]
   genres           Genre[]                   @relation("VenueGenres")
   givenRatings     Rating[]
+  openDates        OpenDate[]
+  agreements       VenueAgreement[]
 
   @@index([location], type: Gist)
 }
@@ -155,6 +157,8 @@ model Availability {
 model Gig {
   id                    String            @id @default(cuid())
   contractUrl           String?
+  paymentMethod         PaymentMethod?
+  totalGuarantee        Float?
   bandId                String
   venueId               String
   createdAt             DateTime          @default(now())
@@ -314,4 +318,32 @@ enum PayoutStatus {
   HELD_IN_ESCROW
   RELEASED_TO_BAND
   REFUNDED_TO_VENUE
+}
+
+model OpenDate {
+  id        String   @id @default(cuid())
+  venueId   String
+  eventDate DateTime
+  isFilled  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId, eventDate])
+}
+
+model VenueAgreement {
+  id              String   @id @default(cuid())
+  venueId         String
+  templateText    String?
+  payoutStructure Json?
+  uploadedFileUrl String?
+  lastUpdated     DateTime @default(now()) @updatedAt
+  venue           Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId])
+}
+
+enum PaymentMethod {
+  IN_PERSON
+  PLATFORM
 }
