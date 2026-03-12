@@ -8,6 +8,7 @@ interface BandSubmission {
   id: string;
   band_name: string;
   logoUrl?: string;
+  imageUrl?: string;
   stats: {
     followers: string;
     avg_draw: string;
@@ -27,18 +28,17 @@ export const SubmissionStack = ({ initialSubmissions }: { initialSubmissions: Ba
 
   if (submissions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-xl text-gray-400">
-        <Music className="mb-2 text-gray-300" size={32} />
-        <span className="italic font-medium">No pending submissions for this date.</span>
+      <div className="flex flex-col items-center justify-center h-80 border-2 border-dashed border-gray-200 rounded-3xl text-gray-400 bg-gray-50/50">
+        <Music className="mb-3 text-gray-300" size={40} />
+        <span className="italic font-bold uppercase tracking-widest text-[10px]">No pending submissions</span>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full max-w-sm mx-auto h-[450px]">
+    <div className="relative w-full max-w-sm mx-auto h-[500px]">
       <AnimatePresence>
         {submissions.map((sub, i) => {
-          // Only render the top 3 to save DOM nodes and keep the stack clean
           if (i > 2) return null;
           
           return (
@@ -50,42 +50,73 @@ export const SubmissionStack = ({ initialSubmissions }: { initialSubmissions: Ba
                 if (info.offset.x > 100) await onSwipe(sub.id, 'right');
                 else if (info.offset.x < -100) await onSwipe(sub.id, 'left');
               }}
-              className="absolute inset-0 bg-white border-2 border-gray-100 rounded-3xl shadow-xl p-6 cursor-grab active:cursor-grabbing"
+              className="absolute inset-0 bg-white border-2 border-gray-100 rounded-[2.5rem] shadow-2xl p-2 cursor-grab active:cursor-grabbing overflow-hidden"
               style={{ 
                 zIndex: submissions.length - i,
-                transform: `translateY(${i * 12}px) scale(${1 - i * 0.05})`
               }}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1 - i * 0.05, opacity: 1, y: i * 12 }}
-              exit={{ x: 300, opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ 
+                scale: 1 - i * 0.05, 
+                opacity: 1, 
+                y: i * 15,
+                rotate: i * 1
+              }}
+              exit={{ 
+                x: 500, 
+                opacity: 0, 
+                scale: 0.5, 
+                rotate: 20,
+                transition: { duration: 0.3 } 
+              }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
             >
-              <div className="flex flex-col h-full justify-between text-black">
-                <div>
-                  <div className="w-16 h-16 bg-indigo-100 rounded-full mb-4 flex items-center justify-center overflow-hidden">
-                    {sub.logoUrl ? <img src={sub.logoUrl} className="w-full h-full object-cover" /> : <Music className="text-indigo-400" />}
-                  </div>
-                  <h2 className="text-3xl font-black uppercase italic tracking-tighter">{sub.band_name}</h2>
-                </div>
-                
-                <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-xs font-bold text-gray-500 uppercase">Social Reach</span>
-                    <span className="text-sm font-bold">{sub.stats.followers}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-xs font-bold text-gray-500 uppercase">Avg Draw</span>
-                    <span className="text-sm font-bold">{sub.stats.avg_draw}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-xs font-bold text-gray-500 uppercase">Est. Payout</span>
-                    <span className="text-sm font-bold">{sub.stats.payout}</span>
+              <div className="relative h-full w-full bg-white rounded-[2rem] overflow-hidden flex flex-col">
+                {/* Band Main Image */}
+                <div className="relative h-3/5 w-full bg-zinc-100">
+                  {sub.imageUrl ? (
+                    <img src={sub.imageUrl} alt={sub.band_name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
+                      <Music className="text-white/20" size={64} />
+                    </div>
+                  )}
+                  
+                  {/* Floating Logo */}
+                  <div className="absolute -bottom-6 left-6 w-16 h-16 rounded-2xl bg-white p-1 shadow-xl">
+                    <div className="w-full h-full rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
+                      {sub.logoUrl ? <img src={sub.logoUrl} className="w-full h-full object-cover" /> : <Music size={20} className="text-gray-400" />}
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex justify-between items-center px-2">
-                  <span className="text-red-500 font-bold text-sm uppercase tracking-widest cursor-pointer hover:scale-105 transition-transform" onClick={() => onSwipe(sub.id, 'left')}>← Pass</span>
-                  <span className="text-green-500 font-bold text-sm uppercase tracking-widest cursor-pointer hover:scale-105 transition-transform" onClick={() => onSwipe(sub.id, 'right')}>Confirm →</span>
+
+                <div className="flex-1 p-6 pt-10 flex flex-col justify-between">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase italic tracking-tighter text-gray-900">{sub.band_name}</h2>
+                    <div className="flex gap-2 mt-2">
+                      <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 text-[8px] font-black uppercase tracking-widest border border-indigo-100">Verified Artist</span>
+                      <span className="px-2 py-0.5 rounded bg-green-50 text-green-600 text-[8px] font-black uppercase tracking-widest border border-green-100">Top Match</span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2 py-4">
+                    <div className="text-center p-2 rounded-2xl bg-gray-50 border border-gray-100">
+                      <p className="text-[8px] font-black uppercase text-gray-400 mb-1 leading-none">Reach</p>
+                      <p className="text-xs font-black text-indigo-600">{sub.stats.followers}</p>
+                    </div>
+                    <div className="text-center p-2 rounded-2xl bg-gray-50 border border-gray-100">
+                      <p className="text-[8px] font-black uppercase text-gray-400 mb-1 leading-none">Draw</p>
+                      <p className="text-xs font-black text-indigo-600">{sub.stats.avg_draw}</p>
+                    </div>
+                    <div className="text-center p-2 rounded-2xl bg-gray-50 border border-gray-100">
+                      <p className="text-[8px] font-black uppercase text-gray-400 mb-1 leading-none">Payout</p>
+                      <p className="text-xs font-black text-indigo-600">{sub.stats.payout}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center px-2 pt-2 border-t border-gray-50">
+                    <button onClick={() => onSwipe(sub.id, 'left')} className="text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-red-500 transition-colors">← Skip</button>
+                    <button onClick={() => onSwipe(sub.id, 'right')} className="text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:scale-110 transition-transform">Book Now →</button>
+                  </div>
                 </div>
               </div>
             </motion.div>

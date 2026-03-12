@@ -181,22 +181,33 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           </div>
           
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Geospatial Sync</label>
-            <button
-              type="button"
-              onClick={detectLocation}
-              disabled={detecting}
-              className={`w-full p-4 rounded-2xl border flex items-center justify-center gap-3 transition-all font-bold uppercase italic text-xs tracking-widest ${lat && lng ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-purple-500/50 hover:text-white'}`}
-            >
-              {detecting ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
-              {lat && lng ? 'Location Synced' : 'Set Current Location'}
-            </button>
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">{role === 'BAND' ? 'Geospatial Sync' : 'Venue Profile'}</label>
+            {role === 'BAND' ? (
+              <button
+                type="button"
+                onClick={detectLocation}
+                disabled={detecting}
+                className={`w-full p-4 rounded-2xl border flex items-center justify-center gap-3 transition-all font-bold uppercase italic text-xs tracking-widest ${lat && lng ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-purple-500/50 hover:text-white'}`}
+              >
+                {detecting ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
+                {lat && lng ? 'Location Synced' : 'Set Current Location'}
+              </button>
+            ) : (
+              <div className="w-full p-4 bg-zinc-900/30 border border-zinc-800 rounded-2xl text-zinc-500 font-bold uppercase italic text-[10px] tracking-widest flex items-center gap-3">
+                <CheckCircle size={16} className="text-blue-500" /> Professional Venue Account
+              </div>
+            )}
           </div>
         </div>
 
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Bio / Description</label>
-          <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell the world about yourself..." className="w-full min-h-[180px] p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl text-white outline-none focus:border-purple-500/50 transition-all font-medium resize-none leading-relaxed" />
+          <textarea 
+            value={bio} 
+            onChange={(e) => setBio(e.target.value)} 
+            placeholder={role === 'BAND' ? "Tell the world about yourself..." : "Describe your venue, atmosphere, and booking philosophy..."} 
+            className="w-full min-h-[180px] p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl text-white outline-none focus:border-purple-500/50 transition-all font-medium resize-none leading-relaxed" 
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -222,35 +233,37 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
         )}
       </form>
 
-      {/* Audio Showcase Section */}
-      <div id="audio-showcase-section" className="space-y-6 pt-12 border-t border-zinc-800">
-        <div className="flex items-center gap-4 mb-2">
-          <Music className="text-purple-500" size={20} />
-          <h2 className="text-xl font-black uppercase italic tracking-tight">Audio Showcase</h2>
-        </div>
-        
-        <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm space-y-6">
-          {audioUrlPreview && (
-            <div className="space-y-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Current Active Preview</span>
-              <AudioPlayer src={audioUrlPreview} title={`${name} - Active Demo`} />
-            </div>
-          )}
+      {/* Audio Showcase Section - ONLY FOR BANDS */}
+      {role === 'BAND' && (
+        <div id="audio-showcase-section" className="space-y-6 pt-12 border-t border-zinc-800">
+          <div className="flex items-center gap-4 mb-2">
+            <Music className="text-purple-500" size={20} />
+            <h2 className="text-xl font-black uppercase italic tracking-tight">Audio Showcase</h2>
+          </div>
+          
+          <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm space-y-6">
+            {audioUrlPreview && (
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Current Active Preview</span>
+                <AudioPlayer src={audioUrlPreview} title={`${name} - Active Demo`} />
+              </div>
+            )}
 
-          <div className="relative group">
-            <input type="file" accept="audio/*" onChange={handleAudioUpload} ref={audioInputRef} className="hidden" />
-            <button onClick={() => audioInputRef.current?.click()} disabled={uploadingAudio} className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group">
-              <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-purple-600 transition-colors">
-                {uploadingAudio ? <Loader2 className="animate-spin text-white" /> : <Upload className="text-zinc-400 group-hover:text-white" />}
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-black uppercase italic tracking-widest text-white">{uploadingAudio ? 'Uploading Directly...' : 'Upload New Audio Demo'}</p>
-                <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">Bypasses Vercel size limits</p>
-              </div>
-            </button>
+            <div className="relative group">
+              <input type="file" accept="audio/*" onChange={handleAudioUpload} ref={audioInputRef} className="hidden" />
+              <button onClick={() => audioInputRef.current?.click()} disabled={uploadingAudio} className="w-full py-12 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group">
+                <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                  {uploadingAudio ? <Loader2 className="animate-spin text-white" /> : <Upload className="text-zinc-400 group-hover:text-white" />}
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-black uppercase italic tracking-widest text-white">{uploadingAudio ? 'Uploading Directly...' : 'Upload New Audio Demo'}</p>
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">Bypasses Vercel size limits</p>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Visual Gallery Section */}
       <div className="space-y-6 pt-12 border-t border-zinc-800">

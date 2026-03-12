@@ -8,11 +8,24 @@ export function AgreementVault() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          agreementTemplate: templateText,
+          // We can also save the JSON payout structure here if needed
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to save agreement');
+      alert('Agreement Vault updated! Your AI Negotiator is now synced.');
+    } catch (err) {
+      console.error(err);
+      alert('Error saving to Vault.');
+    } finally {
       setIsSaving(false);
-      alert('Agreement saved!');
-    }, 500);
+    }
   };
 
   return (
