@@ -19,7 +19,7 @@ export function AgreementVault() {
     <div className="bg-white p-6 rounded-2xl border-2 border-dashed border-indigo-100 shadow-sm text-black">
       <h3 className="text-xl font-bold text-gray-800 mb-2">Upload Your Agreement</h3>
       <p className="text-sm text-gray-400 mb-4 italic">
-        "Add your payout structure, pre-sale info, venue clauses, or specific event info... anything the artist needs."
+        &quot;Add your payout structure, pre-sale info, venue clauses, or specific event info... anything the artist needs.&quot;
       </p>
       <textarea 
         className="w-full h-32 p-4 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-black outline-none mb-4"

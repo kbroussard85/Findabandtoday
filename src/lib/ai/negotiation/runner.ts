@@ -46,6 +46,7 @@ export async function runNegotiationSession(gigId: string, initiatingActorId: st
     venueMaxBudget,
     lastActor: 'VENUE', // Assume venue initiated for this example
     turnCount: 0,
+    venueAgreement: venueAgreement?.templateText || null,
   };
 
   // 4. Run Graph

@@ -21,7 +21,7 @@ export function InventoryCalendar() {
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-black">
       <h3 className="text-xl font-bold mb-4 w-full text-left">Your Open Dates</h3>
-      <p className="text-sm text-gray-500 mb-4 w-full text-left">Click dates to toggle your venue's availability.</p>
+      <p className="text-sm text-gray-500 mb-4 w-full text-left">Click dates to toggle your venue&apos;s availability.</p>
       <DayPicker 
         mode="multiple"
         selected={selectedDates}
