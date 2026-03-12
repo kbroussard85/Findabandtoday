@@ -81,6 +81,7 @@ export interface ContractProps {
     duration?: number;
     payoutMethod?: string;
     technicalNotes?: string;
+    venueClauses?: string;
   };
 }
 
@@ -127,6 +128,12 @@ export const PerformanceContract = ({ gig, performanceDetails }: ContractProps) 
             <View style={styles.row}>
               <Text style={styles.label}>Technical Notes:</Text>
               <Text style={{ flex: 1 }}>{performanceDetails.technicalNotes}</Text>
+            </View>
+          )}
+          {performanceDetails.venueClauses && (
+            <View style={{ ...styles.row, marginTop: 10 }}>
+              <Text style={styles.label}>Venue Specific Clauses:</Text>
+              <Text style={{ flex: 1, fontSize: 10, fontStyle: 'italic' }}>{performanceDetails.venueClauses}</Text>
             </View>
           )}
         </View>

@@ -23,6 +23,12 @@ export async function runNegotiationSession(gigId: string, initiatingActorId: st
 
   if (!gig) throw new Error("Gig not found");
 
+  // 1.5 Fetch Venue Agreement for AI Context
+  const venueAgreement = await prisma.venueAgreement.findFirst({
+    where: { venueId: gig.venueId },
+    orderBy: { lastUpdated: 'desc' }
+  });
+
   // 2. Extract Preferences
   const bandPrefs = (gig.band.negotiationPrefs as unknown as NegotiationPrefs) || {};
   const venuePrefs = (gig.venue.negotiationPrefs as unknown as NegotiationPrefs) || {};
