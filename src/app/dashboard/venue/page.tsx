@@ -6,7 +6,15 @@ import { InventoryCalendar } from '@/components/venue/InventoryCalendar';
 import { AgreementVault } from '@/components/venue/AgreementVault';
 import { SubmissionStack } from '@/components/venue/SubmissionStack';
 import { UpgradeButton } from '@/components/profile/UpgradeButton';
-import { CheckCircle } from 'lucide-react';
+
+interface MediaItem {
+  url: string;
+}
+
+interface NegotiationPrefs {
+  socialReach?: string;
+  avgDraw?: string;
+}
 
 export default async function VenueDashboardPage() {
   const session = await getSession();
@@ -45,17 +53,22 @@ export default async function VenueDashboardPage() {
     }
   });
 
-  const formattedSubmissions = pendingSubmissions.map(gig => ({
-    id: gig.id,
-    band_name: gig.band.name,
-    logoUrl: (gig.band.media as any)?.[0]?.url, // Fallback to first media item if it exists
-    imageUrl: (gig.band.media as any)?.[1]?.url,
-    stats: {
-      followers: (gig.band.negotiationPrefs as any)?.socialReach || 'N/A',
-      avg_draw: (gig.band.negotiationPrefs as any)?.avgDraw || 'N/A',
-      payout: `$${gig.totalAmount}`
-    }
-  }));
+  const formattedSubmissions = pendingSubmissions.map(gig => {
+    const bandMedia = gig.band.media as unknown as MediaItem[];
+    const bandPrefs = gig.band.negotiationPrefs as unknown as NegotiationPrefs;
+    
+    return {
+      id: gig.id,
+      band_name: gig.band.name,
+      logoUrl: bandMedia?.[0]?.url, 
+      imageUrl: bandMedia?.[1]?.url,
+      stats: {
+        followers: bandPrefs?.socialReach || 'N/A',
+        avg_draw: bandPrefs?.avgDraw || 'N/A',
+        payout: `$${gig.totalAmount}`
+      }
+    };
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 text-black py-12 px-4 sm:px-6 lg:px-8">

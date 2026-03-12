@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { handleSwipe } from '@/app/actions/venue-swipe';
 import { Music } from 'lucide-react';
+import Image from 'next/image';
 
 interface BandSubmission {
   id: string;
@@ -74,7 +75,13 @@ export const SubmissionStack = ({ initialSubmissions }: { initialSubmissions: Ba
                 {/* Band Main Image */}
                 <div className="relative h-3/5 w-full bg-zinc-100">
                   {sub.imageUrl ? (
-                    <img src={sub.imageUrl} alt={sub.band_name} className="w-full h-full object-cover" />
+                    <Image 
+                      src={sub.imageUrl} 
+                      alt={`${sub.band_name} promotional`}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
                       <Music className="text-white/20" size={64} />
@@ -83,8 +90,18 @@ export const SubmissionStack = ({ initialSubmissions }: { initialSubmissions: Ba
                   
                   {/* Floating Logo */}
                   <div className="absolute -bottom-6 left-6 w-16 h-16 rounded-2xl bg-white p-1 shadow-xl">
-                    <div className="w-full h-full rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
-                      {sub.logoUrl ? <img src={sub.logoUrl} className="w-full h-full object-cover" /> : <Music size={20} className="text-gray-400" />}
+                    <div className="w-full h-full rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center relative">
+                      {sub.logoUrl ? (
+                        <Image 
+                          src={sub.logoUrl} 
+                          alt={`${sub.band_name} logo`}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <Music size={20} className="text-gray-400" />
+                      )}
                     </div>
                   </div>
                 </div>
