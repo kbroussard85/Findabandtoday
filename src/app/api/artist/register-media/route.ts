@@ -1,13 +1,21 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { MediaRegisterSchema } from '@/lib/validations/media';
 
 export async function POST(req: Request) {
   try {
     const session = await getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { fileUrl, fileType } = await req.json();
+    const body = await req.json();
+    const result = MediaRegisterSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
+    }
+
+    const { fileUrl, fileType } = result.data;
 
     const auth0Id = session.user.sub;
     const dbUser = await prisma.user.findUnique({ where: { auth0Id } });

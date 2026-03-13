@@ -17,17 +17,18 @@ model User {
   email              String        @unique
   role               UserRole
   stripeCustomerId   String?       @unique
-  stripeAccountId    String?       @unique
   isPaid             Boolean       @default(false)
   subscriptionTier   String?
   createdAt          DateTime      @default(now())
   subscriptionStatus String?
   name               String?
+  stripeAccountId    String?       @unique
   bandProfile        Band?
   bandMemberships    BandMember[]
   venueProfile       Venue?
   venueMemberships   VenueMember[]
   artistMedia        ArtistMedia[]
+  vaultAssets        VaultAsset[]
 }
 
 model ArtistMedia {
@@ -56,14 +57,16 @@ model Band {
   bio              String?
   media            Json?
   negotiationPrefs Json?
+  minPayoutRequirement Float @default(0)
+  vaultCompleted   Boolean @default(false)
   socialLinks      Json?                     @default("{\"spotify\": \"\", \"twitter\": \"\", \"website\": \"\", \"instagram\": \"\"}")
   city             String?
   availabilities   Availability[]
   user             User                      @relation(fields: [userId], references: [id])
   members          BandMember[]
   gigs             Gig[]
-  genres           Genre[]                   @relation("BandGenres")
   ratings          Rating[]
+  genres           Genre[]                   @relation("BandGenres")
 
   @@index([location], type: Gist)
 }
@@ -79,16 +82,18 @@ model Venue {
   bio              String?
   media            Json?
   negotiationPrefs Json?
+  minPayoutRequirement Float @default(0)
+  vaultCompleted   Boolean @default(false)
   socialLinks      Json?                     @default("{\"spotify\": \"\", \"twitter\": \"\", \"website\": \"\", \"instagram\": \"\"}")
   city             String?
   availabilities   Availability[]
   gigs             Gig[]
+  openDates        OpenDate[]
+  givenRatings     Rating[]
   user             User                      @relation(fields: [userId], references: [id])
+  agreements       VenueAgreement[]
   members          VenueMember[]
   genres           Genre[]                   @relation("VenueGenres")
-  givenRatings     Rating[]
-  openDates        OpenDate[]
-  agreements       VenueAgreement[]
 
   @@index([location], type: Gist)
 }
@@ -157,15 +162,15 @@ model Availability {
 model Gig {
   id                    String            @id @default(cuid())
   contractUrl           String?
-  paymentMethod         PaymentMethod?
-  totalGuarantee        Float?
   bandId                String
   venueId               String
   createdAt             DateTime          @default(now())
   date                  DateTime
   depositPaid           Boolean           @default(false)
   description           String?
+  expiresAt             DateTime?         @default(dbgenerated("(now() + '72:00:00'::interval)"))
   holdExpiresAt         DateTime?
+  isActive              Boolean           @default(true)
   payoutStatus          PayoutStatus      @default(NOT_APPLICABLE)
   platformFee           Float             @default(0)
   stripePaymentIntentId String?           @unique
@@ -174,6 +179,8 @@ model Gig {
   updatedAt             DateTime          @updatedAt
   status                GigStatus         @default(DRAFT)
   engagementType        EngagementType    @default(REQUEST)
+  paymentMethod         PaymentMethod?
+  totalGuarantee        Float?
   agreement             BookingAgreement?
   band                  Band              @relation(fields: [bandId], references: [id])
   venue                 Venue             @relation(fields: [venueId], references: [id])
@@ -240,6 +247,8 @@ model engagements {
   status                                     String?   @default("pending")
   event_date                                 DateTime? @db.Date
   created_at                                 DateTime? @default(now()) @db.Timestamptz(6)
+  expires_at                                 DateTime? @default(dbgenerated("(now() + '72:00:00'::interval)")) @db.Timestamptz(6)
+  is_active                                  Boolean?  @default(true)
   profiles_engagements_receiver_idToprofiles profiles? @relation("engagements_receiver_idToprofiles", fields: [receiver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   profiles_engagements_sender_idToprofiles   profiles? @relation("engagements_sender_idToprofiles", fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -258,8 +267,33 @@ model profiles {
   location                                      String?
   social_links                                  Json?         @default("{\"spotify\": \"\", \"website\": \"\", \"instagram\": \"\"}")
   updated_at                                    DateTime?     @default(now()) @db.Timestamptz(6)
+  vault_completed_at                            DateTime?     @db.Timestamptz(6)
+  stripe_subscription_tier                      String?       @default("free")
   engagements_engagements_receiver_idToprofiles engagements[] @relation("engagements_receiver_idToprofiles")
   engagements_engagements_sender_idToprofiles   engagements[] @relation("engagements_sender_idToprofiles")
+}
+
+model OpenDate {
+  id        String   @id @default(cuid())
+  venueId   String
+  eventDate DateTime
+  isFilled  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId, eventDate])
+}
+
+model VenueAgreement {
+  id              String   @id @default(cuid())
+  venueId         String
+  templateText    String?
+  payoutStructure Json?
+  uploadedFileUrl String?
+  lastUpdated     DateTime @default(now()) @updatedAt
+  venue           Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId])
 }
 
 enum MemberRole {
@@ -320,30 +354,20 @@ enum PayoutStatus {
   REFUNDED_TO_VENUE
 }
 
-model OpenDate {
-  id        String   @id @default(cuid())
-  venueId   String
-  eventDate DateTime
-  isFilled  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
-
-  @@index([venueId, eventDate])
-}
-
-model VenueAgreement {
-  id              String   @id @default(cuid())
-  venueId         String
-  templateText    String?
-  payoutStructure Json?
-  uploadedFileUrl String?
-  lastUpdated     DateTime @default(now()) @updatedAt
-  venue           Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
-
-  @@index([venueId])
-}
-
 enum PaymentMethod {
   IN_PERSON
   PLATFORM
+}
+
+model VaultAsset {
+  id        String   @id @default(cuid())
+  ownerId   String
+  assetType String   // 'i9', 'stage_plot', 'input_list', 'rider', 'agreement_template'
+  fileUrl   String?
+  rawText   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
 }

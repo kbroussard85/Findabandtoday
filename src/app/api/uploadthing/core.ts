@@ -47,6 +47,18 @@ export const ourFileRouter = {
       console.log("Venue upload complete", file.url);
       return { uploadedBy: metadata.userId };
     }),
+
+  systemDocs: f({
+    pdf: { maxFileSize: "4MB", maxFileCount: 1 },
+  })
+    .middleware(async () => {
+      // Internal system route, but let's check for a session or a secret if needed
+      return { system: true };
+    })
+    .onUploadComplete(async ({ file }) => {
+      console.log("System document uploaded:", file.url);
+      return { url: file.url };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

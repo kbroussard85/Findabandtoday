@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { BandOnboardingSchema } from '@/lib/validations/onboarding';
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +17,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { name, searchRadius } = await req.json();
+    const body = await req.json();
+    const result = BandOnboardingSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
+    }
+
+    const { name, searchRadius } = result.data;
 
     // 1. Find the internal user by auth0Id
     const localUser = await prisma.user.findUnique({

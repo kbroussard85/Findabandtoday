@@ -1,6 +1,7 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { CheckoutSchema } from '@/lib/validations/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,11 +37,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized: No session found.' }, { status: 401 });
     }
 
-    const { priceId } = await req.json();
+    const body = await req.json();
+    const result = CheckoutSchema.safeParse(body);
 
-    if (!priceId) {
-      return NextResponse.json({ error: 'Missing Price ID in request body.' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
     }
+
+    const { priceId } = result.data;
 
     console.log(`[STRIPE-CHECKOUT] Creating session for user: ${user.sub}, Price: ${priceId}`);
 

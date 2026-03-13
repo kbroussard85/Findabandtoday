@@ -48,6 +48,12 @@ export async function POST(req: Request) {
 
     if (!recipientProfile) return NextResponse.json({ error: 'Recipient profile not found' }, { status: 404 });
 
+    // Fetch Venue Agreement to inject into the AI Brain
+    const agreement = await prisma.venueAgreement.findFirst({
+      where: { venueId: venueId }
+    });
+    const venueAgreementText = agreement?.templateText || null;
+
     // 3. Draft AI Liaison Offer
     const aiMessage = await draftLiaisonOffer({
       senderType: sender.role,
@@ -64,7 +70,8 @@ export async function POST(req: Request) {
         date: new Date(date),
         suggestedAmount,
         message: customMessage
-      }
+      },
+      venueAgreementText
     });
 
     // 4. Create Gig in DRAFT status

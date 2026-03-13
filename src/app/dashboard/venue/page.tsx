@@ -7,6 +7,7 @@ import { AgreementVault } from '@/components/venue/AgreementVault';
 import { SubmissionStack } from '@/components/venue/SubmissionStack';
 import { UpgradeButton } from '@/components/profile/UpgradeButton';
 import { VenueSubNav } from '@/components/venue/VenueSubNav';
+import { getMaximizerMatches } from '@/lib/maximizer';
 
 interface MediaItem {
   url: string;
@@ -15,6 +16,7 @@ interface MediaItem {
 interface NegotiationPrefs {
   socialReach?: string;
   avgDraw?: string;
+  minRate?: number;
 }
 
 export default async function VenueDashboardPage() {
@@ -42,8 +44,9 @@ export default async function VenueDashboardPage() {
   }
 
   const profile = dbUser.venueProfile;
+  const isProfileIncomplete = !profile?.agreements || profile.agreements.length === 0;
 
-  // Fetch pending submissions for this venue
+  // 1. Fetch pending submissions for this venue
   const pendingSubmissions = await prisma.gig.findMany({
     where: {
       venueId: profile?.id,
@@ -54,26 +57,52 @@ export default async function VenueDashboardPage() {
     }
   });
 
-  const formattedSubmissions = pendingSubmissions.map(gig => {
-    const bandMedia = gig.band.media as unknown as MediaItem[];
-    const bandPrefs = gig.band.negotiationPrefs as unknown as NegotiationPrefs;
-    
-    return {
-      id: gig.id,
-      band_name: gig.band.name,
-      logoUrl: bandMedia?.[0]?.url, 
-      imageUrl: bandMedia?.[1]?.url,
-      stats: {
-        followers: bandPrefs?.socialReach || 'N/A',
-        avg_draw: bandPrefs?.avgDraw || 'N/A',
-        payout: `$${gig.totalAmount}`
-      }
-    };
-  });
+  // 2. Fetch Maximizer Matches if the user is a subscriber
+  let maximizerMatches: any[] = [];
+  if (dbUser.isPaid) {
+    maximizerMatches = await getMaximizerMatches(dbUser.auth0Id);
+  }
+
+  const formattedSubmissions = [
+    ...pendingSubmissions.map(gig => {
+      const bandMedia = gig.band.media as unknown as MediaItem[];
+      const bandPrefs = gig.band.negotiationPrefs as unknown as NegotiationPrefs;
+      
+      return {
+        id: gig.id,
+        band_name: gig.band.name,
+        logoUrl: bandMedia?.[0]?.url, 
+        imageUrl: bandMedia?.[1]?.url,
+        stats: {
+          followers: bandPrefs?.socialReach || 'N/A',
+          avg_draw: bandPrefs?.avgDraw || 'N/A',
+          payout: `$${gig.totalAmount}`
+        },
+        isMatch: false
+      };
+    }),
+    ...maximizerMatches.map(band => {
+      const bandMedia = band.media as unknown as MediaItem[];
+      const bandPrefs = band.negotiationPrefs as unknown as NegotiationPrefs;
+      
+      return {
+        id: `match-${band.id}`,
+        band_name: band.name,
+        logoUrl: bandMedia?.[0]?.url,
+        imageUrl: bandMedia?.[1]?.url,
+        stats: {
+          followers: bandPrefs?.socialReach || 'N/A',
+          avg_draw: bandPrefs?.avgDraw || 'N/A',
+          payout: bandPrefs?.minRate ? `$${bandPrefs.minRate}` : 'Negotiable'
+        },
+        isMatch: true
+      };
+    })
+  ];
 
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-indigo-500">
-      <VenueSubNav />
+      <VenueSubNav isProfileIncomplete={isProfileIncomplete} />
       
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 space-y-16">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-zinc-800 pb-12">

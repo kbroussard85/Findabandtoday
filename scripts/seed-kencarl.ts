@@ -1,8 +1,61 @@
-import { PrismaClient, GigStatus, PayoutStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
   const venueId = "cmmn821200001l804jq1vl4bk";
+  
+  // 1. Update existing bands with professional stock imagery
+  const bandUpdates = [
+    { 
+      name: "The Nashville Blues Trio", 
+      logo: "https://images.unsplash.com/photo-1525994886773-080587e161c3?q=80&w=200", 
+      image: "https://images.unsplash.com/photo-1514525253361-bee8a187499b?q=80&w=800",
+      social: "12.4k", draw: "150"
+    },
+    { 
+      name: "Franklin Indie Collective", 
+      logo: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=200", 
+      image: "https://images.unsplash.com/photo-1459749411177-042180ceea73?q=80&w=800",
+      social: "8.2k", draw: "95"
+    },
+    { 
+      name: "Iron Forge", 
+      logo: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=200", 
+      image: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=800",
+      social: "24k", draw: "310"
+    },
+    { 
+      name: "DJ Neon Pulse", 
+      logo: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=200", 
+      image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=800",
+      social: "105k", draw: "500"
+    },
+    { 
+      name: "Sarah & The Honky Tonks", 
+      logo: "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?q=80&w=200", 
+      image: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?q=80&w=800",
+      social: "15.1k", draw: "200"
+    }
+  ];
+
+  for (const update of bandUpdates) {
+    await prisma.band.updateMany({
+      where: { name: update.name },
+      data: {
+        media: [
+          { url: update.logo, type: 'image', name: 'logo' },
+          { url: update.image, type: 'image', name: 'promo' }
+        ],
+        negotiationPrefs: {
+          socialReach: update.social,
+          avgDraw: update.draw,
+          minRate: 500,
+          openToNegotiate: true
+        }
+      }
+    });
+  }
+
   const bands = await prisma.band.findMany({ take: 5 });
   
   const now = new Date();
@@ -32,7 +85,7 @@ async function main() {
           venueId,
           bandId: band.id,
           status: 'OFFER_SENT',
-          totalAmount: (band.negotiationPrefs as any)?.minRate || 500,
+          totalAmount: (band.negotiationPrefs as Record<string, unknown>)?.minRate as number || 500,
           payoutStatus: 'NOT_APPLICABLE'
         }
       });

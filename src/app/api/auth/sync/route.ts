@@ -5,6 +5,7 @@ export const runtime = 'nodejs';
 
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { AuthSyncSchema } from '@/lib/validations/auth';
 
 /**
  * Endpoint called by Auth0 Action after a user signs up.
@@ -19,13 +20,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { auth0Id, email, role, name } = await req.json();
-    console.log(`[SYNC] Attempting to sync user: ${email} with role: ${role}`);
+    const body = await req.json();
+    const result = AuthSyncSchema.safeParse(body);
 
-    if (!auth0Id || !email || !role) {
-      console.error('[SYNC] Missing required fields in payload');
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
     }
+
+    const { auth0Id, email, role, name } = result.data;
+    console.log(`[SYNC] Attempting to sync user: ${email} with role: ${role}`);
 
     const isBand = role.toUpperCase() === 'BAND';
 

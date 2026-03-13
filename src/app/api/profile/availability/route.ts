@@ -2,6 +2,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { AvailabilityStatus } from '@prisma/client';
+import { AvailabilityUpdateSchema } from '@/lib/validations/profile';
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +13,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { bookedDates } = await req.json();
+    const body = await req.json();
+    const result = AvailabilityUpdateSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
+    }
+
+    const { bookedDates } = result.data;
 
     const dbUser = await prisma.user.findUnique({
       where: { auth0Id: user.sub },

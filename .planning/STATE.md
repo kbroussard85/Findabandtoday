@@ -1,21 +1,24 @@
 # Project State: FABT (Automated AI Talent Agency)
 
 ## Current Status
-- **Phase 1: Identity & Geo-Foundation** (In Progress)
+- **Phase 3: Transaction Engine** (In Progress)
 
 ## Completed Tasks
-- [x] Research Stack & Architecture
-- [x] Initialize Next.js (TypeScript, Vanilla CSS)
-- [x] Configure Prisma with "Brick" schema (including PostGIS types)
-- [x] Create 50/50 Split Landing Page
-- [x] Implement Onboarding UI for Bands and Venues
-- [x] Create API routes for Auth0 sync and Onboarding
-- [x] Define Auth0 Post-User-Registration Action logic
+- [x] **Phase 1: Identity & Geo-Foundation** 
+  - Next.js scaffolding
+  - Prisma Schema & Database Migration
+  - Auth0 Integration & Landing Page
+  - Auth0 Post-User-Registration Action logic
+- [x] **Phase 2: Directory & Premium UX**
+  - Database Schema Expansion
+  - Profiles & Media Uploads (UploadThing)
+  - Discovery & Global Navigation
+  - Revenue & Premium Gating (Stripe checkout, Webhooks, Blurred UI)
 
 ## Immediate Next Steps
-1. **Database Migration:** Run Prisma migration to apply the schema to a local PostgreSQL instance.
-2. **Auth0 Setup (Documentation):** Provide a guide on how to configure Auth0 dashboard.
-3. **Phase 2 Implementation:** Start building the Discovery Grid and Radius Search.
+1. **Phase 3 Planning:** Draft `PHASE_3_MASTER_PLAN.md` (or review existing if present).
+2. **Transaction Engine Implementation:** Begin implementing Stripe Connect, automated contracts, and payout automation.
+3. **Venues Dashboard:** Implement Swipe-to-Book interfaces and booking workflows.
 
 ## Current Technical Blockers
-- Local PostgreSQL instance with PostGIS needs to be verified/installed for full testing.
+- None at this moment. Phase 2 validation passed successfully.

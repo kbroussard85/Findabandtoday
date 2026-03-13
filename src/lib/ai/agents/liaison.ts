@@ -17,6 +17,7 @@ interface DraftOfferParams {
     suggestedAmount: number;
     message?: string;
   };
+  venueAgreementText?: string | null;
 }
 
 /**
@@ -26,7 +27,8 @@ export async function draftLiaisonOffer({
   senderType,
   senderProfile,
   recipientProfile,
-  gigDetails
+  gigDetails,
+  venueAgreementText
 }: DraftOfferParams) {
   const isBandSender = senderType === 'BAND';
   
@@ -38,13 +40,15 @@ export async function draftLiaisonOffer({
        Your goal is to draft a professional booking offer to the band "${recipientProfile.name}". 
        Focus on the venue's reputation and why this gig is a great opportunity for the band.`;
 
+  const agreementContext = venueAgreementText ? `\n    - Venue Contract Clauses: ${venueAgreementText}` : '';
+
   const humanPrompt = `
     Draft a message for the following booking offer:
     - Sender: ${senderProfile.name} (${senderType})
     - Recipient: ${recipientProfile.name}
     - Date: ${gigDetails.date.toDateString()}
     - Suggested Amount: $${gigDetails.suggestedAmount}
-    - Custom Context: ${gigDetails.message || "N/A"}
+    - Custom Context: ${gigDetails.message || "N/A"}${agreementContext}
     
     The message should be professional, polite, and under 150 words.
     Do not include placeholders like "[Your Name]". Sign off as "The FABT Liaison".

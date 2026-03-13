@@ -2,6 +2,8 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { GigCreateSchema } from '@/lib/validations/gig';
+import { sanitize } from '@/lib/utils/sanitizer';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +56,43 @@ export async function GET() {
     return NextResponse.json({ data: gigs, role: dbUser.role });
   } catch (error) {
     console.error('Fetch Gigs Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const session = await getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const result = GigCreateSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
+    }
+
+    const { title, description, date, venueId, bandId, totalAmount } = result.data;
+
+    const sanitizedTitle = sanitize(title);
+    const sanitizedDescription = description ? sanitize(description) : undefined;
+
+    const gig = await prisma.gig.create({
+      data: {
+        title: sanitizedTitle,
+        description: sanitizedDescription,
+        date: new Date(date),
+        venueId,
+        bandId: bandId || '',
+        totalAmount,
+      },
+    });
+
+    return NextResponse.json({ success: true, data: gig });
+  } catch (error) {
+    console.error('Create Gig Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

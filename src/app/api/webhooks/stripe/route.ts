@@ -10,8 +10,11 @@ const stripe = process.env.STRIPE_SECRET_KEY
     })
   : null;
 
-// Amelia: Use the specific whsec key provided by the team for verification
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_FLFOK5CeOJtxh25gcHiBmnRIkccb9A3M';
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+if (!webhookSecret) {
+  throw new Error('STRIPE_WEBHOOK_SECRET environment variable is required. Get it from Stripe Dashboard > Developers > Webhooks.');
+}
 
 export async function POST(req: Request) {
   if (!stripe) {
@@ -23,7 +26,7 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret as string);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error(`Webhook Error: ${message}`);

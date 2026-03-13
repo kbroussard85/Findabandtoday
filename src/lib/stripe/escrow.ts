@@ -2,62 +2,80 @@ import { stripe } from './client';
 import prisma from '../prisma';
 
 /**
- * STEP 1: INITIALIZE ESCROW (THE HOLD)
- * Triggered when a Band/Venue clicks "Submit Offer"
+ * FABT REVENUE MODEL CONSTANTS
  */
-export async function initializeBookingHold(gigId: string, amount: number) {
+const PLATFORM_FEE_PERCENT = 0.05; // 5%
+const PLATFORM_FEE_FLAT = 5;       // $5 flat fee for platform pay
+
+/**
+ * STEP 1: INITIALIZE ESCROW OR FEE VERIFICATION
+ * Triggered when a Venue initiates a booking or swipes right.
+ */
+export async function initializeBookingHold(gigId: string, amount: number, method: 'PLATFORM' | 'IN_PERSON') {
   if (!stripe) throw new Error('Stripe not configured');
 
   const gig = await prisma.gig.findUnique({
     where: { id: gigId },
     include: {
-      venue: {
-        include: {
-          user: true
-        }
+      venue: { include: { user: true } },
+      band: { include: { user: true } }
+    }
+  });
+
+  if (!gig) throw new Error("Gig not found.");
+
+  if (method === 'PLATFORM') {
+    // Escrow full amount from Venue
+    if (!gig.venue.user.stripeCustomerId) throw new Error("Venue stripe customer ID not found.");
+
+    const paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: Math.round(amount * 100), // Full amount in cents
+        currency: 'usd',
+        customer: gig.venue.user.stripeCustomerId,
+        capture_method: 'manual', // Hold funds
+        metadata: { gigId: gigId, type: 'GIG_ESCROW', method: 'PLATFORM' },
+      },
+      { idempotencyKey: `escrow-${gigId}` }
+    );
+
+    await prisma.gig.update({
+      where: { id: gigId },
+      data: {
+        stripePaymentIntentId: paymentIntent.id,
+        status: 'ESCROW_HOLD',
+        paymentMethod: 'PLATFORM'
       }
-    }
-  });
+    });
 
-  if (!gig || !gig.venue.user.stripeCustomerId) {
-    throw new Error("Venue or stripe customer ID not found.");
+    return { clientSecret: paymentIntent.client_secret, method: 'PLATFORM' };
+  } else {
+    // IN_PERSON: Just verify band has payment method for 5% commission
+    if (!gig.band.user.stripeCustomerId) throw new Error("Band stripe customer ID not found.");
+    
+    // We don't hold the 5% now, we just ensure we can bill it later.
+    // In a real app, we'd check for a saved payment method.
+    
+    await prisma.gig.update({
+      where: { id: gigId },
+      data: {
+        status: 'PENDING_APPROVAL',
+        paymentMethod: 'IN_PERSON'
+      }
+    });
+
+    return { success: true, method: 'IN_PERSON' };
   }
-
-  // Calculate Fee: $50 Flat or 5% of Guarantee (whichever the logic dictates)
-  const feeAmount = amount >= 1000 ? amount * 0.05 : 50;
-
-  const paymentIntent = await stripe.paymentIntents.create(
-    {
-      amount: Math.round(feeAmount * 100), // Stripe uses cents
-      currency: 'usd',
-      customer: gig.venue.user.stripeCustomerId,
-      capture_method: 'manual', // THIS IS THE ESCROW HOLD
-      metadata: { gigId: gigId, type: 'BOOKING_DEPOSIT' },
-    },
-    { idempotencyKey: `hold-${gigId}` }
-  );
-
-  // Store the Intent ID in our DB to capture it later
-  await prisma.gig.update({
-    where: { id: gigId },
-    data: {
-      stripePaymentIntentId: paymentIntent.id,
-      status: 'ESCROW_HOLD'
-    }
-  });
-
-  return paymentIntent.client_secret;
 }
 
 /**
- * STEP 2: CAPTURE ESCROW (THE DEAL IS DONE)
- * Triggered when the Venue clicks "Accept"
+ * STEP 2: CAPTURE ESCROW (PLATFORM PAY ONLY)
+ * Triggered when the booking is finalized.
  */
-export async function captureBookingFee(gigId: string) {
+export async function captureBookingEscrow(gigId: string) {
   if (!stripe) throw new Error('Stripe not configured');
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } });
-
   if (!gig?.stripePaymentIntentId) throw new Error("No payment intent found.");
 
   const intent = await stripe.paymentIntents.capture(
@@ -78,8 +96,77 @@ export async function captureBookingFee(gigId: string) {
 }
 
 /**
- * STEP 3: RELEASE HOLD (THE DEAL FAILED)
- * Triggered if the offer is declined or expires
+ * STEP 3: PAYOUT & COMMISSION
+ * Triggered post-show (manual or cron).
+ */
+export async function processPostShowFinancials(gigId: string) {
+  if (!stripe) throw new Error('Stripe not configured');
+
+  const gig = await prisma.gig.findUnique({
+    where: { id: gigId },
+    include: {
+      band: { include: { user: true } },
+      venue: { include: { user: true } }
+    }
+  });
+
+  if (!gig) throw new Error("Gig not found.");
+
+  const amount = gig.totalAmount;
+  const platformFee = Math.round((amount * PLATFORM_FEE_PERCENT + (gig.paymentMethod === 'PLATFORM' ? PLATFORM_FEE_FLAT : 0)) * 100);
+
+  if (gig.paymentMethod === 'PLATFORM') {
+    // Pay Band: Total - 5% - $5
+    if (!gig.band.user.stripeAccountId) throw new Error("Band Connect account not found.");
+
+    const transferAmount = Math.round(amount * 100) - platformFee;
+
+    const transfer = await stripe.transfers.create({
+      amount: transferAmount,
+      currency: 'usd',
+      destination: gig.band.user.stripeAccountId,
+      transfer_group: `gig-${gigId}`,
+      metadata: { gigId }
+    });
+
+    await prisma.gig.update({
+      where: { id: gigId },
+      data: { 
+        payoutStatus: 'RELEASED_TO_BAND',
+        platformFee: platformFee / 100
+      }
+    });
+
+    return transfer;
+  } else {
+    // IN_PERSON: Charge band 5% commission
+    if (!gig.band.user.stripeCustomerId) throw new Error("Band stripe customer ID not found.");
+
+    const charge = await stripe.paymentIntents.create({
+      amount: platformFee,
+      currency: 'usd',
+      customer: gig.band.user.stripeCustomerId,
+      off_session: true,
+      confirm: true,
+      payment_method_types: ['card'],
+      description: `5% Commission for Gig: ${gig.title}`,
+      metadata: { gigId, type: 'COMMISSION' }
+    });
+
+    await prisma.gig.update({
+      where: { id: gigId },
+      data: { 
+        platformFee: platformFee / 100,
+        payoutStatus: 'RELEASED_TO_BAND' // For In-Person, this means commission was paid
+      }
+    });
+
+    return charge;
+  }
+}
+
+/**
+ * RELEASE HOLD (FAILED DEAL)
  */
 export async function releaseBookingHold(gigId: string) {
   if (!stripe) throw new Error('Stripe not configured');

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@auth0/nextjs-auth0';
+import { DiscoveryQuerySchema } from '@/lib/validations/discovery';
 
 interface DiscoveryResult {
   id: string;
@@ -15,20 +16,14 @@ interface DiscoveryResult {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const latParam = searchParams.get('lat');
-    const lngParam = searchParams.get('lng');
-    const radiusParam = searchParams.get('radius') || '50';
-    const roleParam = searchParams.get('role') || 'BAND';
-    const queryParam = searchParams.get('q');
-    const genreParam = searchParams.get('genre');
-    const limitParam = searchParams.get('limit') || '20';
-    const offsetParam = searchParams.get('offset') || '0';
+    const params = Object.fromEntries(searchParams.entries());
+    const result = DiscoveryQuerySchema.safeParse(params);
 
-    const lat = latParam ? parseFloat(latParam) : 0;
-    const lng = lngParam ? parseFloat(lngParam) : 0;
-    const radiusMiles = parseFloat(radiusParam);
-    const limit = parseInt(limitParam);
-    const offset = parseInt(offsetParam);
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid search parameters', details: result.error.format() }, { status: 400 });
+    }
+
+    const { lat, lng, radius: radiusMiles, role: roleParam, q: queryParam, genre: genreParam, limit, offset } = result.data;
 
     let dbUser = null;
     let isPremium = false;

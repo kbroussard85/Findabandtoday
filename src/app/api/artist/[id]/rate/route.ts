@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@auth0/nextjs-auth0';
+import { RatingSchema } from '@/lib/validations/profile';
 
 export async function POST(
   req: Request,
@@ -13,11 +14,14 @@ export async function POST(
     }
 
     const { id: bandId } = await params;
-    const { stars } = await req.json();
+    const body = await req.json();
+    const result = RatingSchema.safeParse(body);
 
-    if (typeof stars !== 'number' || stars < 1 || stars > 5) {
-      return NextResponse.json({ error: 'Invalid rating' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
     }
+
+    const { stars } = result.data;
 
     // Check if user is a VENUE
     const dbUser = await prisma.user.findUnique({

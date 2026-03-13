@@ -1,6 +1,8 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { ProfileUpdateSchema } from '@/lib/validations/profile';
+import { sanitize } from '@/lib/utils/sanitizer';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,7 +57,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { bio, negotiationPrefs, media, name, lat, lng, agreementTemplate } = await req.json();
+    const body = await req.json();
+    const result = ProfileUpdateSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
+    }
+
+    const { bio, negotiationPrefs, media, name, lat, lng, agreementTemplate } = result.data;
+
+    // Sanitize text fields
+    const sanitizedBio = bio ? sanitize(bio) : undefined;
+    const sanitizedTemplate = agreementTemplate ? sanitize(agreementTemplate) : undefined;
 
     const dbUser = await prisma.user.findUnique({
       where: { auth0Id: user.sub },
@@ -96,15 +109,22 @@ export async function POST(req: Request) {
 
       const updatedVenue = await prisma.venue.update({
         where: { id: venue.id },
-        data: { bio, negotiationPrefs, media, name: name || venue.name, lat, lng },
+        data: { 
+          bio: sanitizedBio, 
+          negotiationPrefs, 
+          media, 
+          name: name || venue.name, 
+          lat, 
+          lng 
+        },
       });
 
       // SYNC AGREEMENT TEMPLATE
-      if (agreementTemplate) {
+      if (sanitizedTemplate) {
         await prisma.venueAgreement.upsert({
-          where: { id: venue.id }, // Simplification: using venueId as ID for unique template or handle differently
-          update: { templateText: agreementTemplate },
-          create: { venueId: venue.id, templateText: agreementTemplate }
+          where: { id: venue.id }, 
+          update: { templateText: sanitizedTemplate },
+          create: { venueId: venue.id, templateText: sanitizedTemplate }
         });
       }
 
