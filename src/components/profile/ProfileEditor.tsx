@@ -5,6 +5,7 @@ import { Music, Upload, Loader2, CheckCircle, XCircle, Image as ImageIcon, MapPi
 import { AudioPlayer } from '../ui/AudioPlayer';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase-client';
+import { validateFile } from '@/lib/utils/file-validation';
 
 interface MediaItem {
   url: string;
@@ -108,6 +109,12 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
     setMessage('');
 
     try {
+      // Client-side Validation
+      const validation = await validateFile(file, 'audio');
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
       const fileName = `uploads/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
       const { data, error: storageError } = await supabase.storage
         .from('media')
@@ -143,6 +150,12 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
     setMessage('');
 
     try {
+      // Client-side Validation
+      const validation = await validateFile(file, 'image');
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
       const fileName = `uploads/images/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
       const { data, error: storageError } = await supabase.storage
         .from('media')

@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { validateFile } from '@/lib/utils/file-validation';
 
 export async function POST(req: Request) {
   try {
@@ -16,6 +17,12 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const file = formData.get('file') as File;
     if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+
+    // File Validation (Security Fix)
+    const validation = await validateFile(file, 'image');
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
 
     const auth0Id = session.user.sub;
     const dbUser = await prisma.user.findUnique({ where: { auth0Id } });
