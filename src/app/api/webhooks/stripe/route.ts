@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
-
-const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion,
-    })
-  : null;
 
 // Amelia: Use the specific whsec key provided by the team for verification
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_FLFOK5CeOJtxh25gcHiBmnRIkccb9A3M';

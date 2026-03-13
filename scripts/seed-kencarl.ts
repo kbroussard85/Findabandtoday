@@ -1,4 +1,4 @@
-import { PrismaClient, GigStatus, PayoutStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -32,7 +32,7 @@ async function main() {
           venueId,
           bandId: band.id,
           status: 'OFFER_SENT',
-          totalAmount: (band.negotiationPrefs as any)?.minRate || 500,
+          totalAmount: (band.negotiationPrefs as { minRate?: number })?.minRate || 500,
           payoutStatus: 'NOT_APPLICABLE'
         }
       });

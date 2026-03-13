@@ -17,7 +17,7 @@ class MockChatOpenAI extends BaseChatModel {
   }
 }
 
-const isMockEnabled = !process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes("sk-proj-4aGHbm");
+const isMockEnabled = !process.env.OPENAI_API_KEY;
 
 /**
  * Shared AI client for all agentic operations.

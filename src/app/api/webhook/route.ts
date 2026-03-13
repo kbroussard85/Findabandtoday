@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
-
-// Use the exact string type expected by the Stripe SDK or cast to unknown first
-const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-01-27.acacia' as unknown as Stripe.LatestApiVersion,
-    })
-  : null;
 
 export async function POST(req: Request) {
     if (!stripe) {

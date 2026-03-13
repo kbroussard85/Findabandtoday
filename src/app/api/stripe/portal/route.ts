@@ -1,13 +1,7 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
-
-const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-01-27.acacia' as unknown as Stripe.LatestApiVersion,
-    })
-  : null;
 
 export async function POST() {
   if (!stripe) {

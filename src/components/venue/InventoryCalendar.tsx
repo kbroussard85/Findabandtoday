@@ -5,6 +5,7 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, Music, CreditCard } from 'lucide-react';
+import Image from 'next/image';
 
 const MONTH_IMAGES = [
   'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000', // Jan: Mic
@@ -23,7 +24,7 @@ const MONTH_IMAGES = [
 
 export function InventoryCalendar() {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
-  const [bookedDates, setBookedDates] = useState<Date[]>([]); // Mock booked
+  const [bookedDates] = useState<Date[]>([]); // Mock booked
   const [showModal, setShowModal] = useState(false);
   const [activeDate, setActiveDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -62,10 +63,12 @@ export function InventoryCalendar() {
       <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden shadow-2xl transition-all hover:scale-[1.01]">
         {/* Month Background Image */}
         <div className="h-32 w-full relative">
-          <img 
+          <Image
             src={MONTH_IMAGES[currentMonth]} 
             alt="Venue Vibe" 
-            className="w-full h-full object-cover opacity-40 transition-opacity group-hover:opacity-60"
+            fill
+            sizes="100vw"
+            className="object-cover opacity-40 transition-opacity group-hover:opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent" />
           <div className="absolute bottom-4 left-8">

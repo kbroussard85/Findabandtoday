@@ -1,14 +1,11 @@
 'use server';
 
 import { getSession } from '@auth0/nextjs-auth0';
-import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27.acacia' as unknown as Stripe.LatestApiVersion, 
-});
-
 export async function createUpgradeSession(formData: FormData) {
+    if (!stripe) throw new Error('Stripe not configured');
     try {
         const session = await getSession();
         const priceId = formData.get('priceId') as string;
