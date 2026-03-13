@@ -8,7 +8,8 @@ export async function GET(req: Request) {
     // Basic security check - In Vercel, cron jobs are invoked with a specific header
     // process.env.CRON_SECRET should be set in your Vercel project settings
     const authHeader = req.headers.get('Authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.NODE_ENV === 'production') {
+    const cronSecret = process.env.CRON_SECRET?.trim();
+    if (authHeader !== `Bearer ${cronSecret}` && process.env.NODE_ENV === 'production') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

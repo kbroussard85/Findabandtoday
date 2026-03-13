@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';

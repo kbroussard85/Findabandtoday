@@ -65,7 +65,7 @@ export async function runAINegotiator(engagementId: string) {
   });
 
   // 3. Upload to UploadThing
-  const file = new File([pdfBuffer], `contract-${gig.id}.pdf`, { type: 'application/pdf' });
+  const file = new File([new Uint8Array(pdfBuffer)], `contract-${gig.id}.pdf`, { type: 'application/pdf' });
   const uploadResponse = await utapi.uploadFiles(file);
 
   if (!uploadResponse.data) {
