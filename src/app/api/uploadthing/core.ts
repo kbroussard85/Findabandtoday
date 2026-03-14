@@ -52,8 +52,14 @@ export const ourFileRouter = {
     pdf: { maxFileSize: "4MB", maxFileCount: 1 },
   })
     .middleware(async () => {
-      // Internal system route, but let's check for a session or a secret if needed
-      return { system: true };
+      const session = await getSession();
+      const user = session?.user;
+      
+      // Strict Check: Only allow system-level uploads from authenticated users
+      // or verified server-side calls (using UPLOADTHING_SECRET via utapi)
+      if (!user) throw new Error("Unauthorized");
+      
+      return { system: true, userId: user.sub };
     })
     .onUploadComplete(async ({ file }) => {
       console.log("System document uploaded:", file.url);

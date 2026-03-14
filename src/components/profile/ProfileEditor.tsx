@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Music, Upload, Loader2, CheckCircle, XCircle, Image as ImageIcon, MapPin } from 'lucide-react';
+import { Music, Upload, Loader2, CheckCircle, XCircle, Image as ImageIcon, MapPin, Share2, Youtube, Globe, Instagram, X } from 'lucide-react';
 import { AudioPlayer } from '../ui/AudioPlayer';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase-client';
@@ -23,6 +23,14 @@ interface ProfileData {
   audioUrlPreview?: string | null;
   lat?: number | null;
   lng?: number | null;
+  logoUrl?: string | null;
+  socialLinks?: {
+    spotify?: string;
+    youtube?: string;
+    tiktok?: string;
+    instagram?: string;
+    website?: string;
+  } | null;
 }
 
 interface ProfileEditorProps {
@@ -38,6 +46,14 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   const [openToNegotiate, setOpenToNegotiate] = useState(initialData?.negotiationPrefs?.openToNegotiate ?? true);
   const [media, setMedia] = useState<MediaItem[]>(initialData?.media || []);
   const [audioUrlPreview, setAudioUrlPreview] = useState(initialData?.audioUrlPreview || '');
+  const [logoUrl, setLogoUrl] = useState(initialData?.logoUrl || '');
+  const [socialLinks, setSocialLinks] = useState({
+    spotify: initialData?.socialLinks?.spotify || '',
+    youtube: initialData?.socialLinks?.youtube || '',
+    tiktok: initialData?.socialLinks?.tiktok || '',
+    instagram: initialData?.socialLinks?.instagram || '',
+    website: initialData?.socialLinks?.website || '',
+  });
   
   // Geolocation state
   const [lat, setLat] = useState<number | null>(initialData?.lat || null);
@@ -47,10 +63,12 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
   const [saving, setSaving] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [message, setMessage] = useState('');
   
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const detectLocation = () => {
     setDetecting(true);
@@ -88,8 +106,10 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           bio, 
           negotiationPrefs: { minRate: Number(minRate), openToNegotiate }, 
           media,
-          lat, // FIXED: Now sending location data
-          lng
+          lat, 
+          lng,
+          socialLinks,
+          logoUrl
         }),
       });
 
@@ -99,6 +119,38 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
       setMessage(err instanceof Error ? err.message : 'Error saving profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !supabase) return;
+    setUploadingLogo(true);
+    setMessage('');
+
+    try {
+      if (file.type !== 'image/png') {
+        throw new Error('Please upload a TRANSPARENT PNG format logo.');
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        throw new Error('Logo must be under 2MB.');
+      }
+
+      const fileName = `logos/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      const { data, error: storageError } = await supabase.storage
+        .from('media')
+        .upload(fileName, file);
+
+      if (storageError) throw storageError;
+
+      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(data.path);
+      setLogoUrl(publicUrl);
+      setMessage('Logo uploaded! Save to finalize.');
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : 'Logo upload failed');
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
     }
   };
 
@@ -200,10 +252,17 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
                 type="button"
                 onClick={detectLocation}
                 disabled={detecting}
-                className={`w-full p-4 rounded-2xl border flex items-center justify-center gap-3 transition-all font-bold uppercase italic text-xs tracking-widest ${lat && lng ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-purple-500/50 hover:text-white'}`}
+                className={`w-full p-4 rounded-2xl border flex flex-col items-center justify-center gap-1 transition-all font-bold uppercase italic text-xs tracking-widest ${lat && lng ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-purple-500/50 hover:text-white'}`}
               >
-                {detecting ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
-                {lat && lng ? 'Location Synced' : 'Set Current Location'}
+                <div className="flex items-center gap-3">
+                  {detecting ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
+                  {lat && lng ? 'Location Synced' : 'Set Current Location'}
+                </div>
+                {lat && lng && (
+                  <span className="text-[9px] font-mono lowercase tracking-normal opacity-70">
+                    ({lat.toFixed(4)}, {lng.toFixed(4)})
+                  </span>
+                )}
               </button>
             ) : (
               <div className="w-full p-4 bg-zinc-900/30 border border-zinc-800 rounded-2xl text-zinc-500 font-bold uppercase italic text-[10px] tracking-widest flex items-center gap-3">
@@ -221,6 +280,57 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
             placeholder={role === 'BAND' ? "Tell the world about yourself..." : "Describe your venue, atmosphere, and booking philosophy..."} 
             className="w-full min-h-[180px] p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl text-white outline-none focus:border-purple-500/50 transition-all font-medium resize-none leading-relaxed" 
           />
+        </div>
+
+        {/* Identity Logo Section */}
+        <div className="space-y-4 pt-4">
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Professional Identity Logo</span>
+            <div className="h-[1px] flex-1 bg-zinc-800/50" />
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-8 items-center bg-zinc-900/30 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm">
+            <div className="w-32 h-32 shrink-0 relative group bg-black border border-zinc-800 rounded-2xl overflow-hidden flex items-center justify-center">
+              {logoUrl ? (
+                <>
+                  <Image src={logoUrl} alt="Logo" fill className="object-contain p-2" />
+                  <button 
+                    type="button"
+                    onClick={() => setLogoUrl('')}
+                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={12} />
+                  </button>
+                </>
+              ) : (
+                <div className="text-center p-4">
+                  <ImageIcon size={24} className="mx-auto mb-2 text-zinc-700" />
+                  <p className="text-[8px] font-black uppercase text-zinc-600">No Logo</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 space-y-4 text-center md:text-left">
+              <div>
+                <h4 className="text-sm font-black uppercase italic tracking-widest text-white">Upload Your Logo</h4>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase mt-1 leading-relaxed">
+                  Required Format: <span className="text-purple-500">Transparent PNG</span><br />
+                  Recommended Size: <span className="text-blue-500">512 x 512 PX</span> (Max 2MB)
+                </p>
+              </div>
+              
+              <input type="file" accept="image/png" onChange={handleLogoUpload} ref={logoInputRef} className="hidden" />
+              <button 
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingLogo}
+                className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 mx-auto md:mx-0"
+              >
+                {uploadingLogo ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                {uploadingLogo ? 'Processing...' : 'Select File'}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -277,6 +387,81 @@ export function ProfileEditor({ initialData, role, userName }: ProfileEditorProp
           </div>
         </div>
       )}
+
+      {/* Social Identity Section */}
+      <div className="space-y-6 pt-12 border-t border-zinc-800">
+        <div className="flex items-center gap-4 mb-2">
+          <Share2 className="text-purple-500" size={20} />
+          <h2 className="text-xl font-black uppercase italic tracking-tight">Social Identity</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-900/30 border border-zinc-800 p-8 rounded-3xl backdrop-blur-sm">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2 flex items-center gap-2">
+              <Music size={12} className="text-[#1DB954]" /> Spotify URL
+            </label>
+            <input 
+              type="url" 
+              value={socialLinks.spotify} 
+              onChange={(e) => setSocialLinks(prev => ({ ...prev, spotify: e.target.value }))} 
+              placeholder="https://open.spotify.com/artist/..." 
+              className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold text-xs" 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2 flex items-center gap-2">
+              <Youtube size={12} className="text-[#FF0000]" /> YouTube URL
+            </label>
+            <input 
+              type="url" 
+              value={socialLinks.youtube} 
+              onChange={(e) => setSocialLinks(prev => ({ ...prev, youtube: e.target.value }))} 
+              placeholder="https://youtube.com/@..." 
+              className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold text-xs" 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2 flex items-center gap-2">
+              <Share2 size={12} className="text-[#EE1D52]" /> TikTok URL
+            </label>
+            <input 
+              type="url" 
+              value={socialLinks.tiktok} 
+              onChange={(e) => setSocialLinks(prev => ({ ...prev, tiktok: e.target.value }))} 
+              placeholder="https://tiktok.com/@..." 
+              className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold text-xs" 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2 flex items-center gap-2">
+              <Instagram size={12} className="text-[#E4405F]" /> Instagram URL
+            </label>
+            <input 
+              type="url" 
+              value={socialLinks.instagram} 
+              onChange={(e) => setSocialLinks(prev => ({ ...prev, instagram: e.target.value }))} 
+              placeholder="https://instagram.com/..." 
+              className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold text-xs" 
+            />
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2 flex items-center gap-2">
+              <Globe size={12} className="text-blue-400" /> Official Website
+            </label>
+            <input 
+              type="url" 
+              value={socialLinks.website} 
+              onChange={(e) => setSocialLinks(prev => ({ ...prev, website: e.target.value }))} 
+              placeholder="https://yourbandname.com" 
+              className="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl text-white outline-none focus:border-purple-500/50 transition-all font-bold text-xs" 
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Visual Gallery Section */}
       <div className="space-y-6 pt-12 border-t border-zinc-800">

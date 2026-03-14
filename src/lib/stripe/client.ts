@@ -1,5 +1,10 @@
 import Stripe from 'stripe';
 
+/**
+ * Shared Stripe client instance (Singleton).
+ * Ensure all Stripe interactions use this instance to maintain consistent configuration
+ * and avoid multiple connections.
+ */
 export const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion,

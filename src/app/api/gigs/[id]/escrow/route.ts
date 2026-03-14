@@ -36,15 +36,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     switch (action) {
       case 'HOLD':
+        if (!isVenueOwner) return NextResponse.json({ error: 'Only venues can initialize a hold' }, { status: 403 });
         if (!amount) return NextResponse.json({ error: 'Amount required' }, { status: 400 });
-        const result = await initializeBookingHold(gigId, amount, method || 'PLATFORM');
-        return NextResponse.json(result);
+        const holdResult = await initializeBookingHold(gigId, amount, method || 'PLATFORM');
+        return NextResponse.json(holdResult);
       
       case 'CAPTURE':
-        const intent = await captureBookingEscrow(gigId);
-        return NextResponse.json({ success: true, intentId: intent.id });
+        if (!isVenueOwner) return NextResponse.json({ error: 'Only venues can capture escrow' }, { status: 403 });
+        const captureIntent = await captureBookingEscrow(gigId);
+        return NextResponse.json({ success: true, intentId: captureIntent.id });
 
       case 'RELEASE':
+        // Recommendation: RELEASE for Band (releasing funds back to venue)
+        if (!isBandOwner) return NextResponse.json({ error: 'Only the artist can release/reject a hold' }, { status: 403 });
         await releaseBookingHold(gigId);
         return NextResponse.json({ success: true });
 

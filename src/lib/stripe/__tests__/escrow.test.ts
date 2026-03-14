@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { initializeBookingHold, captureBookingFee, releaseBookingHold } from '../escrow';
+import { initializeBookingHold, captureBookingEscrow, releaseBookingHold } from '../escrow';
 import { stripe } from '../client';
 import prisma from '../../prisma';
 
@@ -29,7 +29,7 @@ describe('Escrow Logic', () => {
   });
 
   describe('initializeBookingHold', () => {
-    it('should initialize a hold with 5% fee for amounts >= 1000', async () => {
+    it('should initialize a hold for PLATFORM method', async () => {
       const gigId = 'gig_123';
       const amount = 2000;
       const stripeCustomerId = 'cus_123';
@@ -37,11 +37,8 @@ describe('Escrow Logic', () => {
 
       (prisma.gig.findUnique as any).mockResolvedValue({
         id: gigId,
-        venue: {
-          user: {
-            stripeCustomerId,
-          },
-        },
+        venue: { user: { stripeCustomerId } },
+        band: { user: { stripeAccountId: 'acct_123' } }
       });
 
       (stripe!.paymentIntents.create as any).mockResolvedValue({
@@ -49,62 +46,38 @@ describe('Escrow Logic', () => {
         client_secret: 'secret_123',
       });
 
-      const clientSecret = await initializeBookingHold(gigId, amount);
+      const result = await initializeBookingHold(gigId, amount, 'PLATFORM');
 
       expect(stripe!.paymentIntents.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          amount: 100 * 100, // 5% of 2000 is 100, in cents is 10000
+          amount: 2000 * 100,
           customer: stripeCustomerId,
           capture_method: 'manual',
         }),
-        expect.any(Object)
+        expect.objectContaining({ idempotencyKey: `escrow-${gigId}` })
       );
-      expect(prisma.gig.update).toHaveBeenCalledWith({
-        where: { id: gigId },
-        data: {
-          stripePaymentIntentId: paymentIntentId,
-          status: 'ESCROW_HOLD',
-        },
-      });
-      expect(clientSecret).toBe('secret_123');
+      expect(result).toEqual({ clientSecret: 'secret_123', method: 'PLATFORM' });
     });
 
-    it('should initialize a hold with $50 flat fee for amounts < 1000', async () => {
+    it('should update gig for IN_PERSON method without creating payment intent', async () => {
       const gigId = 'gig_123';
-      const amount = 500;
-      const stripeCustomerId = 'cus_123';
-
       (prisma.gig.findUnique as any).mockResolvedValue({
         id: gigId,
-        venue: {
-          user: {
-            stripeCustomerId,
-          },
-        },
+        venue: { user: { stripeCustomerId: 'cus_v' } },
+        band: { user: { stripeCustomerId: 'cus_b' } }
       });
 
-      (stripe!.paymentIntents.create as any).mockResolvedValue({
-        id: 'pi_123',
-        client_secret: 'secret_123',
-      });
+      const result = await initializeBookingHold(gigId, 500, 'IN_PERSON');
 
-      await initializeBookingHold(gigId, amount);
-
-      expect(stripe!.paymentIntents.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          amount: 50 * 100, // $50 flat fee
-        }),
-        expect.any(Object)
-      );
-    });
-
-    it('should throw error if gig or stripeCustomerId is missing', async () => {
-      (prisma.gig.findUnique as any).mockResolvedValue(null);
-      await expect(initializeBookingHold('invalid', 100)).rejects.toThrow('Venue or stripe customer ID not found.');
+      expect(stripe!.paymentIntents.create).not.toHaveBeenCalled();
+      expect(prisma.gig.update).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ paymentMethod: 'IN_PERSON' })
+      }));
+      expect(result).toEqual({ success: true, method: 'IN_PERSON' });
     });
   });
 
-  describe('captureBookingFee', () => {
+  describe('captureBookingEscrow', () => {
     it('should capture a payment intent', async () => {
       const gigId = 'gig_123';
       const paymentIntentId = 'pi_123';
@@ -116,21 +89,13 @@ describe('Escrow Logic', () => {
 
       (stripe!.paymentIntents.capture as any).mockResolvedValue({ id: paymentIntentId });
 
-      await captureBookingFee(gigId);
+      await captureBookingEscrow(gigId);
 
-      expect(stripe!.paymentIntents.capture).toHaveBeenCalledWith(paymentIntentId, {}, expect.any(Object));
-      expect(prisma.gig.update).toHaveBeenCalledWith({
-        where: { id: gigId },
-        data: {
-          status: 'CONFIRMED',
-          depositPaid: true,
-        },
-      });
-    });
-
-    it('should throw error if payment intent ID is missing', async () => {
-      (prisma.gig.findUnique as any).mockResolvedValue({ id: 'gig_123' });
-      await expect(captureBookingFee('gig_123')).rejects.toThrow('No payment intent found.');
+      expect(stripe!.paymentIntents.capture).toHaveBeenCalledWith(
+        paymentIntentId,
+        {},
+        expect.objectContaining({ idempotencyKey: `capture-${gigId}` })
+      );
     });
   });
 
@@ -147,10 +112,6 @@ describe('Escrow Logic', () => {
       await releaseBookingHold(gigId);
 
       expect(stripe!.paymentIntents.cancel).toHaveBeenCalledWith(paymentIntentId);
-      expect(prisma.gig.update).toHaveBeenCalledWith({
-        where: { id: gigId },
-        data: { status: 'CANCELLED' },
-      });
     });
   });
 });

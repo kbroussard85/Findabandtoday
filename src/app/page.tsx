@@ -1,5 +1,5 @@
 import React from 'react';
-import { HomeDiscovery } from '@/components/home/HomeDiscovery';
+import { LocalTalentSection } from '@/components/landing/LocalTalentSection';
 
 export default function LandingPage() {
   return (
@@ -81,8 +81,8 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* NEW: Local Discovery Section */}
-      <HomeDiscovery />
+      {/* NEW: Local Discovery Section with 728x90 Banners */}
+      <LocalTalentSection />
     </div>
   );
 }

@@ -17,7 +17,11 @@ class MockChatOpenAI extends BaseChatModel {
   }
 }
 
-const isMockEnabled = !process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'mock';
+const isMockEnabled = process.env.AI_MOCK_MODE === 'true' || !process.env.OPENAI_API_KEY;
+
+if (isMockEnabled && process.env.NODE_ENV === 'production') {
+  console.warn('[AI] WARNING: Mock mode enabled in production!');
+}
 
 /**
  * Shared AI client for all agentic operations.

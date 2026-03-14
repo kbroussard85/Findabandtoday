@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
     }
 
-    const { bio, negotiationPrefs, media, name, lat, lng, agreementTemplate } = result.data;
+    const { bio, negotiationPrefs, media, name, lat, lng, agreementTemplate, socialLinks, logoUrl } = result.data;
 
     // Sanitize text fields
     const sanitizedBio = bio ? sanitize(bio) : undefined;
@@ -86,7 +87,47 @@ export async function POST(req: Request) {
     }
 
     if (dbUser.role === 'BAND') {
-      // ... existing band logic ...
+      let band = await prisma.band.findUnique({
+        where: { userId: dbUser.id }
+      });
+
+      if (!band) {
+        band = await prisma.band.create({
+          data: {
+            userId: dbUser.id,
+            name: name || user.name || 'New Artist',
+          }
+        });
+      }
+
+      await prisma.bandMember.upsert({
+        where: { bandId_userId: { bandId: band.id, userId: dbUser.id } },
+        update: { role: 'OWNER' },
+        create: { bandId: band.id, userId: dbUser.id, role: 'OWNER' }
+      });
+
+      const updatedBand = await prisma.band.update({
+        where: { id: band.id },
+        data: { 
+          bio: sanitizedBio, 
+          negotiationPrefs: negotiationPrefs as any, 
+          media: media as any, 
+          socialLinks: socialLinks as any,
+          logoUrl,
+          name: name || band.name, 
+          lat, 
+          lng 
+        },
+      });
+
+      // SYNC GEOSPATIAL LOCATION
+      if (lat && lng) {
+        console.log(`[GEOSYNC] Updating location for Band ${updatedBand.id}: ${lat}, ${lng}`);
+        await prisma.$executeRawUnsafe(
+          `UPDATE "Band" SET location = ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography WHERE id = $3`,
+          lng, lat, updatedBand.id
+        );
+      }
     } else {
       let venue = await prisma.venue.findUnique({
         where: { userId: dbUser.id }
@@ -113,6 +154,8 @@ export async function POST(req: Request) {
           bio: sanitizedBio, 
           negotiationPrefs, 
           media, 
+          socialLinks: socialLinks as any,
+          logoUrl,
           name: name || venue.name, 
           lat, 
           lng 

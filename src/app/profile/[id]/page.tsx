@@ -2,7 +2,7 @@ import React from 'react';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { AudioPlayer } from '@/components/ui/AudioPlayer';
-import { MapPin, Instagram, Youtube, Music, Info, Calendar } from 'lucide-react';
+import { MapPin, Instagram, Youtube, Music, Info, Calendar, Share2, Globe } from 'lucide-react';
 import Image from 'next/image';
 import { MediaItem } from '@/types';
 
@@ -87,19 +87,29 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
             </div>
             
             <div className="flex gap-4 pb-2">
+              {socialLinks.website && (
+                <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-zinc-500 transition-all">
+                  <Globe size={24} />
+                </a>
+              )}
               {socialLinks.instagram && (
-                <a href={socialLinks.instagram} className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-purple-500 transition-all">
+                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-purple-500 transition-all">
                   <Instagram size={24} />
                 </a>
               )}
               {socialLinks.spotify && (
-                <a href={socialLinks.spotify} className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-green-500 transition-all">
+                <a href={socialLinks.spotify} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-green-500 transition-all">
                   <Music size={24} />
                 </a>
               )}
               {socialLinks.youtube && (
-                <a href={socialLinks.youtube} className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-red-500 transition-all">
+                <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-red-500 transition-all">
                   <Youtube size={24} />
+                </a>
+              )}
+              {socialLinks.tiktok && (
+                <a href={socialLinks.tiktok} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-pink-500 transition-all">
+                  <Share2 size={24} />
                 </a>
               )}
             </div>
@@ -188,6 +198,41 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
           </section>
         </aside>
       </main>
+
+      {/* Floating Social Sub-Nav */}
+      <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <div className="flex items-center gap-2 p-2 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+          {socialLinks.website && (
+            <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="p-4 bg-zinc-900 hover:bg-zinc-800 rounded-full transition-all group">
+              <Globe size={20} className="group-hover:scale-110 transition-transform" />
+            </a>
+          )}
+          {socialLinks.spotify && (
+            <a href={socialLinks.spotify} target="_blank" rel="noopener noreferrer" className="p-4 bg-zinc-900 hover:bg-[#1DB954]/20 rounded-full transition-all group">
+              <Music size={20} className="text-[#1DB954] group-hover:scale-110 transition-transform" />
+            </a>
+          )}
+          {socialLinks.youtube && (
+            <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="p-4 bg-zinc-900 hover:bg-[#FF0000]/20 rounded-full transition-all group">
+              <Youtube size={20} className="text-[#FF0000] group-hover:scale-110 transition-transform" />
+            </a>
+          )}
+          {socialLinks.tiktok && (
+            <a href={socialLinks.tiktok} target="_blank" rel="noopener noreferrer" className="p-4 bg-zinc-900 hover:bg-[#EE1D52]/20 rounded-full transition-all group">
+              <Share2 size={20} className="text-[#EE1D52] group-hover:scale-110 transition-transform" />
+            </a>
+          )}
+          {socialLinks.instagram && (
+            <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-4 bg-zinc-900 hover:bg-[#E4405F]/20 rounded-full transition-all group">
+              <Instagram size={20} className="text-[#E4405F] group-hover:scale-110 transition-transform" />
+            </a>
+          )}
+          <div className="h-8 w-[1px] bg-white/10 mx-2" />
+          <button className={`px-8 py-4 rounded-full font-black uppercase italic tracking-widest text-xs transition-all ${isBand ? 'bg-purple-600 hover:bg-purple-500' : 'bg-blue-600 hover:bg-blue-500'}`}>
+            Book Now
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }

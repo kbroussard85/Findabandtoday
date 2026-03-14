@@ -59,7 +59,8 @@ model Band {
   negotiationPrefs Json?
   minPayoutRequirement Float @default(0)
   vaultCompleted   Boolean @default(false)
-  socialLinks      Json?                     @default("{\"spotify\": \"\", \"twitter\": \"\", \"website\": \"\", \"instagram\": \"\"}")
+  logoUrl          String?
+  socialLinks      Json?                     @default("{\"spotify\": \"\", \"youtube\": \"\", \"tiktok\": \"\", \"instagram\": \"\", \"website\": \"\"}")
   city             String?
   availabilities   Availability[]
   user             User                      @relation(fields: [userId], references: [id])
@@ -84,7 +85,8 @@ model Venue {
   negotiationPrefs Json?
   minPayoutRequirement Float @default(0)
   vaultCompleted   Boolean @default(false)
-  socialLinks      Json?                     @default("{\"spotify\": \"\", \"twitter\": \"\", \"website\": \"\", \"instagram\": \"\"}")
+  logoUrl          String?
+  socialLinks      Json?                     @default("{\"spotify\": \"\", \"youtube\": \"\", \"tiktok\": \"\", \"instagram\": \"\", \"website\": \"\"}")
   city             String?
   availabilities   Availability[]
   gigs             Gig[]

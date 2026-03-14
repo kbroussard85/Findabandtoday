@@ -9,12 +9,36 @@ import {
   escrowRateLimit 
 } from '@/lib/ratelimit';
 
+const PROTECTED_ROUTES = [
+  '/profile',
+  '/gig/create',
+  '/api/artist',
+  '/api/checkout',
+  '/api/gigs' // For escrow in particular, but matches base
+];
+
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl.pathname;
   // @ts-expect-error - ip property exists on NextRequest in Vercel/Next.js environment
   const ip = req.ip ?? "127.0.0.1";
 
+  // 1. Authentication Check
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => url.startsWith(route));
+  
+  let session = null;
+  if (isProtectedRoute || url.startsWith('/api/checkout') || url.includes('/escrow')) {
+    session = await getSession(req, NextResponse.next());
+  }
+
+  if (isProtectedRoute && !session) {
+    if (url.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    return NextResponse.redirect(new URL('/api/auth/login', req.url));
+  }
+
   try {
+    // 2. Rate Limiting Logic
     // Rate limit by IP for discovery
     if (url.startsWith('/api/discovery') && discoveryRateLimit) {
       const { success } = await discoveryRateLimit.limit(ip);
@@ -33,7 +57,6 @@ export async function middleware(req: NextRequest) {
 
     // Rate limit by user for authenticated routes
     if ((url.startsWith('/api/checkout') || url.includes('/escrow')) && (checkoutRateLimit || escrowRateLimit)) {
-      const session = await getSession(req, NextResponse.next());
       const userId = session?.user?.sub ?? ip;
       
       let limiter = checkoutRateLimit;
@@ -50,7 +73,6 @@ export async function middleware(req: NextRequest) {
     }
   } catch (error) {
     console.error("Middleware processing error:", error);
-    // Continue if ratelimiting fails, rather than crashing the whole request
   }
 
   return NextResponse.next();
@@ -58,6 +80,9 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    '/profile/:path*',
+    '/gig/create/:path*',
+    '/api/artist/:path*',
     '/api/discovery/:path*',
     '/api/auth/sync/:path*',
     '/api/checkout/:path*',

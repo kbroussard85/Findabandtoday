@@ -11,6 +11,7 @@ import {
   CreditCard,
   ChevronRight
 } from 'lucide-react';
+import { differenceInHours } from 'date-fns';
 import Link from 'next/link';
 
 interface Gig {
@@ -20,6 +21,7 @@ interface Gig {
   status: string;
   totalAmount: number;
   payoutStatus: string;
+  expiresAt?: string;
   band: { id: string; name: string };
   venue: { id: string; name: string };
   agreement?: {
@@ -28,29 +30,13 @@ interface Gig {
   } | null;
 }
 
-export function GigDashboard() {
-  const [gigs, setGigs] = useState<Gig[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<'BAND' | 'VENUE'>('BAND');
+interface GigDashboardProps {
+  gigs: Gig[];
+  role: 'BAND' | 'VENUE';
+  loading?: boolean;
+}
 
-  useEffect(() => {
-    async function fetchGigs() {
-      try {
-        const response = await fetch('/api/gigs');
-        const result = await response.json();
-        if (result.data) {
-          setGigs(result.data);
-          setRole(result.role);
-        }
-      } catch (error) {
-        console.error('Error fetching gigs:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchGigs();
-  }, []);
-
+export function GigDashboard({ gigs, role, loading = false }: GigDashboardProps) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -126,13 +112,22 @@ function GigCard({ gig, role }: { gig: Gig, role: 'BAND' | 'VENUE' }) {
   const isPending = ['OFFER_SENT', 'COUNTER_OFFER'].includes(h(gig.status));
   const isConfirmed = ['ACCEPTED', 'BOOKED', 'CONFIRMED', 'ESCROW_HOLD'].includes(h(gig.status));
   const isCompleted = h(gig.status) === 'COMPLETED';
+
+  // Calculate if deadline is approaching (within 12 hours)
+  const hoursRemaining = gig.expiresAt ? differenceInHours(new Date(gig.expiresAt), new Date()) : null;
+  const isExpiringSoon = isPending && hoursRemaining !== null && hoursRemaining <= 12 && hoursRemaining >= 0;
   
   const partnerName = role === 'BAND' ? gig.venue.name : gig.band.name;
   const gigDate = new Date(gig.date);
 
   return (
-    <div className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-3xl hover:border-zinc-700 transition-all group">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className={`bg-zinc-900/40 border ${isExpiringSoon ? 'border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'border-zinc-800'} p-6 rounded-3xl hover:border-zinc-700 transition-all group relative overflow-hidden`}>
+      {isExpiringSoon && (
+        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-[8px] font-black uppercase tracking-[0.2em] text-center py-1 animate-pulse">
+          URGENT: DEADLINE APPROACHING - {hoursRemaining}H REMAINING TO CONFIRM
+        </div>
+      )}
+      <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-6 ${isExpiringSoon ? 'mt-4' : ''}`}>
         <div className="flex items-center gap-6">
           <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex flex-col items-center justify-center text-center shrink-0">
             <span className="text-[10px] font-black uppercase text-zinc-500">{gigDate.toLocaleString('default', { month: 'short' })}</span>

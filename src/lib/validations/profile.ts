@@ -7,10 +7,22 @@ export const ProfileUpdateSchema = z.object({
     minRate: z.number().min(0).optional(),
     openToNegotiate: z.boolean().optional()
   }).optional(),
-  media: z.array(z.string().url()).optional(),
+  media: z.array(z.object({
+    url: z.string().url(),
+    type: z.string(),
+    name: z.string().optional()
+  })).optional(),
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
+  logoUrl: z.string().url().or(z.literal('')).optional(),
   agreementTemplate: z.string().max(10000).optional(),
+  socialLinks: z.object({
+    spotify: z.string().url().or(z.literal('')).optional(),
+    youtube: z.string().url().or(z.literal('')).optional(),
+    tiktok: z.string().url().or(z.literal('')).optional(),
+    instagram: z.string().url().or(z.literal('')).optional(),
+    website: z.string().url().or(z.literal('')).optional(),
+  }).optional(),
 });
 
 export const AvailabilitySchema = z.object({

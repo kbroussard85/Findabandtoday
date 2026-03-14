@@ -1,10 +1,10 @@
-'use client';
-
-import React, { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect } from 'react';
 import { ProfileToggle } from './ProfileToggle';
 import { ArtistSubNav } from './ArtistSubNav';
 import { ProfileEditor } from './ProfileEditor';
 import { GigDashboard } from './GigDashboard';
+import { ConfirmedCalendar } from './ConfirmedCalendar';
 import { CalendarEditor } from './CalendarEditor';
 import { UpgradeButton } from './UpgradeButton';
 import { ExternalLink } from 'lucide-react';
@@ -27,10 +27,41 @@ interface DashboardCenterProps {
 
 export function DashboardCenter({ dbUser }: DashboardCenterProps) {
   const [isPreview, setIsPreview] = useState(false);
-  const [activeTab, setActiveTab] = useState('submissions');
+  const [activeTab, setActiveTab] = useState('profile');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [gigs, setGigs] = useState<any[]>([]);
+  const [loadingGigs, setLoadingGigs] = useState(true);
+  const [hasSeenPending, setHasSeenPending] = useState(false);
   
   const isBand = dbUser.role === 'BAND';
   const profile = isBand ? dbUser.bandProfile : dbUser.venueProfile;
+
+  const pendingGigs = gigs.filter(g => 
+    ['OFFER_SENT', 'COUNTER_OFFER'].includes(g.status.toUpperCase())
+  );
+  
+  const pendingCount = hasSeenPending ? 0 : pendingGigs.length;
+
+  useEffect(() => {
+    async function fetchGigs() {
+      try {
+        const response = await fetch('/api/gigs');
+        const result = await response.json();
+        if (result.data) {
+          setGigs(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching gigs:', error);
+      } finally {
+        setLoadingGigs(false);
+      }
+    }
+    fetchGigs();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'pending') setHasSeenPending(true);
+  }, [activeTab]);
   
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const initialDates = profile?.availabilities?.map((a: any) => a.eventDate) || [];
@@ -99,14 +130,18 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
         </div>
       </header>
 
-      <ArtistSubNav activeTab={activeTab} setActiveTab={(tab) => {
-        if (tab === 'payment_info') handleStripePortal();
-        else setActiveTab(tab);
-      }} />
+      <ArtistSubNav 
+        activeTab={activeTab} 
+        setActiveTab={(tab) => {
+          if (tab === 'payment_info') handleStripePortal();
+          else setActiveTab(tab);
+        }} 
+        pendingCount={pendingCount}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <section className="lg:col-span-2 space-y-16">
-          {activeTab === 'submissions' && (
+          {activeTab === 'profile' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-4 mb-6">
                 <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">01</span>
@@ -119,20 +154,30 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
             </div>
           )}
 
-          {(activeTab === 'requests' || activeTab === 'pending') && (
+          {activeTab === 'pending' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-4 mb-6">
                 <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">02</span>
-                <h2 className="text-2xl font-black uppercase italic tracking-tight">My Bookings</h2>
+                <h2 className="text-2xl font-black uppercase italic tracking-tight">Pending Offers</h2>
               </div>
-              <GigDashboard />
+              <GigDashboard gigs={gigs} role={dbUser.role} loading={loadingGigs} />
+            </div>
+          )}
+
+          {activeTab === 'confirmed' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center gap-4 mb-6">
+                <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">03</span>
+                <h2 className="text-2xl font-black uppercase italic tracking-tight">Confirmed Gigs</h2>
+              </div>
+              <ConfirmedCalendar gigs={gigs} />
             </div>
           )}
         </section>
 
         <aside className="space-y-8">
           <div className="flex items-center gap-4 mb-6">
-            <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">03</span>
+            <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black">{activeTab === 'confirmed' ? '04' : '03'}</span>
             <h2 className="text-2xl font-black uppercase italic tracking-tight">Availability</h2>
           </div>
           <div className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-3xl backdrop-blur-sm">
