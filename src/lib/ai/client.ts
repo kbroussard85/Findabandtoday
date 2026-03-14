@@ -1,36 +1,56 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { AIMessage } from "@langchain/core/messages";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /**
- * Mock AI Client for development when API keys are missing or quota is exceeded.
+ * Custom Gemini wrapper that mimics LangChain's .invoke() 
+ * to maintain compatibility with existing agents without refactoring.
  */
-class MockChatOpenAI extends BaseChatModel {
-  _llmType() { return "mock"; }
-  async _generate() {
+class GeminiChatModel {
+  private genAI: GoogleGenerativeAI;
+  private modelName: string;
+
+  constructor(apiKey: string, modelName: string = "gemini-1.5-pro") {
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.modelName = modelName;
+  }
+
+  async invoke(messages: any[]) {
+    const model = this.genAI.getGenerativeModel({ model: this.modelName });
+
+    // Extract system instruction and regular messages
+    const systemInstruction = messages.find(m => m.role === 'system' || m._getType?.() === 'system')?.content;
+    const userMessages = messages.filter(m => m.role !== 'system' && m._getType?.() !== 'system');
+
+    // Simple text concatenation for prompt if not using chat history
+    const prompt = userMessages.map(m => m.content).join("\n\n");
+
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      systemInstruction: systemInstruction ? { role: 'system', parts: [{ text: systemInstruction }] } : undefined,
+    });
+
+    const responseText = result.response.text();
+
     return {
-      generations: [{
-        text: JSON.stringify(["id1", "id2", "id3"]), // Default mock for Maximizer
-        message: new AIMessage("This is a mock AI response for development.")
-      }]
+      content: responseText,
+      additional_kwargs: {},
     };
   }
 }
 
-const isMockEnabled = process.env.AI_MOCK_MODE === 'true' || !process.env.OPENAI_API_KEY;
+const geminiKey = process.env.GEMINI_API_KEY;
+const isMockEnabled = !geminiKey;
 
 if (isMockEnabled && process.env.NODE_ENV === 'production') {
-  console.warn('[AI] WARNING: Mock mode enabled in production!');
+  console.warn('[AI] CRITICAL: Gemini API Key is missing in production!');
 }
 
 /**
- * Shared AI client for all agentic operations.
+ * Shared AI client for all agentic operations (Maximizer, Outreach, Liaison).
+ * Now migrated to Gemini 1.5 Pro.
  */
-export const aiClient = isMockEnabled 
-  ? new MockChatOpenAI({}) as unknown as ChatOpenAI
-  : new ChatOpenAI({
-      modelName: "gpt-4o-mini",
-      temperature: 0.2,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
-
+export const aiClient = isMockEnabled
+  ? { 
+      invoke: async () => ({ content: "AI Mock Response: Key Missing", additional_kwargs: {} }) 
+    } as any
+  : new GeminiChatModel(geminiKey);
