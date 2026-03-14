@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,7 +24,6 @@ const MONTH_IMAGES = [
 
 export function InventoryCalendar() {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
-  const [bookedDates, setBookedDates] = useState<Date[]>([]); // Mock booked
   const [showModal, setShowModal] = useState(false);
   const [activeDate, setActiveDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -62,10 +62,11 @@ export function InventoryCalendar() {
       <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden shadow-2xl transition-all hover:scale-[1.01]">
         {/* Month Background Image */}
         <div className="h-32 w-full relative">
-          <img 
+          <Image 
             src={MONTH_IMAGES[currentMonth]} 
             alt="Venue Vibe" 
-            className="w-full h-full object-cover opacity-40 transition-opacity group-hover:opacity-60"
+            fill
+            className="object-cover opacity-40 transition-opacity group-hover:opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent" />
           <div className="absolute bottom-4 left-8">
@@ -81,11 +82,9 @@ export function InventoryCalendar() {
             onMonthChange={(month) => setCurrentMonth(month.getMonth())}
             modifiers={{
               open: selectedDates,
-              booked: bookedDates,
             }}
             modifiersClassNames={{
               open: 'bg-green-500/20 text-green-400 font-bold border border-green-500/50 rounded-lg',
-              booked: 'bg-red-500/20 text-red-400 font-bold border border-red-500/50 rounded-lg'
             }}
             className="text-zinc-400 custom-calendar"
             styles={{

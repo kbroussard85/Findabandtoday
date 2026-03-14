@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { handleSwipe } from '@/app/actions/venue-swipe';
 import { Music, RotateCcw } from 'lucide-react';
@@ -20,7 +20,6 @@ interface BandSubmission {
 
 export const SubmissionStack = ({ initialSubmissions }: { initialSubmissions: BandSubmission[] }) => {
   const [submissions, setSubmissions] = useState(initialSubmissions);
-  const [history, setHistory] = useState<BandSubmission[]>([]);
 
   const onSwipe = async (id: string, direction: 'right' | 'left') => {
     const swipedItem = submissions.find(s => s.id === id);

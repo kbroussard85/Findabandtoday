@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from '@/app/api/profile/route';
 import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
-import { NextResponse } from 'next/server';
 
 vi.mock('@auth0/nextjs-auth0', () => ({
   getSession: vi.fn(),

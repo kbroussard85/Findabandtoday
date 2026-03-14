@@ -6,8 +6,6 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const lat = searchParams.get('lat');
-    const lng = searchParams.get('lng');
     const query = searchParams.get('query') || '';
 
     // Fetch future booked/confirmed gigs

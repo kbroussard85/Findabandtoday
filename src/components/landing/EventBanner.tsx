@@ -14,10 +14,6 @@ export function EventBanner({ gig }: EventBannerProps) {
     ? gig.band.media.find((m: any) => m.type === 'image')?.url 
     : null;
   
-  const venueImage = Array.isArray(gig.venue.media)
-    ? gig.venue.media.find((m: any) => m.type === 'image')?.url
-    : null;
-
   const eventDate = new Date(gig.date);
 
   return (

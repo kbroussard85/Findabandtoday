@@ -1,5 +1,4 @@
 import prisma from '@/lib/prisma';
-import { getSession } from '@auth0/nextjs-auth0';
 
 export async function getMaximizerMatches(userId: string) {
   const user = await prisma.user.findUnique({
