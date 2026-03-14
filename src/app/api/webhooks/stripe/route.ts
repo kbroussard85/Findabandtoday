@@ -5,13 +5,14 @@ import type Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-if (!webhookSecret) {
-  throw new Error('STRIPE_WEBHOOK_SECRET environment variable is required. Get it from Stripe Dashboard > Developers > Webhooks.');
-}
-
 export async function POST(req: Request) {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!webhookSecret) {
+    console.error('STRIPE_WEBHOOK_SECRET is missing');
+    return NextResponse.json({ error: 'Webhook configuration error' }, { status: 500 });
+  }
+
   if (!stripe) {
     return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 });
   }
