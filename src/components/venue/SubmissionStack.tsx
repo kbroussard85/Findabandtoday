@@ -25,9 +25,6 @@ export const SubmissionStack = ({ initialSubmissions }: { initialSubmissions: Ba
     const swipedItem = submissions.find(s => s.id === id);
     if (!swipedItem) return;
 
-    // Move to history for loop potential
-    setHistory(prev => [...prev, swipedItem]);
-    
     // Optimistic UI update
     setSubmissions(prev => prev.filter(sub => sub.id !== id));
     
@@ -37,7 +34,6 @@ export const SubmissionStack = ({ initialSubmissions }: { initialSubmissions: Ba
 
   const handleReset = () => {
     setSubmissions(initialSubmissions);
-    setHistory([]);
   };
 
   if (submissions.length === 0) {
