@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Loader2, Sparkles } from 'lucide-react';
 import { EventBanner } from './EventBanner';
