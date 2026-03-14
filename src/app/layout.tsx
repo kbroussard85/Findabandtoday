@@ -3,6 +3,7 @@ import { Montserrat, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { UserProvider } from '@auth0/nextjs-auth0/client';
+import { LocationProvider } from "@/context/LocationContext";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -28,12 +29,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <UserProvider>
-        <body className={`${montserrat.variable} ${geistMono.variable} antialiased`}>
-          <Navbar />
-          <main>
-            {children}
-          </main>
-        </body>
+        <LocationProvider>
+          <body className={`${montserrat.variable} ${geistMono.variable} antialiased`}>
+            <Navbar />
+            <main>
+              {children}
+            </main>
+          </body>
+        </LocationProvider>
       </UserProvider>
     </html>
   );

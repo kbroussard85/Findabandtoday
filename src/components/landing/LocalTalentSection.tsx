@@ -3,32 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Loader2, Sparkles } from 'lucide-react';
 import { EventBanner } from './EventBanner';
+import { useLocation } from '@/context/LocationContext';
 
 export function LocalTalentSection() {
   const [query, setQuery] = useState('');
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const { lat, lng, isGranted, refreshLocation } = useLocation();
 
   useEffect(() => {
-    // Check if location was already granted/stored
-    const stored = localStorage.getItem('fabt_user_location');
-    if (stored) {
-      setUserLocation(JSON.parse(stored));
-    } else {
-      // Prompt for location
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            setUserLocation(loc);
-            localStorage.setItem('fabt_user_location', JSON.stringify(loc));
-          },
-          () => console.log('Location denied')
-        );
-      }
+    // If location isn't granted yet, prompt for it on landing
+    if (!isGranted) {
+      refreshLocation();
     }
-  }, []);
+  }, [isGranted, refreshLocation]);
 
   useEffect(() => {
     async function fetchEvents() {
@@ -36,9 +24,9 @@ export function LocalTalentSection() {
       try {
         const url = new URL('/api/events/public', window.location.origin);
         if (query) url.searchParams.set('query', query);
-        if (userLocation) {
-          url.searchParams.set('lat', userLocation.lat.toString());
-          url.searchParams.set('lng', userLocation.lng.toString());
+        if (lat && lng) {
+          url.searchParams.set('lat', lat.toString());
+          url.searchParams.set('lng', lng.toString());
         }
         
         const res = await fetch(url.toString());
@@ -53,7 +41,7 @@ export function LocalTalentSection() {
 
     const timer = setTimeout(fetchEvents, 300);
     return () => clearTimeout(timer);
-  }, [query, userLocation]);
+  }, [query, lat, lng]);
 
   return (
     <section className="py-24 bg-black relative overflow-hidden">
