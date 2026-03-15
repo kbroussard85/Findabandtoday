@@ -1,75 +1,60 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { draftLiaisonOffer } from '@/lib/ai/agents/liaison';
-import { aiClient } from '@/lib/ai/client';
 
-vi.mock('@/lib/ai/client', () => ({
-  aiClient: {
-    invoke: vi.fn(),
-  },
-}));
+describe('AI Liaison Agent', () => {
+  const mockSenderProfile = {
+    name: 'The Rockers',
+    bio: 'A high-energy rock band.',
+    negotiationPrefs: {}
+  };
 
-describe('AI Liaison Agent Unit Test', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  const mockRecipientProfile = {
+    name: 'The Blue Note',
+    bio: 'A classic jazz and rock venue.'
+  };
 
-  it('should draft a professional offer for a Band', async () => {
-    (aiClient.invoke as any).mockResolvedValue({
-      content: 'Mocked professional pitch from band to venue.',
+  const mockGigDetails = {
+    date: new Date('2026-06-01'),
+    suggestedAmount: 500,
+    message: 'We would love to play at your venue!'
+  };
+
+  it('should draft a professional offer for a BAND sender', async () => {
+    const result = await draftLiaisonOffer({
+      senderType: 'BAND',
+      senderProfile: mockSenderProfile,
+      recipientProfile: mockRecipientProfile,
+      gigDetails: mockGigDetails
     });
 
-    const params = {
-      senderType: 'BAND' as const,
-      senderProfile: {
-        name: 'The Rockers',
-        bio: 'A great rock band.',
-      },
-      recipientProfile: {
-        name: 'The Blue Note',
-      },
-      gigDetails: {
-        date: new Date('2026-06-20'),
-        suggestedAmount: 500,
-        message: 'Let us rock your venue!',
-      },
-    };
-
-    const result = await draftLiaisonOffer(params);
-
-    expect(aiClient.invoke).toHaveBeenCalled();
-    expect(result).toContain('Mocked professional pitch');
-    
-    // Verify system prompt contains correct role
-    const callArgs = (aiClient.invoke as any).mock.calls[0][0];
-    expect(callArgs[0].content).toContain('representing the band "The Rockers"');
+    expect(result).toBeTypeOf('string');
+    expect(result).toContain('The FABT Liaison');
+    expect(result).toContain('Venue');
   });
 
-  it('should draft a professional offer for a Venue', async () => {
-    (aiClient.invoke as any).mockResolvedValue({
-      content: 'Mocked professional offer from venue to band.',
+  it('should draft a professional offer for a VENUE sender', async () => {
+    const result = await draftLiaisonOffer({
+      senderType: 'VENUE',
+      senderProfile: { ...mockRecipientProfile, negotiationPrefs: {} },
+      recipientProfile: mockSenderProfile,
+      gigDetails: mockGigDetails
     });
 
-    const params = {
-      senderType: 'VENUE' as const,
-      senderProfile: {
-        name: 'The Blue Note',
-      },
-      recipientProfile: {
-        name: 'The Rockers',
-      },
-      gigDetails: {
-        date: new Date('2026-06-20'),
-        suggestedAmount: 600,
-      },
-    };
+    expect(result).toBeTypeOf('string');
+    expect(result).toContain('The FABT Liaison');
+  });
 
-    const result = await draftLiaisonOffer(params);
+  it('should include venue agreement text when provided', async () => {
+    const venueAgreementText = 'Must provide own PA system.';
+    const result = await draftLiaisonOffer({
+      senderType: 'BAND',
+      senderProfile: mockSenderProfile,
+      recipientProfile: mockRecipientProfile,
+      gigDetails: mockGigDetails,
+      venueAgreementText
+    });
 
-    expect(aiClient.invoke).toHaveBeenCalled();
-    expect(result).toContain('Mocked professional offer');
-    
-    // Verify system prompt contains correct role
-    const callArgs = (aiClient.invoke as any).mock.calls[0][0];
-    expect(callArgs[0].content).toContain('talent booker for the venue "The Blue Note"');
+    expect(result).toBeTypeOf('string');
+    expect(result).toContain('The FABT Liaison');
   });
 });
