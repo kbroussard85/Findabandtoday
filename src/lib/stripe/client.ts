@@ -37,3 +37,21 @@ export async function createAccountLink(accountId: string) {
     type: 'account_onboarding',
   });
 }
+
+/**
+ * Creates a Stripe Identity Verification Session.
+ */
+export async function createVerificationSession(userId: string) {
+  if (!stripe) throw new Error('Stripe not configured');
+
+  return await stripe.identity.verificationSessions.create({
+    type: 'document',
+    options: {
+      document: {
+        require_id_number: true,
+        require_matching_selfie: true,
+      },
+    },
+    metadata: { userId },
+  });
+}

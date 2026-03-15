@@ -136,6 +136,79 @@ export async function POST(req: Request) {
       }
       break;
 
+    case 'identity.verification_session.verified': {
+      const session = event.data.object as Stripe.Identity.VerificationSession;
+      const userId = session.metadata?.userId;
+
+      if (userId) {
+        // Fetch full session to get verified outputs
+        const fullSession = await stripe.identity.verificationSessions.retrieve(session.id, {
+          expand: ['verified_outputs'],
+        });
+
+        const outputs = fullSession.verified_outputs;
+        if (outputs) {
+          const verifiedName = `${outputs.first_name} ${outputs.last_name}`;
+          const verifiedDob = outputs.dob ? `${outputs.dob.year}-${outputs.dob.month}-${outputs.dob.day}` : null;
+
+          // Update User Status
+          await prisma.user.update({
+            where: { id: userId },
+            data: { 
+              identityStatus: 'verified',
+              identityVerified: true
+            },
+          });
+
+          // Auto-Fill/Update I-9 Vault Asset with Verified Data
+          const i9Text = `VERIFIED BY STRIPE\nLegal Name: ${verifiedName}\nDOB: ${verifiedDob}\nVerified At: ${new Date().toISOString()}`;
+          
+          await prisma.vaultAsset.upsert({
+            where: { 
+              ownerId_assetType: {
+                ownerId: userId,
+                assetType: 'i9'
+              }
+            },
+            update: { rawText: i9Text },
+            create: {
+              ownerId: userId,
+              assetType: 'i9',
+              rawText: i9Text
+            }
+          });
+
+          logger.info(`[STRIPE-IDENTITY] User ${userId} identity verified and I-9 updated.`);
+        }
+      }
+      break;
+    }
+
+    case 'identity.verification_session.requires_input': {
+      const session = event.data.object as Stripe.Identity.VerificationSession;
+      const userId = session.metadata?.userId;
+      if (userId) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { identityStatus: 'requires_input' },
+        });
+        logger.warn(`[STRIPE-IDENTITY] User ${userId} verification requires input: ${session.last_error?.reason}`);
+      }
+      break;
+    }
+
+    case 'identity.verification_session.canceled': {
+      const session = event.data.object as Stripe.Identity.VerificationSession;
+      const userId = session.metadata?.userId;
+      if (userId) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { identityStatus: 'canceled', identityVerified: false },
+        });
+      }
+      break;
+    }
+
     default:
       logger.info(`Unhandled event type ${event.type}`);
   }

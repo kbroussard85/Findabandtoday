@@ -12,23 +12,26 @@ datasource db {
 }
 
 model User {
-  id                 String        @id @default(cuid())
-  auth0Id            String        @unique
-  email              String        @unique
-  role               UserRole
-  stripeCustomerId   String?       @unique
-  isPaid             Boolean       @default(false)
-  subscriptionTier   String?
-  createdAt          DateTime      @default(now())
-  subscriptionStatus String?
-  name               String?
-  stripeAccountId    String?       @unique
-  bandProfile        Band?
-  bandMemberships    BandMember[]
-  venueProfile       Venue?
-  venueMemberships   VenueMember[]
-  artistMedia        ArtistMedia[]
-  vaultAssets        VaultAsset[]
+  id                     String        @id @default(cuid())
+  auth0Id                String        @unique
+  email                  String        @unique
+  role                   UserRole
+  stripeCustomerId       String?       @unique
+  isPaid                 Boolean       @default(false)
+  subscriptionTier       String?
+  createdAt              DateTime      @default(now())
+  subscriptionStatus     String?
+  name                   String?
+  stripeAccountId        String?       @unique
+  identityVerificationId String?       @unique
+  identityStatus         String?       @default("unverified")
+  identityVerified       Boolean       @default(false)
+  bandProfile            Band?
+  bandMemberships        BandMember[]
+  venueProfile           Venue?
+  venueMemberships       VenueMember[]
+  artistMedia            ArtistMedia[]
+  vaultAssets            VaultAsset[]
 }
 
 model ArtistMedia {
@@ -384,6 +387,7 @@ model VaultAsset {
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
+  @@unique([ownerId, assetType])
   @@index([ownerId])
 }
 
