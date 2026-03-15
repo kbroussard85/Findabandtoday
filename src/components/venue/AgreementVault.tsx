@@ -1,16 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldCheck, Upload, FileText, Loader2 } from 'lucide-react';
+import { ShieldCheck, Upload, FileText, Loader2, CheckCircle } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { UploadButton } from '@/lib/uploadthing';
 
 export function AgreementVault() {
   const [templateText, setTemplateText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // 1. Update text template in Venue profile
       const response = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -20,6 +23,17 @@ export function AgreementVault() {
       });
 
       if (!response.ok) throw new Error('Failed to save agreement');
+
+      // 2. Sync to VaultAsset for AI Brain
+      await fetch('/api/profile/vault', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          assetType: 'agreement_template',
+          rawText: templateText,
+        }),
+      });
+
       alert('Agreement Vault updated! Your AI Negotiator is now synced.');
     } catch (err) {
       logger.error(err);
@@ -62,9 +76,44 @@ export function AgreementVault() {
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : 'Sync AI Brain ⚡'}
         </button>
-        <button className="p-4 bg-zinc-800 border border-zinc-700 rounded-2xl text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all active:scale-95">
-          <Upload size={18} />
-        </button>
+        
+        <div className="relative">
+          <UploadButton
+            endpoint="systemDocs"
+            onUploadBegin={() => setUploadStatus('uploading')}
+            onClientUploadComplete={async (res) => {
+              const fileUrl = res[0].url;
+              setUploadStatus('success');
+              
+              // Register the PDF in the vault
+              await fetch('/api/profile/vault', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  assetType: 'agreement_template',
+                  fileUrl,
+                }),
+              });
+              
+              alert('PDF Agreement Uploaded! AI Brain is now aware of your document.');
+            }}
+            onUploadError={(error: Error) => {
+              setUploadStatus('error');
+              alert(`ERROR! ${error.message}`);
+            }}
+            appearance={{
+              button: "p-4 bg-zinc-800 border border-zinc-700 rounded-2xl text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all active:scale-95 ut-ready:bg-zinc-800 ut-uploading:bg-indigo-600 after:bg-indigo-500",
+              allowedContent: "hidden",
+            }}
+            content={{
+              button({ isUploading }) {
+                if (isUploading) return <Loader2 size={18} className="animate-spin" />;
+                if (uploadStatus === 'success') return <CheckCircle size={18} className="text-green-500" />;
+                return <Upload size={18} />;
+              }
+            }}
+          />
+        </div>
       </div>
     </div>
   );
