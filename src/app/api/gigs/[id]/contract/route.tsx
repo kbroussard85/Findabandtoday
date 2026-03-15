@@ -2,11 +2,10 @@ import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { renderToStream } from '@react-pdf/renderer';
-import { PerformanceContract, type ContractProps } from '@/lib/pdf/contract-generator';
+import { PerformanceContract } from '@/lib/documents/templates/PerformanceContract';
 import React from 'react';
 import { logger } from '@/lib/logger';
 
-// Build trigger comment
 export const dynamic = 'force-dynamic';
 
 export async function GET(
@@ -26,23 +25,41 @@ export async function GET(
       duration: searchParams.get('duration') ? parseInt(searchParams.get('duration')!) : undefined,
       payoutMethod: searchParams.get('payoutMethod') || undefined,
       technicalNotes: searchParams.get('technicalNotes') || undefined,
+      venueClauses: searchParams.get('venueClauses') || undefined,
     };
 
     const gig = await prisma.gig.findUnique({
       where: { id },
       include: {
-        band: true,
-        venue: true,
+        band: {
+          include: { user: { include: { vaultAssets: true } } }
+        },
+        venue: {
+          include: { user: { include: { vaultAssets: true } } }
+        },
       },
     });
 
     if (!gig) return NextResponse.json({ error: 'Gig not found' }, { status: 404 });
 
+    // Extract assets for the full pack
+    const artistPlot = gig.band.user.vaultAssets.find(v => v.assetType === 'stage_plot')?.rawText || undefined;
+    const artistInputList = gig.band.user.vaultAssets.find(v => v.assetType === 'input_list')?.rawText || undefined;
+    const artistI9 = gig.band.user.vaultAssets.find(v => v.assetType === 'i9')?.rawText || undefined;
+
     // Render PDF to stream
     const stream = await renderToStream(
       <PerformanceContract 
-        gig={gig as unknown as ContractProps['gig']} 
-        performanceDetails={performanceDetails} 
+        gigId={gig.id}
+        artistName={gig.band.name}
+        venueName={gig.venue.name}
+        eventDate={new Date(gig.date).toLocaleDateString()}
+        payout={`$${gig.totalAmount}`}
+        terms={gig.description || "Standard performance terms apply."}
+        i9Info={artistI9}
+        stagePlot={artistPlot}
+        inputList={artistInputList}
+        performanceDetails={performanceDetails}
       />
     );
     

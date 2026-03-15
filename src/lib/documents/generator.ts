@@ -11,6 +11,9 @@ interface ContractData {
   eventDate: string;
   payout: string;
   terms: string;
+  i9Info?: string;
+  stagePlot?: string;
+  inputList?: string;
 }
 
 /**
