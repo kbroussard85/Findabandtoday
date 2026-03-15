@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { aiClient } from "../client";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+import { logger } from '@/lib/logger';
 
 interface Opportunity {
   id: string;
@@ -61,7 +62,7 @@ export async function getMaximizerSuggestions(userId: string, lat: number, lng: 
       .filter(o => rankedIds.includes(o.id))
       .sort((a, b) => rankedIds.indexOf(a.id) - rankedIds.indexOf(b.id));
   } catch (e) {
-    console.error("Maximizer JSON Parse Error:", e);
+    logger.error({ err: e }, "Maximizer JSON Parse Error:");
     return opportunities.slice(0, 3); // Fallback
   }
 }

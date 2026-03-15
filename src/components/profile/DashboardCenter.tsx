@@ -9,6 +9,7 @@ import { CalendarEditor } from './CalendarEditor';
 import { UpgradeButton } from './UpgradeButton';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { logger } from '@/lib/logger';
 
 interface DashboardCenterProps {
   dbUser: {
@@ -51,7 +52,7 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
           setGigs(result.data);
         }
       } catch (error) {
-        console.error('Error fetching gigs:', error);
+        logger.error({ err: error }, 'Error fetching gigs:');
       } finally {
         setLoadingGigs(false);
       }
@@ -73,7 +74,7 @@ export function DashboardCenter({ dbUser }: DashboardCenterProps) {
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     } catch (err) {
-      console.error('Portal Error:', err);
+      logger.error({ err: err }, 'Portal Error:');
       alert('Failed to load billing portal.');
     }
   };

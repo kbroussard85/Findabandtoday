@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ShieldCheck, Upload, FileText, Loader2 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export function AgreementVault() {
   const [templateText, setTemplateText] = useState('');
@@ -21,7 +22,7 @@ export function AgreementVault() {
       if (!response.ok) throw new Error('Failed to save agreement');
       alert('Agreement Vault updated! Your AI Negotiator is now synced.');
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       alert('Error saving to Vault.');
     } finally {
       setIsSaving(false);

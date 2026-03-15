@@ -1,6 +1,7 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,12 +12,12 @@ export async function GET(req: Request) {
   const { origin, searchParams } = new URL(req.url);
   
   try {
-    console.log('[MANUAL-SYNC] Starting manual sync process...');
+    logger.info('[MANUAL-SYNC] Starting manual sync process...');
     const session = await getSession();
     const user = session?.user;
 
     if (!user) {
-      console.warn('[MANUAL-SYNC] No session found during manual sync.');
+      logger.warn('[MANUAL-SYNC] No session found during manual sync.');
       return NextResponse.json({ error: 'Unauthorized: No session found' }, { status: 401 });
     }
 
@@ -29,15 +30,15 @@ export async function GET(req: Request) {
     // If no role found anywhere, we might still need selection, 
     // but this route is usually called AFTER selection or from login buttons.
     if (!role) {
-      console.warn('[MANUAL-SYNC] No role found, defaulting to BAND for safety or redirect to selection');
+      logger.warn('[MANUAL-SYNC] No role found, defaulting to BAND for safety or redirect to selection');
       // For now, let's just use BAND to avoid breaking, or we could redirect to /auth/role-selection
       role = 'BAND';
     }
     
-    console.log(`[MANUAL-SYNC] Syncing user: ${email} (${auth0Id}) with role: ${role}`);
+    logger.info(`[MANUAL-SYNC] Syncing user: ${email} (${auth0Id}) with role: ${role}`);
 
     if (!email) {
-      console.error('[MANUAL-SYNC] User has no email in Auth0 session.');
+      logger.error('[MANUAL-SYNC] User has no email in Auth0 session.');
       return NextResponse.json({ error: 'User email missing from Auth0' }, { status: 400 });
     }
 
@@ -84,12 +85,12 @@ export async function GET(req: Request) {
       },
     });
 
-    console.log(`[MANUAL-SYNC] Successfully synced user ${dbUser.id}`);
+    logger.info(`[MANUAL-SYNC] Successfully synced user ${dbUser.id}`);
     
     // Redirect back to profile using the request origin
     return NextResponse.redirect(new URL('/profile', origin));
   } catch (error: unknown) {
-    console.error('Manual Sync Error:', error);
+    logger.error({ err: error }, 'Manual Sync Error:');
     
     // Provide more specific error feedback if it's a Prisma error
     const err = error as { code?: string; meta?: unknown; message?: string };

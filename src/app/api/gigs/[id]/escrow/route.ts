@@ -2,6 +2,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import { initializeBookingHold, captureBookingEscrow, releaseBookingHold } from '@/lib/stripe/escrow';
 import prisma from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -28,11 +29,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const isVenueOwner = gig.venue.user.auth0Id === session.user.sub;
 
     if (!isBandOwner && !isVenueOwner) {
-      console.warn(`Unauthorized escrow attempt: User ${session.user.sub} tried to ${action} on Gig ${gigId}`);
+      logger.warn(`Unauthorized escrow attempt: User ${session.user.sub} tried to ${action} on Gig ${gigId}`);
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    console.info(`Escrow Action: ${action} | Gig: ${gigId} | User: ${session.user.sub}`);
+    logger.info(`Escrow Action: ${action} | Gig: ${gigId} | User: ${session.user.sub}`);
 
     switch (action) {
       case 'HOLD':
@@ -56,7 +57,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Escrow Error:', error);
+    logger.error({ err: error }, 'Escrow Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

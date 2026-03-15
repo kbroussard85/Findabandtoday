@@ -7,6 +7,7 @@ import { DiscoveryGrid } from '@/components/discovery/DiscoveryGrid';
 import { useSearchParams } from 'next/navigation';
 import { MaximizerPicks } from '@/components/ai/MaximizerPicks';
 import { Navigation, Search, Loader2, Music } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 const POPULAR_GENRES = [
   'Rock', 'Blues', 'Country', 'Jazz', 'Electronic', 'Indie', 'Metal', 'Pop', 'R&B', 'Folk'
@@ -52,7 +53,7 @@ function DirectoryContent() {
         alert('Location not found. Please try a different city or zip code.');
       }
     } catch (err) {
-      console.error('Geocoding error:', err);
+      logger.error({ err: err }, 'Geocoding error:');
       alert('Failed to search location. Please try again.');
     } finally {
       setIsGeocoding(false);

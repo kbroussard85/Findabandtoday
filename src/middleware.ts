@@ -8,6 +8,7 @@ import {
   checkoutRateLimit, 
   escrowRateLimit 
 } from '@/lib/ratelimit';
+import { logger } from '@/lib/logger';
 
 const PROTECTED_ROUTES = [
   '/profile',
@@ -21,6 +22,7 @@ export async function middleware(req: NextRequest) {
   const url = req.nextUrl.pathname;
   // @ts-expect-error - ip property exists on NextRequest in Vercel/Next.js environment
   const ip = req.ip ?? "127.0.0.1";
+  const requestId = crypto.randomUUID();
 
   // 1. Authentication Check
   const isProtectedRoute = PROTECTED_ROUTES.some(route => url.startsWith(route));
@@ -67,15 +69,23 @@ export async function middleware(req: NextRequest) {
       if (limiter) {
         const { success } = await limiter.limit(userId);
         if (!success) {
+          logger.warn({ msg: 'Rate limit exceeded', ip, userId, url, requestId });
           return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
         }
       }
     }
   } catch (error) {
-    console.error("Middleware processing error:", error);
+    logger.error({ msg: 'Middleware processing error', error, url, ip, requestId });
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-request-id', requestId);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {

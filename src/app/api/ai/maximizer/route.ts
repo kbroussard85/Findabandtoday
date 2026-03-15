@@ -1,6 +1,7 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import { getMaximizerSuggestions } from '@/lib/ai/agents/maximizer';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: Request) {
   try {
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ data: suggestions });
   } catch (error) {
-    console.error('Maximizer API Error:', error);
+    logger.error({ err: error }, 'Maximizer API Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

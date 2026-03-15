@@ -2,6 +2,7 @@
 import { renderToBuffer } from '@react-pdf/renderer';
 import { PerformanceContract } from './templates/PerformanceContract';
 import React from 'react';
+import { logger } from '@/lib/logger';
 
 interface ContractData {
   gigId: string;
@@ -21,7 +22,7 @@ export async function generateContractBuffer(data: ContractData) {
     const buffer = await renderToBuffer(element);
     return buffer;
   } catch (error) {
-    console.error('[PDF_GENERATION_ERROR]:', error);
+    logger.error({ err: error }, '[PDF_GENERATION_ERROR]:');
     throw new Error('Failed to generate contract PDF');
   }
 }

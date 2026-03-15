@@ -2,6 +2,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { MediaRegisterSchema } from '@/lib/validations/media';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, id: mediaRecord.id });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Registration failed';
-    console.error('[MEDIA_REGISTRATION_ERROR]:', message);
+    logger.error({ err: message }, '[MEDIA_REGISTRATION_ERROR]:');
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

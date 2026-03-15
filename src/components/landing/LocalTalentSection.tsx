@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Loader2, Sparkles } from 'lucide-react';
 import { EventBanner } from './EventBanner';
 import { useLocation } from '@/context/LocationContext';
+import { logger } from '@/lib/logger';
 
 export function LocalTalentSection() {
   const [query, setQuery] = useState('');
@@ -33,7 +34,7 @@ export function LocalTalentSection() {
         const data = await res.json();
         if (data.data) setEvents(data.data);
       } catch (err) {
-        console.error('Fetch error:', err);
+        logger.error({ err: err }, 'Fetch error:');
       } finally {
         setLoading(false);
       }

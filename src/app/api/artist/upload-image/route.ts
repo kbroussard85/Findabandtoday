@@ -3,6 +3,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { validateFile } from '@/lib/utils/file-validation';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Upload failed';
-    console.error('[IMAGE_UPLOAD_ERROR]:', message);
+    logger.error({ err: message }, '[IMAGE_UPLOAD_ERROR]:');
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

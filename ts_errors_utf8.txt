@@ -1,0 +1,255 @@
+﻿src/app/actions/stripe.ts(99,48): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[STRIPE_ACTION_ERROR]:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[STRIPE_ACTION_ERROR]:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/actions/venue-swipe.ts(67,43): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Error handling swipe:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Error handling swipe:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/ai/maximizer/route.ts(20,42): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Maximizer API Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Maximizer API Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/ai/outreach/route.ts(102,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "AI Outreach Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "AI Outreach Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/artist/[id]/rate/route.ts(54,35): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Rating Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Rating Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/artist/register-media/route.ts(46,49): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[MEDIA_REGISTRATION_ERROR]:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[MEDIA_REGISTRATION_ERROR]:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/api/artist/upload-audio/route.ts(50,49): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Database insertion error:", msg?: undefined): void', gave the following error.
+    Argument of type 'PostgrestError' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Database insertion error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'PostgrestError' is not assignable to parameter of type 'undefined'.
+src/app/api/artist/upload-audio/route.ts(57,41): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Audio Upload Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Audio Upload Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/artist/upload-image/route.ts(61,43): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[IMAGE_UPLOAD_ERROR]:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[IMAGE_UPLOAD_ERROR]:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/api/auth/sync/manual/route.ts(93,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Manual Sync Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Manual Sync Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/auth/sync/route.ts(79,33): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Sync Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Sync Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/checkout/route.ts(54,78): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: string, msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: string, msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/api/checkout/route.ts(83,57): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[STRIPE-CHECKOUT] Unexpected Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[STRIPE-CHECKOUT] Unexpected Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/cron/expire-gigs/route.ts(36,34): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[CRON ERROR]", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[CRON ERROR]", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/cron/payouts/route.ts(44,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Cron Payout Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Cron Payout Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/discovery/route.ts(66,66): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[DISCOVERY_DEBUG] Geospatial query failed:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[DISCOVERY_DEBUG] Geospatial query failed:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/discovery/route.ts(72,92): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[DISCOVERY_DEBUG] No geospatial results. Running manual fallback for:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[DISCOVERY_DEBUG] No geospatial results. Running manual fallback for:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/api/discovery/route.ts(106,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[DISCOVERY_FATAL]:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[DISCOVERY_FATAL]:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/api/events/public/route.ts(50,44): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[PUBLIC_EVENTS_ERROR]:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[PUBLIC_EVENTS_ERROR]:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/gigs/[id]/contract/route.tsx(57,48): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Contract Generation Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Contract Generation Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/gigs/[id]/escrow/route.ts(60,35): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Escrow Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Escrow Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/gigs/route.ts(59,39): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Fetch Gigs Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Fetch Gigs Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/gigs/route.ts(96,39): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Create Gig Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Create Gig Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/onboarding/band/route.ts(52,44): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Band Onboarding Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Band Onboarding Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/onboarding/venue/route.ts(52,45): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Venue Onboarding Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Venue Onboarding Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/profile/availability/route.ts(69,48): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Availability Update Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Availability Update Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/profile/route.ts(48,42): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Profile Fetch Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Profile Fetch Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/profile/route.ts(186,43): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Profile Update Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Profile Update Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/stripe/onboarding/route.ts(46,47): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Connect Onboarding Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Connect Onboarding Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/stripe/portal/route.ts(32,42): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Stripe Portal Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Stripe Portal Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/uploadthing/core.ts(30,31): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "file url", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "file url", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/api/uploadthing/core.ts(48,44): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Venue upload complete", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Venue upload complete", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/api/uploadthing/core.ts(66,48): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "System document uploaded:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "System document uploaded:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/api/webhook/route.ts(56,70): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[STRIPE-WEBHOOK] Database update failed:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[STRIPE-WEBHOOK] Database update failed:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/webhook/route.ts(75,84): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[STRIPE-WEBHOOK] Error handling subscription deletion:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[STRIPE-WEBHOOK] Error handling subscription deletion:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/api/webhooks/stripe/route.ts(78,87): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: string, msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: string, msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/auth/role-selection/page.tsx(16,45): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Role selection error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Role selection error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/directory/page.tsx(56,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Geocoding error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Geocoding error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/app/profile/[id]/page.tsx(20,57): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[DEBUG] Loading Public Profile for ID:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[DEBUG] Loading Public Profile for ID:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/app/profile/[id]/page.tsx(41,52): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[DEBUG] User not found for ID:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[DEBUG] User not found for ID:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/components/auth/SyncManualButton.tsx(17,42): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Manual Sync Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Manual Sync Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/components/discovery/ArtistCard.tsx(35,39): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Failed to rate:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Failed to rate:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/components/landing/LocalTalentSection.tsx(37,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Fetch error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Fetch error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/components/profile/DashboardCenter.tsx(55,46): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Error fetching gigs:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Error fetching gigs:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/components/profile/DashboardCenter.tsx(77,37): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Portal Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Portal Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/components/profile/UpgradeButton.tsx(56,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Upgrade Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Upgrade Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/context/LocationContext.tsx(58,62): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[LOCATION_CONTEXT] Permission denied:", msg?: undefined): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[LOCATION_CONTEXT] Permission denied:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'undefined'.
+src/lib/ai/agents/maximizer.ts(65,49): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Maximizer JSON Parse Error:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Maximizer JSON Parse Error:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/lib/documents/generator.ts(25,45): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "[PDF_GENERATION_ERROR]:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "[PDF_GENERATION_ERROR]:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/lib/stripe/payouts.ts(71,53): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: string, msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: string, msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+src/lib/utils/file-validation.ts(58,50): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(obj: "Error verifying magic bytes:", msg?: undefined): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.
+  Overload 2 of 3, '(obj: "Error verifying magic bytes:", msg?: undefined, ...args: unknown[]): void', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'undefined'.

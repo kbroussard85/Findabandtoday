@@ -2,6 +2,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export async function POST() {
   if (!stripe) {
@@ -28,7 +29,7 @@ export async function POST() {
 
     return NextResponse.json({ url: portalSession.url });
   } catch (error) {
-    console.error('Stripe Portal Error:', error);
+    logger.error({ err: error }, 'Stripe Portal Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

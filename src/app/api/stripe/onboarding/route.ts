@@ -2,6 +2,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { stripe, createConnectAccount, createAccountLink } from '@/lib/stripe/client';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,7 @@ export async function POST() {
 
     return NextResponse.json({ url: accountLink.url });
   } catch (error) {
-    console.error('Connect Onboarding Error:', error);
+    logger.error({ err: error }, 'Connect Onboarding Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

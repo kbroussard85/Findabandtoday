@@ -7,6 +7,6 @@ export const DiscoveryQuerySchema = z.object({
   role: z.enum(['BAND', 'VENUE']).optional().default('BAND'),
   q: z.string().max(100).optional(),
   genre: z.string().max(50).optional(),
-  limit: z.string().optional().default('20').transform((val) => parseInt(val)).refine((val) => !isNaN(val) && val > 0 && val <= 100),
+  limit: z.string().optional().default('20').transform((val) => parseInt(val)).refine((val) => !isNaN(val) && val > 0),
   offset: z.string().optional().default('0').transform((val) => parseInt(val)).refine((val) => !isNaN(val) && val >= 0),
 });

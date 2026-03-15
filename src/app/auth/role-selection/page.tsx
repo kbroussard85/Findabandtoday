@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Music, Building2, ArrowRight, Loader2 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export default function RoleSelectionPage() {
   const [loading, setLoading] = useState<'BAND' | 'VENUE' | null>(null);
@@ -12,7 +13,7 @@ export default function RoleSelectionPage() {
       // Redirect to manual sync with the chosen role
       window.location.href = `/api/auth/sync/manual?role=${role}`;
     } catch (err) {
-      console.error('Role selection error:', err);
+      logger.error({ err: err }, 'Role selection error:');
       setLoading(null);
       alert('Failed to save role. Please try again.');
     }

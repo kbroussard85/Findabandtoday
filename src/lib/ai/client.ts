@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { logger } from '@/lib/logger';
 
 /**
  * Custom Gemini wrapper that mimics LangChain's .invoke() 
@@ -42,7 +43,7 @@ const geminiKey = process.env.GEMINI_API_KEY;
 const isMockEnabled = !geminiKey;
 
 if (isMockEnabled && process.env.NODE_ENV === 'production') {
-  console.warn('[AI] CRITICAL: Gemini API Key is missing in production!');
+  logger.warn('[AI] CRITICAL: Gemini API Key is missing in production!');
 }
 
 /**

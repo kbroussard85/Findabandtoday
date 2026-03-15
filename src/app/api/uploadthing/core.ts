@@ -1,5 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { getSession } from "@auth0/nextjs-auth0";
+import { logger } from '@/lib/logger';
 
 const f = createUploadthing();
 
@@ -25,8 +26,8 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
-      console.log("file url", file.url);
+      logger.info({ err: metadata.userId }, "Upload complete for userId:");
+      logger.info({ err: file.url }, "file url");
 
       // !!! Note: We will handle the database sync in the frontend onUploadComplete 
       // or here if we want more security. For now, we'll log it.
@@ -44,7 +45,7 @@ export const ourFileRouter = {
       return { userId: user.sub };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Venue upload complete", file.url);
+      logger.info({ err: file.url }, "Venue upload complete");
       return { uploadedBy: metadata.userId };
     }),
 
@@ -62,7 +63,7 @@ export const ourFileRouter = {
       return { system: true, userId: user.sub };
     })
     .onUploadComplete(async ({ file }) => {
-      console.log("System document uploaded:", file.url);
+      logger.info({ err: file.url }, "System document uploaded:");
       return { url: file.url };
     }),
 } satisfies FileRouter;

@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { ProfileUpdateSchema } from '@/lib/validations/profile';
 import { sanitize } from '@/lib/utils/sanitizer';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +45,7 @@ export async function GET() {
 
     return NextResponse.json({ data: dbUser });
   } catch (error) {
-    console.error('Profile Fetch Error:', error);
+    logger.error({ err: error }, 'Profile Fetch Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -122,7 +123,7 @@ export async function POST(req: Request) {
 
       // SYNC GEOSPATIAL LOCATION
       if (lat && lng) {
-        console.log(`[GEOSYNC] Updating location for Band ${updatedBand.id}: ${lat}, ${lng}`);
+        logger.info(`[GEOSYNC] Updating location for Band ${updatedBand.id}: ${lat}, ${lng}`);
         await prisma.$executeRawUnsafe(
           `UPDATE "Band" SET location = ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography WHERE id = $3`,
           lng, lat, updatedBand.id
@@ -182,7 +183,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Profile Update Error:', error);
+    logger.error({ err: error }, 'Profile Update Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

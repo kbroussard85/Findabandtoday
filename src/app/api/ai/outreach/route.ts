@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { draftLiaisonOffer } from '@/lib/ai/agents/liaison';
 import { GigStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
@@ -98,7 +99,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, gigId: gig.id, message: aiMessage });
 
   } catch (error) {
-    console.error('AI Outreach Error:', error);
+    logger.error({ err: error }, 'AI Outreach Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

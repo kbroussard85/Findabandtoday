@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { AvailabilityStatus } from '@prisma/client';
 import { AvailabilityUpdateSchema } from '@/lib/validations/profile';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Availability Update Error:', error);
+    logger.error({ err: error }, 'Availability Update Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

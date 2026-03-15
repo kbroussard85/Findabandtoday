@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { GigStatus, PayoutStatus } from '@prisma/client';
 import { triggerGigPayout } from '@/lib/stripe/payouts';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ processed: pendingGigs.length, results });
   } catch (error) {
-    console.error('Cron Payout Error:', error);
+    logger.error({ err: error }, 'Cron Payout Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

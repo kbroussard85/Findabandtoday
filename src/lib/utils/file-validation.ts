@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 export interface ValidationResult {
   valid: boolean;
   error?: string;
@@ -54,7 +55,7 @@ export async function validateFile(
       }
     }
   } catch (error) {
-    console.error('Error verifying magic bytes:', error);
+    logger.error({ err: error }, 'Error verifying magic bytes:');
     return { valid: false, error: 'Failed to read file content for verification.' };
   }
 

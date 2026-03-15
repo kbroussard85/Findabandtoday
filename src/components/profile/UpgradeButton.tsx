@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { SUBSCRIPTION_TIERS, TIER_PRICE_IDS } from '@/lib/constants/tiers';
 import { CheckCircle2, Rocket, Zap } from 'lucide-react';
 import { createUpgradeSession } from '@/app/actions/stripe';
+import { logger } from '@/lib/logger';
 
 interface UpgradeButtonProps {
   role: 'BAND' | 'VENUE';
@@ -52,7 +53,7 @@ export function UpgradeButton({ role }: UpgradeButtonProps) {
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to initiate checkout.';
-      console.error('Upgrade Error:', errorMessage);
+      logger.error({ err: errorMessage }, 'Upgrade Error:');
       alert('Failed to initiate checkout. Please try again.');
     } finally {
       setLoading(false);

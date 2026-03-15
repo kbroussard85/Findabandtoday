@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@auth0/nextjs-auth0';
 import { DiscoveryQuerySchema } from '@/lib/validations/discovery';
+import { logger } from '@/lib/logger';
 
 interface DiscoveryResult {
   id: string;
@@ -23,7 +24,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Invalid search parameters', details: result.error.format() }, { status: 400 });
     }
 
-    const { lat, lng, radius: radiusMiles, role: roleParam, q: queryParam, genre: genreParam, limit, offset } = result.data;
+    const MAX_PAGE_SIZE = 100;
+    const { lat, lng, radius: radiusMiles, role: roleParam, q: queryParam, genre: genreParam, limit: requestedLimit, offset } = result.data;
+    
+    let limit = requestedLimit;
+    if (requestedLimit > MAX_PAGE_SIZE) {
+      logger.warn(`[API] Discovery requested limit ${requestedLimit} capped to ${MAX_PAGE_SIZE}`);
+      limit = MAX_PAGE_SIZE;
+    }
 
     let dbUser = null;
     let isPremium = false;
@@ -55,13 +63,13 @@ export async function GET(req: Request) {
         ) as DiscoveryResult[];
       }
     } catch (dbError) {
-      console.error('[DISCOVERY_DEBUG] Geospatial query failed:', dbError);
+      logger.error({ err: dbError }, '[DISCOVERY_DEBUG] Geospatial query failed:');
     }
 
     // 2. SELF-REPAIR FALLBACK: If we still have no results but a name query is present, 
     // do a direct name lookup bypassing PostGIS entirely. This ensures "Ken Carl" is found.
     if (results.length === 0 && queryParam) {
-      console.log('[DISCOVERY_DEBUG] No geospatial results. Running manual fallback for:', queryParam);
+      logger.info({ err: queryParam }, '[DISCOVERY_DEBUG] No geospatial results. Running manual fallback for:');
       if (roleParam.toUpperCase() === 'BAND') {
         results = await prisma.band.findMany({
           where: {
@@ -95,7 +103,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ data: gatedResults });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[DISCOVERY_FATAL]:', message);
+    logger.error({ err: message }, '[DISCOVERY_FATAL]:');
     return NextResponse.json({ error: 'Search unavailable' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic'; // Ensure it runs dynamically on cron trigger
 
@@ -28,11 +29,11 @@ export async function GET(req: Request) {
       }
     });
 
-    console.log(`[CRON] Expired ${result.count} pending gigs.`);
+    logger.info(`[CRON] Expired ${result.count} pending gigs.`);
 
     return NextResponse.json({ success: true, expiredCount: result.count });
   } catch (error) {
-    console.error('[CRON ERROR]', error);
+    logger.error({ err: error }, '[CRON ERROR]');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

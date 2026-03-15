@@ -2,6 +2,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe/client';
 import { CheckoutSchema } from '@/lib/validations/stripe';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,17 +12,17 @@ export async function POST(req: Request) {
 
   try {
     if (!stripe) {
-      console.error('[STRIPE-CHECKOUT] Stripe secret key is missing from environment variables.');
+      logger.error('[STRIPE-CHECKOUT] Stripe secret key is missing from environment variables.');
       return NextResponse.json({ error: 'Stripe is not configured on the server.' }, { status: 500 });
     }
 
     // DIAGNOSTIC LOGGING
     try {
       const account = await stripe.accounts.retrieve();
-      console.log(`[STRIPE-CHECKOUT] Connected to Account: ${account.id} (${account.settings?.dashboard.display_name})`);
-      console.log(`[STRIPE-CHECKOUT] Using Secret Key ending in: ...${process.env.STRIPE_SECRET_KEY?.slice(-4)}`);
+      logger.info(`[STRIPE-CHECKOUT] Connected to Account: ${account.id} (${account.settings?.dashboard.display_name})`);
+      logger.info(`[STRIPE-CHECKOUT] Using Secret Key ending in: ...${process.env.STRIPE_SECRET_KEY?.slice(-4)}`);
     } catch {
-      console.warn('[STRIPE-CHECKOUT] Could not retrieve account info - check API key permissions.');
+      logger.warn('[STRIPE-CHECKOUT] Could not retrieve account info - check API key permissions.');
     }
 
     const session = await getSession();
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
 
     const { priceId } = result.data;
 
-    console.log(`[STRIPE-CHECKOUT] Creating session for user: ${user.sub}, Price: ${priceId}`);
+    logger.info(`[STRIPE-CHECKOUT] Creating session for user: ${user.sub}, Price: ${priceId}`);
 
     // Retrieve price to check if it's recurring or one-time
     let price;
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       const isTestKey = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
 
-      console.error(`[STRIPE-CHECKOUT] Failed to retrieve price ${priceId}:`, errorMessage);
+      logger.error({ err: errorMessage }, `[STRIPE-CHECKOUT] Failed to retrieve price ${priceId}:`);
       return NextResponse.json({ 
         error: `Stripe Error: The Price ID "${priceId}" could not be found.`,
         message: `${errorMessage}. Your server is currently using a ${isTestKey ? 'TEST MODE' : 'LIVE MODE'} secret key. Please ensure the Price ID exists in that specific mode.`
@@ -75,11 +76,11 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log(`[STRIPE-CHECKOUT] Session created: ${checkoutSession.id}`);
+    logger.info(`[STRIPE-CHECKOUT] Session created: ${checkoutSession.id}`);
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[STRIPE-CHECKOUT] Unexpected Error:', error);
+    logger.error({ err: error }, '[STRIPE-CHECKOUT] Unexpected Error:');
     return NextResponse.json({
       error: 'Failed to initiate checkout.',
       message: errorMessage

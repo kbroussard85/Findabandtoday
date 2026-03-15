@@ -7,6 +7,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { BandOnboardingSchema } from '@/lib/validations/onboarding';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, bandProfile });
   } catch (error) {
-    console.error('Band Onboarding Error:', error);
+    logger.error({ err: error }, 'Band Onboarding Error:');
     return NextResponse.json({ error: 'Failed to complete onboarding' }, { status: 500 });
   }
 }

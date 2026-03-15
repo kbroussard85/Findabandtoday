@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
 import type Stripe from 'stripe';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
-    console.error('STRIPE_WEBHOOK_SECRET is missing');
+    logger.error('STRIPE_WEBHOOK_SECRET is missing');
     return NextResponse.json({ error: 'Webhook configuration error' }, { status: 500 });
   }
 
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret as string);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error(`Webhook Error: ${message}`);
+    logger.error(`Webhook Error: ${message}`);
     return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 });
   }
 
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.client_reference_id || session.metadata?.userId;
       
-      console.log(`[STRIPE-WEBHOOK] Checkout completed for user: ${userId}, Customer: ${session.customer}`);
+      logger.info(`[STRIPE-WEBHOOK] Checkout completed for user: ${userId}, Customer: ${session.customer}`);
 
       if (userId) {
         try {
@@ -72,13 +73,13 @@ export async function POST(req: Request) {
               subscriptionStatus: 'active'
             },
           });
-          console.log(`[STRIPE-WEBHOOK] Successfully provisioned Pro status for user: ${updatedUser.email}`);
+          logger.info(`[STRIPE-WEBHOOK] Successfully provisioned Pro status for user: ${updatedUser.email}`);
         } catch (dbError) {
-          console.error(`[STRIPE-WEBHOOK] Database update failed for user ${userId}:`, dbError);
+          logger.error({ err: dbError }, `[STRIPE-WEBHOOK] Database update failed for user ${userId}:`);
           // In a real app, you might want to retry or alert admins
         }
       } else {
-        console.warn('[STRIPE-WEBHOOK] No userId found in session client_reference_id or metadata.');
+        logger.warn('[STRIPE-WEBHOOK] No userId found in session client_reference_id or metadata.');
       }
       break;
     case 'customer.subscription.deleted':
@@ -99,7 +100,7 @@ export async function POST(req: Request) {
       }
       break;
     default:
-      console.log(`Unhandled event type ${event.type}`);
+      logger.info(`Unhandled event type ${event.type}`);
   }
 
   return NextResponse.json({ received: true });

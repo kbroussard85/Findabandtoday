@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { GigCreateSchema } from '@/lib/validations/gig';
 import { sanitize } from '@/lib/utils/sanitizer';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,7 +56,7 @@ export async function GET() {
 
     return NextResponse.json({ data: gigs, role: dbUser.role });
   } catch (error) {
-    console.error('Fetch Gigs Error:', error);
+    logger.error({ err: error }, 'Fetch Gigs Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -92,7 +93,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, data: gig });
   } catch (error) {
-    console.error('Create Gig Error:', error);
+    logger.error({ err: error }, 'Create Gig Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

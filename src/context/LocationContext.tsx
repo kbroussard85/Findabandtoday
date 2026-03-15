@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 interface LocationState {
   lat: number | null;
@@ -54,7 +55,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('fabt_user_location', JSON.stringify({ lat: newLat, lng: newLng }));
       },
       (error) => {
-        console.warn('[LOCATION_CONTEXT] Permission denied:', error.message);
+        logger.warn({ err: error.message }, '[LOCATION_CONTEXT] Permission denied:');
         setLoading(false);
       }
     );

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from '@/lib/logger';
 
 export function SyncManualButton() {
   const [loading, setLoading] = useState(false);
@@ -13,7 +14,7 @@ export function SyncManualButton() {
       // We use window.location for the redirect behavior of the GET route
       window.location.href = '/api/auth/sync/manual';
     } catch (err: unknown) {
-      console.error('Manual Sync Error:', err);
+      logger.error({ err: err }, 'Manual Sync Error:');
       setError('Connection issue. Please try again in a moment.');
       setLoading(false);
     }

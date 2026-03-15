@@ -1,6 +1,7 @@
 import { stripe } from './client';
 import prisma from '@/lib/prisma';
 import { GigStatus, PayoutStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 /**
  * Handles the payout and commission logic based on the Payment Method.
@@ -67,7 +68,7 @@ export async function triggerGigPayout(gigId: string) {
 
     return { success: true, method: gig.paymentMethod };
   } catch (error) {
-    console.error(`Payout failed for gig ${gigId}:`, error);
+    logger.error({ err: error }, `Payout failed for gig ${gigId}:`);
     throw error;
   }
 }

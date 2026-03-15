@@ -4,6 +4,7 @@ import { BlurredField } from '../ui/BlurredField';
 import { Artist } from '@/types';
 import Image from 'next/image';
 import { Play, Pause, Music, Star } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface ArtistCardProps {
   artist: Artist;
@@ -31,7 +32,7 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
         // Could refresh discovery here, but for now just update local state
       }
     } catch (err) {
-      console.error('Failed to rate:', err);
+      logger.error({ err: err }, 'Failed to rate:');
     } finally {
       setIsRating(false);
     }

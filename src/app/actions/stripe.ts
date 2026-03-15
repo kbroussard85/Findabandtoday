@@ -3,6 +3,7 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export async function createUpgradeSession(formData: FormData) {
     try {
@@ -39,9 +40,9 @@ export async function createUpgradeSession(formData: FormData) {
         if (stripeCustomerId) {
             try {
                 await stripe.customers.retrieve(stripeCustomerId);
-                console.log(`[STRIPE] Verified existing customer: ${stripeCustomerId}`);
+                logger.info(`[STRIPE] Verified existing customer: ${stripeCustomerId}`);
             } catch {
-                console.log(`[STRIPE] Customer ID ${stripeCustomerId} not found in this account. Creating new one.`);
+                logger.info(`[STRIPE] Customer ID ${stripeCustomerId} not found in this account. Creating new one.`);
                 needsNewCustomer = true;
             }
         }
@@ -63,14 +64,14 @@ export async function createUpgradeSession(formData: FormData) {
                 where: { id: dbUser.id },
                 data: { stripeCustomerId }
             });
-            console.log(`[STRIPE] Created and saved new customer: ${stripeCustomerId}`);
+            logger.info(`[STRIPE] Created and saved new customer: ${stripeCustomerId}`);
         }
 
         const baseUrl = process.env.AUTH0_BASE_URL || 
                         (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
         // 4. Create Checkout Session with the verified customer ID
-        console.log(`[STRIPE] Initiating checkout for customer: ${stripeCustomerId} with price: ${priceId}`);
+        logger.info(`[STRIPE] Initiating checkout for customer: ${stripeCustomerId} with price: ${priceId}`);
         
         const checkoutSession = await stripe.checkout.sessions.create({
             mode: 'subscription',
@@ -95,7 +96,7 @@ export async function createUpgradeSession(formData: FormData) {
         return { url: checkoutSession.url };
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to initiate checkout.';
-        console.error('[STRIPE_ACTION_ERROR]:', error);
+        logger.error({ err: error }, '[STRIPE_ACTION_ERROR]:');
         return { error: errorMessage };
     }
 }

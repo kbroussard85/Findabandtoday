@@ -5,6 +5,7 @@ import { AudioPlayer } from '@/components/ui/AudioPlayer';
 import { MapPin, Instagram, Youtube, Music, Info, Calendar, Share2, Globe } from 'lucide-react';
 import Image from 'next/image';
 import { MediaItem } from '@/types';
+import { logger } from '@/lib/logger';
 
 interface PublicProfileProps {
   params: Promise<{ id: string }>;
@@ -16,7 +17,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
   // Decode the ID in case it was passed encoded
   const decodedId = decodeURIComponent(id);
 
-  console.log('[DEBUG] Loading Public Profile for ID:', decodedId);
+  logger.info({ err: decodedId }, '[DEBUG] Loading Public Profile for ID:');
 
   // Search by either Auth0 ID OR internal Database ID for maximum reliability
   const dbUser = await prisma.user.findFirst({
@@ -37,7 +38,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
   });
 
   if (!dbUser) {
-    console.error('[DEBUG] User not found for ID:', decodedId);
+    logger.error({ err: decodedId }, '[DEBUG] User not found for ID:');
     return notFound();
   }
 

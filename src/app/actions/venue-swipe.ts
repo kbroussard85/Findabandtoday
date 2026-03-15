@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { getSession } from '@auth0/nextjs-auth0';
 import { runAINegotiator } from './negotiator';
+import { logger } from '@/lib/logger';
 
 export async function handleSwipe(id: string, direction: 'right' | 'left') {
   try {
@@ -20,7 +21,7 @@ export async function handleSwipe(id: string, direction: 'right' | 'left') {
     const isMatch = id.startsWith('match-');
     const actualId = isMatch ? id.replace('match-', '') : id;
 
-    console.log(`Swiped ${direction} on ${isMatch ? 'Match' : 'Engagement'}: ${actualId}`);
+    logger.info(`Swiped ${direction} on ${isMatch ? 'Match' : 'Engagement'}: ${actualId}`);
 
     if (direction === 'left') {
       if (!isMatch) {
@@ -55,7 +56,7 @@ export async function handleSwipe(id: string, direction: 'right' | 'left') {
         // Trigger Email to Band
         const bandEmail = engagement.band?.user?.email;
         if (bandEmail) {
-          console.log(`[MOCK EMAIL] Sending confirmation to band: ${bandEmail}`);
+          logger.info(`[MOCK EMAIL] Sending confirmation to band: ${bandEmail}`);
         }
       }
     }
@@ -63,7 +64,7 @@ export async function handleSwipe(id: string, direction: 'right' | 'left') {
     revalidatePath('/dashboard/venue');
     return { success: true };
   } catch (error) {
-    console.error('Error handling swipe:', error);
+    logger.error({ err: error }, 'Error handling swipe:');
     throw new Error('Failed to update swipe action');
   }
 }

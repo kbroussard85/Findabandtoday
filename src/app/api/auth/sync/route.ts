@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { AuthSyncSchema } from '@/lib/validations/auth';
+import { logger } from '@/lib/logger';
 
 /**
  * Endpoint called by Auth0 Action after a user signs up.
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const { auth0Id, email, role, name } = result.data;
-    console.log(`[SYNC] Attempting to sync user: ${email} with role: ${role}`);
+    logger.info(`[SYNC] Attempting to sync user: ${email} with role: ${role}`);
 
     const isBand = role.toUpperCase() === 'BAND';
 
@@ -72,10 +73,10 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log(`[SYNC] Successfully synced user ${user.id} and created ${isBand ? 'Band' : 'Venue'} profile.`);
+    logger.info(`[SYNC] Successfully synced user ${user.id} and created ${isBand ? 'Band' : 'Venue'} profile.`);
     return NextResponse.json({ success: true, user });
   } catch (error) {
-    console.error('Sync Error:', error);
+    logger.error({ err: error }, 'Sync Error:');
     return NextResponse.json({ error: 'Failed to sync user' }, { status: 500 });
   }
 }

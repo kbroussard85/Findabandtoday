@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 import { validateFile } from '@/lib/utils/file-validation';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
@@ -46,14 +47,14 @@ export async function POST(req: Request) {
       });
 
     if (dbError) {
-      console.error('Database insertion error:', dbError);
+      logger.error({ err: dbError }, 'Database insertion error:');
       return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, url: urlData.publicUrl });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
-    console.error('Audio Upload Error:', error);
+    logger.error({ err: error }, 'Audio Upload Error:');
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

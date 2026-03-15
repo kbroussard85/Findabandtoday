@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { renderToStream } from '@react-pdf/renderer';
 import { PerformanceContract, type ContractProps } from '@/lib/pdf/contract-generator';
 import React from 'react';
+import { logger } from '@/lib/logger';
 
 // Build trigger comment
 export const dynamic = 'force-dynamic';
@@ -53,7 +54,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Contract Generation Error:', error);
+    logger.error({ err: error }, 'Contract Generation Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@auth0/nextjs-auth0';
 import { RatingSchema } from '@/lib/validations/profile';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   req: Request,
@@ -50,7 +51,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, rating });
   } catch (error) {
-    console.error('Rating Error:', error);
+    logger.error({ err: error }, 'Rating Error:');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

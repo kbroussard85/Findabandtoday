@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +47,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ data: gigs });
   } catch (error) {
-    console.error('[PUBLIC_EVENTS_ERROR]:', error);
+    logger.error({ err: error }, '[PUBLIC_EVENTS_ERROR]:');
     return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
   }
 }

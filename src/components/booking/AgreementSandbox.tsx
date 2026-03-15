@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Shield, FileText, CheckCircle } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface AgreementSandboxProps {
   gigId: string;
@@ -64,7 +65,7 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
         window.location.href = `/profile`;
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       alert('Failed to secure hold. Please try again.');
     } finally {
       setLoading(false);

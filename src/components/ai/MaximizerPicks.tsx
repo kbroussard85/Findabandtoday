@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface MaximizerPicksProps {
   lat: number;
@@ -27,7 +28,7 @@ export function MaximizerPicks({ lat, lng, radius }: MaximizerPicksProps) {
         const data = await res.json();
         if (data.data) setPicks(data.data);
       } catch (err) {
-        console.error(err);
+        logger.error(err);
       } finally {
         setLoading(false);
       }

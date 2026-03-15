@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
 import type Stripe from 'stripe';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
     if (!stripe) {
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     if (!webhookSecret || !signature) {
-        console.error('[STRIPE-WEBHOOK] Missing secret or signature');
+        logger.error('[STRIPE-WEBHOOK] Missing secret or signature');
         return NextResponse.json({ error: 'Webhook configuration missing' }, { status: 400 });
     }
 
@@ -25,11 +26,11 @@ export async function POST(req: Request) {
         event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        console.error(`[STRIPE-WEBHOOK] Error verifying signature: ${errorMessage}`);
+        logger.error(`[STRIPE-WEBHOOK] Error verifying signature: ${errorMessage}`);
         return NextResponse.json({ error: `Webhook Error: ${errorMessage}` }, { status: 400 });
     }
 
-    console.log(`[STRIPE-WEBHOOK] Received event: ${event.type}`);
+    logger.info(`[STRIPE-WEBHOOK] Received event: ${event.type}`);
 
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
         const stripeCustomerId = session.customer as string;
 
         if (!userId) {
-            console.error('[STRIPE-WEBHOOK] No userId found in session');
+            logger.error('[STRIPE-WEBHOOK] No userId found in session');
             return NextResponse.json({ error: 'No userId found' }, { status: 400 });
         }
 
@@ -50,9 +51,9 @@ export async function POST(req: Request) {
                     subscriptionStatus: 'active'
                 },
             });
-            console.log(`[STRIPE-WEBHOOK] User ${userId} upgraded successfully`);
+            logger.info(`[STRIPE-WEBHOOK] User ${userId} upgraded successfully`);
         } catch (error) {
-            console.error('[STRIPE-WEBHOOK] Database update failed:', error);
+            logger.error({ err: error }, '[STRIPE-WEBHOOK] Database update failed:');
         }
     }
 
@@ -69,9 +70,9 @@ export async function POST(req: Request) {
                     subscriptionTier: null
                 },
             });
-            console.log(`[STRIPE-WEBHOOK] Subscription canceled for customer ${stripeCustomerId}`);
+            logger.info(`[STRIPE-WEBHOOK] Subscription canceled for customer ${stripeCustomerId}`);
         } catch (error) {
-            console.error('[STRIPE-WEBHOOK] Error handling subscription deletion:', error);
+            logger.error({ err: error }, '[STRIPE-WEBHOOK] Error handling subscription deletion:');
         }
     }
 
