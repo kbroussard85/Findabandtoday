@@ -68,16 +68,16 @@ export function AgreementVault() {
         />
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 w-full items-stretch">
         <button 
           onClick={handleSave}
           disabled={isSaving}
-          className="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black uppercase italic tracking-widest text-[10px] hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2 group/btn active:scale-95"
+          className="flex-[3] h-14 bg-indigo-600 text-white rounded-2xl font-black uppercase italic tracking-widest text-[10px] hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2 group/btn active:scale-95 disabled:opacity-50"
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : 'Sync AI Brain ⚡'}
         </button>
         
-        <div className="relative">
+        <div className="flex-1 h-14">
           <UploadButton
             endpoint="systemDocs"
             onUploadBegin={() => setUploadStatus('uploading')}
@@ -85,7 +85,6 @@ export function AgreementVault() {
               const fileUrl = res[0].url;
               setUploadStatus('success');
               
-              // Register the PDF in the vault
               await fetch('/api/profile/vault', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -102,8 +101,9 @@ export function AgreementVault() {
               alert(`ERROR! ${error.message}`);
             }}
             appearance={{
-              button: "p-4 bg-zinc-800 border border-zinc-700 rounded-2xl text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all active:scale-95 ut-ready:bg-zinc-800 ut-uploading:bg-indigo-600 after:bg-indigo-500",
+              button: "w-full h-14 bg-zinc-800 border border-zinc-700 rounded-2xl text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all active:scale-95 ut-ready:bg-zinc-800 ut-uploading:bg-indigo-600 after:hidden",
               allowedContent: "hidden",
+              container: "w-full h-14",
             }}
             content={{
               button({ isUploading }) {
