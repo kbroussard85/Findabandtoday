@@ -22,6 +22,7 @@ export const ProfileUpdateSchema = z.object({
     tiktok: z.string().url().or(z.literal('')).optional(),
     instagram: z.string().url().or(z.literal('')).optional(),
     website: z.string().url().or(z.literal('')).optional(),
+    hoursOfOperation: z.string().optional(),
   }).optional(),
 });
 

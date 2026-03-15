@@ -197,6 +197,18 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
               </div>
             </div>
           </section>
+
+          {!isBand && socialLinks.hoursOfOperation && (
+            <section className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-3xl space-y-6 backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <Info className="text-blue-500" size={20} />
+                <h3 className="text-xl font-black uppercase italic tracking-tight text-zinc-300">Operations</h3>
+              </div>
+              <p className="text-sm font-mono text-zinc-400 whitespace-pre-line leading-relaxed">
+                {socialLinks.hoursOfOperation}
+              </p>
+            </section>
+          )}
         </aside>
       </main>
 
