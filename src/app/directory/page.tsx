@@ -10,7 +10,7 @@ import { Navigation, Search, Loader2, Music } from 'lucide-react';
 import { logger } from '@/lib/logger';
 
 const POPULAR_GENRES = [
-  'Rock', 'Blues', 'Country', 'Jazz', 'Electronic', 'Indie', 'Metal', 'Pop', 'R&B', 'Folk'
+  'Rock', 'Pop', 'Hip Hop', 'Country', 'R&B', 'Electronic', 'Metal', 'Punk', 'Indie', 'Alternative', 'Blues', 'Jazz', 'Folk', 'Reggae', 'Latin'
 ];
 
 function DirectoryContent() {
