@@ -50,7 +50,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
   const socialLinks = profile.socialLinks as Record<string, string> || {};
   
   // Media mapping
-  const media = (profile.media as unknown as MediaItem[]) || [];
+  const media = Array.isArray(profile.media) ? (profile.media as unknown as MediaItem[]) : [];
   
   // Safe access to audioUrlPreview (only exists on Band)
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -133,15 +133,17 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
 
           <section className="space-y-8">
             <div className="flex items-center gap-3">
-              <Music className={isBand ? 'text-purple-500' : 'text-blue-500'} size={24} />
-              <h2 className="text-3xl font-black uppercase italic tracking-tight">Sonic Identity</h2>
+              {isBand ? <Music className="text-purple-500" size={24} /> : <Instagram className="text-blue-500" size={24} />}
+              <h2 className="text-3xl font-black uppercase italic tracking-tight">{isBand ? 'Sonic Identity' : 'Venue Gallery'}</h2>
             </div>
-            {primaryAudio ? (
-              <AudioPlayer src={primaryAudio} title={`${profile.name} - Performance Highlight`} />
-            ) : (
-              <div className="p-12 border border-zinc-800 rounded-3xl text-center">
-                <p className="text-zinc-600 font-black uppercase italic">No audio preview available.</p>
-              </div>
+            {isBand && (
+              primaryAudio ? (
+                <AudioPlayer src={primaryAudio} title={`${profile.name} - Performance Highlight`} />
+              ) : (
+                <div className="p-12 border border-zinc-800 rounded-3xl text-center">
+                  <p className="text-zinc-600 font-black uppercase italic">No audio preview available.</p>
+                </div>
+              )
             )}
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -159,7 +161,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
           <section className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-3xl space-y-6 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <Calendar className={isBand ? 'text-purple-500' : 'text-blue-500'} size={20} />
-              <h3 className="text-xl font-black uppercase italic tracking-tight text-zinc-300">Availability</h3>
+              <h3 className="text-xl font-black uppercase italic tracking-tight text-zinc-300">{isBand ? 'Availability' : 'Open Dates'}</h3>
             </div>
             <div className="space-y-3">
               {profile.availabilities?.slice(0, 5).map((avail, i) => (
@@ -242,7 +244,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
           )}
           <div className="h-8 w-[1px] bg-white/10 mx-2" />
           <button className={`px-8 py-4 rounded-full font-black uppercase italic tracking-widest text-xs transition-all ${isBand ? 'bg-purple-600 hover:bg-purple-500' : 'bg-blue-600 hover:bg-blue-500'}`}>
-            Book Now
+            {isBand ? 'Book Now' : 'Request Booking'}
           </button>
         </div>
       </footer>
