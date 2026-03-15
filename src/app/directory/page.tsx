@@ -10,7 +10,7 @@ import { Navigation, Search, Loader2, Music } from 'lucide-react';
 import { logger } from '@/lib/logger';
 
 const POPULAR_GENRES = [
-  'Rock', 'Pop', 'Hip Hop', 'Country', 'R&B', 'Electronic', 'Metal', 'Punk', 'Indie', 'Alternative', 'Blues', 'Jazz', 'Folk', 'Reggae', 'Latin'
+  'Rock', 'Blues', 'Country', 'Jazz', 'Electronic', 'Indie', 'Metal', 'Pop', 'R&B', 'Folk'
 ];
 
 function DirectoryContent() {
@@ -148,13 +148,7 @@ function DirectoryContent() {
             />
           </div>
           <div className="flex flex-wrap gap-2 justify-center md:justify-end flex-1">
-            <button 
-              onClick={() => setGenre('')}
-              className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${genre === '' ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-500 border-zinc-800 hover:border-zinc-700'}`}
-            >
-              All
-            </button>
-            {POPULAR_GENRES.slice(0, 4).map(g => (
+            {POPULAR_GENRES.slice(0, 5).map(g => (
               <button 
                 key={g}
                 onClick={() => setGenre(g)}

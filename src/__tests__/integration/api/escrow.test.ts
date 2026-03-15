@@ -82,7 +82,7 @@ describe('Escrow API Authorization', () => {
     expect(escrowUtils.releaseBookingHold).toHaveBeenCalledWith('gig_123');
   });
 
-  it('should return 200 if user is venue owner', async () => {
+  it('should return 403 if user is venue owner', async () => {
     (getSession as any).mockResolvedValue({ user: { sub: 'venue_owner' } });
     (prisma.gig.findUnique as any).mockResolvedValue({
       id: 'gig_123',
@@ -94,7 +94,7 @@ describe('Escrow API Authorization', () => {
     const req = createRequest({ action: 'RELEASE' });
     const response = await POST(req, { params: mockParams });
     
-    expect(response.status).toBe(200);
-    expect(escrowUtils.releaseBookingHold).toHaveBeenCalledWith('gig_123');
+    expect(response.status).toBe(403);
+    expect(escrowUtils.releaseBookingHold).not.toHaveBeenCalled();
   });
 });

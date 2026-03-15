@@ -1,16 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Shield, Image as ImageIcon, Users, ArrowLeft, Upload, Loader2, CheckCircle } from 'lucide-react';
+import { FileText, Shield, Image as ImageIcon, Users, ArrowLeft, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadDropzone } from '@/lib/uploadthing';
 
 type Tab = 'agreement' | 'policy' | 'images' | 'contacts';
 
 export default function DocsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('agreement');
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
 
   const tabs = [
     { id: 'agreement', label: 'Agreement', icon: <FileText size={18} /> },
@@ -76,52 +74,12 @@ export default function DocsPage() {
                   </div>
                 </div>
                 
-                <div className="border-2 border-dashed border-zinc-800 rounded-[2.5rem] p-8 text-center bg-zinc-950/50 group hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all">
-                  <UploadDropzone
-                    endpoint="systemDocs"
-                    onUploadBegin={() => setUploadStatus('uploading')}
-                    onClientUploadComplete={async (res) => {
-                      const fileUrl = res[0].url;
-                      setUploadStatus('success');
-                      
-                      await fetch('/api/profile/vault', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                          assetType: 'agreement_template',
-                          fileUrl,
-                        }),
-                      });
-                      
-                      alert('PDF Agreement Uploaded! AI Brain is now aware of your document.');
-                      setTimeout(() => setUploadStatus('idle'), 3000);
-                    }}
-                    onUploadError={(error: Error) => {
-                      setUploadStatus('error');
-                      alert(`ERROR! ${error.message}`);
-                    }}
-                    appearance={{
-                      container: "w-full border-none p-0 flex flex-col items-center justify-center min-h-[200px] cursor-pointer",
-                      button: "bg-indigo-600 font-black uppercase tracking-widest text-[10px] mt-4 ut-uploading:bg-indigo-600/50 after:hidden",
-                      label: "text-zinc-500 group-hover:text-indigo-400 transition-colors uppercase italic font-black text-xl mb-2",
-                      allowedContent: "text-zinc-600 text-xs mt-2"
-                    }}
-                    content={{
-                      uploadIcon({ isUploading }) {
-                        if (isUploading) return <Loader2 size={48} className="animate-spin text-indigo-500 mb-4 inline-block" />;
-                        if (uploadStatus === 'success') return <CheckCircle size={48} className="text-green-500 mb-4 inline-block" />;
-                        return (
-                          <div className="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform shadow-xl">
-                            <Upload size={32} className="text-zinc-500 group-hover:text-indigo-400 transition-colors" />
-                          </div>
-                        );
-                      },
-                      label() {
-                        if (uploadStatus === 'success') return 'Upload Complete!';
-                        return uploadStatus === 'uploading' ? 'Uploading...' : 'Upload Agreement PDF';
-                      }
-                    }}
-                  />
+                <div className="border-2 border-dashed border-zinc-800 rounded-[2.5rem] p-16 text-center bg-zinc-950/50 group hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer">
+                  <div className="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform shadow-xl">
+                    <Upload size={32} className="text-zinc-500 group-hover:text-indigo-400 transition-colors" />
+                  </div>
+                  <h3 className="text-xl font-black uppercase tracking-widest text-white mb-2">Upload Agreement PDF</h3>
+                  <p className="text-zinc-500 text-sm font-medium">Drag & drop your standard booking contract here</p>
                 </div>
               </motion.div>
             )}

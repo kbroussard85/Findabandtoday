@@ -2,7 +2,7 @@ import { aiClient } from "../client";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 
 interface DraftOfferParams {
-  senderType: 'BAND' | 'VENUE';
+  senderType: 'BAND' | 'VENUE' | 'ADMIN';
   senderProfile: {
     name: string;
     bio?: string | null;

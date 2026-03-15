@@ -303,6 +303,7 @@ enum MemberRole {
   MANAGER
   MEMBER
   GUEST
+  ADMIN
 }
 
 enum GigStatus {
@@ -336,6 +337,7 @@ enum EngagementType {
 enum UserRole {
   BAND
   VENUE
+  ADMIN
 }
 
 enum PayoutType {
@@ -354,6 +356,7 @@ enum PayoutStatus {
   HELD_IN_ESCROW
   RELEASED_TO_BAND
   REFUNDED_TO_VENUE
+  ADMIN
 }
 
 enum PaymentMethod {

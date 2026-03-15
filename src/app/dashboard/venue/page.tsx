@@ -4,10 +4,10 @@ import { getSession } from '@auth0/nextjs-auth0';
 import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import { InventoryCalendar } from '@/components/venue/InventoryCalendar';
-import { VenueProfileEditor } from '@/components/venue/VenueProfileEditor';
+import { AgreementVault } from '@/components/venue/AgreementVault';
 import { SubmissionStack } from '@/components/venue/SubmissionStack';
+import { UpgradeButton } from '@/components/profile/UpgradeButton';
 import { VenueSubNav } from '@/components/venue/VenueSubNav';
-import { VenueDashboardClient } from '@/components/venue/VenueDashboardClient';
 import { getMaximizerMatches } from '@/lib/maximizer';
 
 interface MediaItem {
@@ -105,7 +105,30 @@ export default async function VenueDashboardPage() {
     <div className="min-h-screen bg-black text-white font-sans selection:bg-indigo-500">
       <VenueSubNav isProfileIncomplete={isProfileIncomplete} />
       
-      <VenueDashboardClient dbUser={dbUser} profile={profile}>
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 space-y-16">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-zinc-800 pb-12">
+          <div className="space-y-2">
+            <h1 className="text-6xl font-black uppercase italic tracking-tighter text-white">
+              Venue <span className="text-indigo-500">Command</span>
+            </h1>
+            <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+              {profile?.name || dbUser.name}&apos;s Live Operations
+            </p>
+          </div>
+
+          <div className="flex items-center gap-8 bg-zinc-900/50 backdrop-blur-xl p-6 rounded-[2rem] border border-zinc-800 shadow-2xl shadow-indigo-500/5">
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Command Level</p>
+              <p className={`text-sm font-black uppercase italic ${dbUser.isPaid ? 'text-indigo-400' : 'text-zinc-600'}`}>
+                {dbUser.subscriptionTier?.replace('_', ' ') || 'Basic Hub'}
+              </p>
+            </div>
+            {!dbUser.isPaid && <UpgradeButton role="VENUE" />}
+            <div className={`w-4 h-4 rounded-full ${dbUser.isPaid ? 'bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.6)]' : 'bg-zinc-800'}`} />
+          </div>
+        </header>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           <div className="lg:col-span-4 space-y-12">
             <div className="space-y-6">
@@ -119,9 +142,9 @@ export default async function VenueDashboardPage() {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-sm font-black italic shadow-lg shadow-indigo-900/40">02</div>
-                <h3 className="text-2xl font-black uppercase italic tracking-tight">Profile Data</h3>
+                <h3 className="text-2xl font-black uppercase italic tracking-tight">Contract Brain</h3>
               </div>
-              <VenueProfileEditor initialData={profile as any} userName={profile?.name || dbUser.name || 'New Venue'} />
+              <AgreementVault />
             </div>
           </div>
           
@@ -173,7 +196,7 @@ export default async function VenueDashboardPage() {
             </section>
           </div>
         </div>
-      </VenueDashboardClient>
+      </div>
     </div>
   );
 }
