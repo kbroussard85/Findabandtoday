@@ -3,8 +3,15 @@ import { stripe } from '@/lib/stripe/client';
 import prisma from '@/lib/prisma';
 import type Stripe from 'stripe';
 import { logger } from '@/lib/logger';
+import { Client } from "@upstash/workflow";
+import { GigStatus, FinancialLogType } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
+
+const workflowClient = new Client({
+  baseUrl: process.env.UPSTASH_WORKFLOW_URL,
+  token: process.env.QSTASH_TOKEN!,
+});
 
 export async function POST(req: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -36,36 +43,65 @@ export async function POST(req: Request) {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       const gigId = paymentIntent.metadata?.gigId;
       if (gigId) {
+        // This usually triggers for manual captures or direct payments
         await prisma.gig.update({
           where: { id: gigId },
           data: { 
-            status: 'CONFIRMED', 
+            status: GigStatus.CONFIRMED, 
             depositPaid: true 
           }
         });
       }
       break;
-    case 'payment_intent.amount_capturable_updated':
-      const capturableIntent = event.data.object as Stripe.PaymentIntent;
-      const gigIdToHold = capturableIntent.metadata?.gigId;
-      if (gigIdToHold) {
-        await prisma.gig.update({
-          where: { id: gigIdToHold },
-          data: { 
-            status: 'ESCROW_HOLD'
-          }
-        });
-      }
-      break;
+
     case 'checkout.session.completed':
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.client_reference_id || session.metadata?.userId;
+      const bookingGigId = session.metadata?.gigId;
       
-      logger.info(`[STRIPE-WEBHOOK] Checkout completed for user: ${userId}, Customer: ${session.customer}`);
-
-      if (userId) {
+      if (bookingGigId) {
+        // CASE: GIG BOOKING PAYMENT
+        logger.info(`[STRIPE-WEBHOOK] Booking payment completed for Gig: ${bookingGigId}`);
+        
         try {
-          const updatedUser = await prisma.user.update({
+          const gig = await prisma.gig.findUnique({ where: { id: bookingGigId } });
+          if (!gig) throw new Error("Gig not found during webhook processing");
+
+          await prisma.$transaction([
+            prisma.gig.update({
+              where: { id: bookingGigId },
+              data: {
+                status: GigStatus.PAID_ESCROW,
+                depositPaid: true,
+                stripePaymentIntentId: session.payment_intent as string,
+              }
+            }),
+            prisma.financialLog.create({
+              data: {
+                gigId: bookingGigId,
+                type: FinancialLogType.CREDIT,
+                amount: gig.totalAmount + (gig.trustFee || 0),
+                description: 'Booking payment captured in Escrow (via Checkout)'
+              }
+            })
+          ]);
+
+          // Trigger Upstash Payout Workflow
+          const baseUrl = process.env.AUTH0_BASE_URL || `https://${process.env.VERCEL_URL}`;
+          await workflowClient.trigger({
+            url: `${baseUrl}/api/workflow/payout`,
+            body: { gigId: bookingGigId },
+          });
+
+          logger.info(`[STRIPE-WEBHOOK] Triggered payout workflow for Gig: ${bookingGigId}`);
+        } catch (error) {
+          logger.error({ err: error }, `[STRIPE-WEBHOOK] Failed to process booking completion for Gig: ${bookingGigId}`);
+        }
+      } else if (userId) {
+        // CASE: USER SUBSCRIPTION UPGRADE
+        logger.info(`[STRIPE-WEBHOOK] Checkout completed for user: ${userId}, Customer: ${session.customer}`);
+        try {
+          await prisma.user.update({
             where: { auth0Id: userId },
             data: { 
               isPaid: true, 
@@ -73,15 +109,12 @@ export async function POST(req: Request) {
               subscriptionStatus: 'active'
             },
           });
-          logger.info(`[STRIPE-WEBHOOK] Successfully provisioned Pro status for user: ${updatedUser.email}`);
         } catch (dbError) {
-          logger.error({ err: dbError }, `[STRIPE-WEBHOOK] Database update failed for user ${userId}:`);
-          // In a real app, you might want to retry or alert admins
+          logger.error({ err: dbError }, `[STRIPE-WEBHOOK] Subscription update failed for user ${userId}:`);
         }
-      } else {
-        logger.warn('[STRIPE-WEBHOOK] No userId found in session client_reference_id or metadata.');
       }
       break;
+
     case 'customer.subscription.deleted':
       const subscription = event.data.object as Stripe.Subscription;
       const customerId = subscription.customer as string;
@@ -90,15 +123,19 @@ export async function POST(req: Request) {
         data: { isPaid: false, subscriptionStatus: 'canceled' },
       });
       break;
+
     case 'account.updated':
       const account = event.data.object as Stripe.Account;
+      // Stripe Standard accounts manage their own verification, but we can track submitted status
       if (account.details_submitted) {
-        await prisma.user.update({
-          where: { stripeCustomerId: account.id },
+        // For standard accounts, we update the user based on the Connect Account ID
+        await prisma.user.updateMany({
+          where: { stripeAccountId: account.id },
           data: { isPaid: true }, // Mark as verified for business
         });
       }
       break;
+
     default:
       logger.info(`Unhandled event type ${event.type}`);
   }
