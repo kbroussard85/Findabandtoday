@@ -15,24 +15,13 @@ interface LocationState {
 const LocationContext = createContext<LocationState | undefined>(undefined);
 
 export function LocationProvider({ children }: { children: React.ReactNode }) {
-  const [lat, setLat] = useState<number | null>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('fabt_user_location');
-      return stored ? JSON.parse(stored).lat : null;
-    }
-    return null;
-  });
-  const [lng, setLng] = useState<number | null>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('fabt_user_location');
-      return stored ? JSON.parse(stored).lng : null;
-    }
-    return null;
-  });
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
   const [city] = useState<string | null>(null);
   const [isGranted, setIsGranted] = useState(() => {
     if (typeof window !== 'undefined') {
-      return !!localStorage.getItem('fabt_user_location');
+      // Treat presence of the key as an indication that the user has granted location access.
+      return localStorage.getItem('fabt_user_location') !== null;
     }
     return false;
   });
@@ -52,7 +41,8 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         setLng(newLng);
         setIsGranted(true);
         setLoading(false);
-        localStorage.setItem('fabt_user_location', JSON.stringify({ lat: newLat, lng: newLng }));
+        // Do not persist raw coordinates; only persist a non-sensitive marker.
+        localStorage.setItem('fabt_user_location', 'granted');
       },
       (error) => {
         logger.warn({ err: error.message }, '[LOCATION_CONTEXT] Permission denied:');
