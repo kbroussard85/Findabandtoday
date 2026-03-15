@@ -148,7 +148,13 @@ function DirectoryContent() {
             />
           </div>
           <div className="flex flex-wrap gap-2 justify-center md:justify-end flex-1">
-            {POPULAR_GENRES.slice(0, 5).map(g => (
+            <button 
+              onClick={() => setGenre('')}
+              className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${genre === '' ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-500 border-zinc-800 hover:border-zinc-700'}`}
+            >
+              All
+            </button>
+            {POPULAR_GENRES.slice(0, 4).map(g => (
               <button 
                 key={g}
                 onClick={() => setGenre(g)}
