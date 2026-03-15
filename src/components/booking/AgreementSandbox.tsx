@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Shield, FileText, CheckCircle } from 'lucide-react';
+import { Shield, FileText, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { startNegotiation } from '@/app/actions/negotiation-runner';
 
 interface AgreementSandboxProps {
   gigId: string;
@@ -25,6 +26,9 @@ interface AgreementSandboxProps {
 
 export default function AgreementSandbox({ gigId, bandData, venueData, initialOffer, onConfirm }: AgreementSandboxProps) {
   const [loading, setLoading] = useState(false);
+  const [negotiating, setNegotiating] = useState(false);
+  const [negotiationStatus, setNegotiationStatus] = useState<string | null>(null);
+  
   const [deal, setDeal] = useState({
     amount: initialOffer.amount || 350,
     type: 'GUARANTEE',
@@ -39,12 +43,14 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
     termsAccepted: false
   });
 
-  const isReady = validation.techAcknowledged && validation.termsAccepted && !loading;
+  const isReady = validation.techAcknowledged && validation.termsAccepted && !loading && !negotiating;
 
   const handleConfirm = async () => {
     if (!isReady) return;
     setLoading(true);
     try {
+      // 1. SECURE HOLD / ESCROW
+      setNegotiationStatus("Securing financial hold...");
       const response = await fetch(`/api/gigs/${gigId}/escrow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,26 +64,65 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
       const data = await response.json();
       if (data.error) throw new Error(data.error);
 
-      if (onConfirm) onConfirm(gigId, data);
-      else {
-        // Default behavior: show success or redirect
-        alert('Booking Hold Secured! Redirecting...');
-        window.location.href = `/profile`;
+      // 2. TRIGGER AI NEGOTIATION
+      setLoading(false);
+      setNegotiating(true);
+      setNegotiationStatus("AI Liaison Negotiating Terms...");
+      
+      const negResult = await startNegotiation(gigId);
+      
+      if (negResult.error) {
+        throw new Error(negResult.error);
       }
+
+      if (negResult.status === 'ACCEPTED') {
+        setNegotiationStatus("Agreement Reached! Finalizing Pack...");
+        setTimeout(() => {
+          if (onConfirm) onConfirm(gigId, data);
+          else {
+            window.location.href = `/profile`;
+          }
+        }, 1500);
+      } else {
+        setNegotiationStatus(`Negotiation Status: ${negResult.status}`);
+        setNegotiating(false);
+        alert(`AI Negotiation finished with status: ${negResult.status}. Check your dashboard for details.`);
+      }
+
     } catch (err) {
       logger.error(err);
-      alert('Failed to secure hold. Please try again.');
-    } finally {
+      alert(err instanceof Error ? err.message : 'Failed to complete booking. Please try again.');
       setLoading(false);
+      setNegotiating(false);
+      setNegotiationStatus(null);
     }
   };
 
   return (
-    <div className="bg-zinc-950 text-white p-4 md:p-8 font-sans">
+    <div className="bg-zinc-950 text-white p-4 md:p-8 font-sans relative overflow-hidden">
+      
+      {/* Negotiation Overlay */}
+      {(loading || negotiating) && (
+        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center space-y-6">
+          <div className="relative">
+            <Loader2 className="w-16 h-16 text-purple-500 animate-spin" />
+            {negotiating && <Sparkles className="w-6 h-6 text-blue-400 absolute -top-2 -right-2 animate-pulse" />}
+          </div>
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter">
+              {negotiating ? 'Agentic Negotiation Active' : 'Processing Booking'}
+            </h2>
+            <p className="text-zinc-400 font-mono text-xs uppercase tracking-widest animate-pulse">
+              {negotiationStatus}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header Info */}
       <div className="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center border-b border-zinc-800 pb-6 gap-4">
         <div>
-          <h1 className="text-4xl font-black italic uppercase italic">
+          <h1 className="text-4xl font-black italic uppercase">
             Booking <span className="text-purple-500">Sandbox</span>
           </h1>
           <p className="text-zinc-500 font-mono text-sm uppercase">
@@ -174,10 +219,10 @@ export default function AgreementSandbox({ gigId, bandData, venueData, initialOf
               onClick={handleConfirm}
               className={`w-full py-6 rounded-2xl text-2xl font-black uppercase italic transition-all ${isReady ? 'bg-white text-black hover:bg-purple-500 hover:text-white shadow-xl shadow-purple-500/20' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}
             >
-              {loading ? 'Processing...' : (isReady ? 'Confirm & Book' : 'Complete Terms')}
+              {isReady ? 'Confirm & Book' : 'Complete Terms'}
             </button>
             <p className="text-[10px] text-center text-zinc-500 uppercase tracking-tighter">
-              Clicking &quot;Confirm&quot; will place a $50.00 hold on your card via FABT Escrow.
+              Clicking &quot;Confirm&quot; will initiate the AI-assisted booking and secure platform funds.
             </p>
           </div>
         </div>

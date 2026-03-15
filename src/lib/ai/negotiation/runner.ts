@@ -2,6 +2,8 @@ import prisma from "@/lib/prisma";
 import { negotiationGraph, NegotiationState } from "./graph";
 import { transitionGigState } from "@/lib/negotiation/state-machine";
 import { GigStatus } from "@prisma/client";
+import { runAINegotiator } from "@/app/actions/negotiator";
+import { logger } from "@/lib/logger";
 
 interface NegotiationPrefs {
   minRate?: number;
@@ -24,9 +26,9 @@ export async function runNegotiationSession(gigId: string, initiatingActorId: st
   if (!gig) throw new Error("Gig not found");
 
   // 1.5 Fetch Venue Agreement for AI Context
-  const venueAgreement = await prisma.venueAgreement.findFirst({
-    where: { venueId: gig.venueId },
-    orderBy: { lastUpdated: 'desc' }
+  const venueAgreement = await prisma.vaultAsset.findFirst({
+    where: { ownerId: gig.venue.userId, assetType: 'agreement_template' },
+    orderBy: { createdAt: 'desc' }
   });
 
   // 2. Extract Preferences
@@ -44,27 +46,37 @@ export async function runNegotiationSession(gigId: string, initiatingActorId: st
     history: [],
     bandMinRate,
     venueMaxBudget,
-    lastActor: 'VENUE', // Assume venue initiated for this example
+    lastActor: 'VENUE', 
     turnCount: 0,
-    venueAgreement: venueAgreement?.templateText || null,
+    venueAgreement: venueAgreement?.rawText || null,
   };
 
   // 4. Run Graph
+  logger.info(`[AI-NEGOTIATION] Starting session for Gig: ${gigId}`);
   const finalState = await (negotiationGraph.invoke(initialState) as unknown) as NegotiationState;
 
   // 5. Update Database based on results
   if (finalState.status === 'ACCEPTED') {
-    await transitionGigState(
-      gigId, 
-      GigStatus.ACCEPTED, 
-      initiatingActorId, 
-      "AI Negotiation: Agreement reached."
-    );
+    logger.info(`[AI-NEGOTIATION] Agreement reached: $${finalState.currentAmount}`);
+    
     await prisma.gig.update({
       where: { id: gigId },
       data: { totalAmount: finalState.currentAmount }
     });
+
+    await transitionGigState(
+      gigId, 
+      GigStatus.ACCEPTED, 
+      initiatingActorId, 
+      `AI Negotiation: Agreement reached at $${finalState.currentAmount}.`
+    );
+
+    // AUTO-TRIGGER: Document Pack & Confirmation
+    // This generates the PDF and sets status to CONFIRMED/PAID_ESCROW
+    await runAINegotiator(gigId);
+
   } else if (finalState.status === 'REJECTED') {
+    logger.warn(`[AI-NEGOTIATION] Rejected for Gig: ${gigId}`);
     await transitionGigState(
       gigId, 
       GigStatus.REJECTED, 
@@ -72,17 +84,18 @@ export async function runNegotiationSession(gigId: string, initiatingActorId: st
       "AI Negotiation: Could not reach agreement within bounds."
     );
   } else if (finalState.status === 'COUNTER_OFFER') {
-    // Save the counter-offer
+    logger.info(`[AI-NEGOTIATION] Counter-offer proposed: $${finalState.currentAmount}`);
+    await prisma.gig.update({
+      where: { id: gigId },
+      data: { totalAmount: finalState.currentAmount }
+    });
+
     await transitionGigState(
         gigId, 
         GigStatus.COUNTER_OFFER, 
         initiatingActorId, 
-        `AI Counter-Offer: ${finalState.currentAmount}`
+        `AI Counter-Offer: $${finalState.currentAmount}`
       );
-      await prisma.gig.update({
-        where: { id: gigId },
-        data: { totalAmount: finalState.currentAmount }
-      });
   }
 
   return finalState;
