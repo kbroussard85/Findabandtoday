@@ -7,7 +7,6 @@ import { logger } from '@/lib/logger';
  * FABT REVENUE MODEL CONSTANTS
  */
 const PLATFORM_FEE_PERCENT = 0.05; // 5%
-const PLATFORM_FEE_FLAT = 5.00;    // $5 flat fee for platform pay
 
 /**
  * Handles the payout and commission logic based on the Payment Method.
@@ -25,9 +24,9 @@ export async function triggerGigPayout(gigId: string) {
   });
 
   if (!gig) throw new Error('Gig not found');
-  if (gig.status !== GigStatus.COMPLETED) {
-    logger.warn(`[STRIPE-PAYOUT] Attempted payout for non-completed gig: ${gigId} (Status: ${gig.status})`);
-    throw new Error('Gig is not marked as COMPLETED');
+  if (gig.status !== GigStatus.PAYOUT_PENDING && gig.status !== GigStatus.PAID_ESCROW) {
+    logger.warn(`[STRIPE-PAYOUT] Attempted payout for gig not ready: ${gigId} (Status: ${gig.status})`);
+    throw new Error('Gig is not marked as PAID_ESCROW or PAYOUT_PENDING');
   }
   if (gig.payoutStatus === PayoutStatus.RELEASED_TO_BAND) {
     logger.info(`[STRIPE-PAYOUT] Gig ${gigId} already paid out.`);
@@ -36,9 +35,7 @@ export async function triggerGigPayout(gigId: string) {
 
   const amount = Number(gig.totalAmount);
   // Calculate platform fee in cents to avoid rounding errors
-  const platformFeeCents = Math.round(
-    (amount * PLATFORM_FEE_PERCENT + (gig.paymentMethod === PaymentMethod.PLATFORM ? PLATFORM_FEE_FLAT : 0)) * 100
-  );
+  const platformFeeCents = Math.round(amount * PLATFORM_FEE_PERCENT * 100);
 
   try {
     if (gig.paymentMethod === PaymentMethod.IN_PERSON) {
@@ -80,14 +77,25 @@ export async function triggerGigPayout(gigId: string) {
       );
     }
 
-    // Update Gig record with final financial data
-    await prisma.gig.update({
-      where: { id: gigId },
-      data: { 
-        payoutStatus: PayoutStatus.RELEASED_TO_BAND,
-        platformFee: platformFeeCents / 100
-      },
-    });
+    // Update Gig record and add Financial Logs
+    await prisma.$transaction([
+      prisma.gig.update({
+        where: { id: gigId },
+        data: { 
+          status: GigStatus.COMPLETED,
+          payoutStatus: PayoutStatus.RELEASED_TO_BAND,
+          platformFee: platformFeeCents / 100
+        },
+      }),
+      prisma.financialLog.create({
+        data: {
+          gigId: gigId,
+          type: 'CREDIT',
+          amount: platformFeeCents / 100,
+          description: gig.paymentMethod === PaymentMethod.IN_PERSON ? 'FABT Commission Billed' : 'FABT Platform Fee Deducted'
+        }
+      })
+    ]);
 
     logger.info(`[STRIPE-PAYOUT] Successfully processed financials for gig: ${gigId}`);
     return { success: true, method: gig.paymentMethod };

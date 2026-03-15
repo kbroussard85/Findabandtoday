@@ -5,7 +5,6 @@ import prisma from '../prisma';
  * FABT REVENUE MODEL CONSTANTS
  */
 const PLATFORM_FEE_PERCENT = 0.05; // 5%
-const PLATFORM_FEE_FLAT = 5;       // $5 flat fee for platform pay
 
 /**
  * STEP 1: INITIALIZE ESCROW OR FEE VERIFICATION
@@ -25,12 +24,15 @@ export async function initializeBookingHold(gigId: string, amount: number, metho
   if (!gig) throw new Error("Gig not found.");
 
   if (method === 'PLATFORM') {
-    // Escrow full amount from Venue
+    // Escrow full amount + 5% Trust Fee from Venue
     if (!gig.venue.user.stripeCustomerId) throw new Error("Venue stripe customer ID not found.");
+
+    const trustFeeCents = Math.round(amount * PLATFORM_FEE_PERCENT * 100);
+    const totalChargeCents = Math.round(amount * 100) + trustFeeCents;
 
     const paymentIntent = await stripe.paymentIntents.create(
       {
-        amount: Math.round(amount * 100), // Full amount in cents
+        amount: totalChargeCents, // Amount + Trust Fee
         currency: 'usd',
         customer: gig.venue.user.stripeCustomerId,
         capture_method: 'manual', // Hold funds
@@ -43,8 +45,9 @@ export async function initializeBookingHold(gigId: string, amount: number, metho
       where: { id: gigId },
       data: {
         stripePaymentIntentId: paymentIntent.id,
-        status: 'ESCROW_HOLD',
-        paymentMethod: 'PLATFORM'
+        status: 'PENDING_PAYMENT',
+        paymentMethod: 'PLATFORM',
+        trustFee: trustFeeCents / 100
       }
     });
 
@@ -59,9 +62,9 @@ export async function initializeBookingHold(gigId: string, amount: number, metho
     await prisma.gig.update({
       where: { id: gigId },
       data: {
-        status: 'PENDING_APPROVAL',
+        status: 'PENDING_PAYMENT',
         paymentMethod: 'IN_PERSON',
-        payoutStatus: 'HELD_IN_ESCROW'
+        payoutStatus: 'NOT_APPLICABLE'
       }
     });
 
@@ -85,14 +88,24 @@ export async function captureBookingEscrow(gigId: string) {
     { idempotencyKey: `capture-${gigId}` }
   );
 
-  await prisma.gig.update({
-    where: { id: gigId },
-    data: {
-      status: 'CONFIRMED',
-      depositPaid: true,
-      payoutStatus: 'HELD_IN_ESCROW'
-    }
-  });
+  await prisma.$transaction([
+    prisma.gig.update({
+      where: { id: gigId },
+      data: {
+        status: 'PAID_ESCROW',
+        depositPaid: true,
+        payoutStatus: 'HELD_IN_ESCROW'
+      }
+    }),
+    prisma.financialLog.create({
+      data: {
+        gigId: gigId,
+        type: 'CREDIT',
+        amount: gig.totalAmount + (gig.trustFee || 0),
+        description: 'Venue Escrow Hold Captured'
+      }
+    })
+  ]);
 
   return intent;
 }

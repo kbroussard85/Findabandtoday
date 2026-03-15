@@ -18,13 +18,9 @@ export async function createConnectAccount(email: string, userId: string) {
   if (!stripe) throw new Error('Stripe not configured');
 
   return await stripe.accounts.create({
-    type: 'express',
+    type: 'standard',
     email,
-    metadata: { userId },
-    capabilities: {
-      card_payments: { requested: true },
-      transfers: { requested: true },
-    },
+    metadata: { userId }
   });
 }
 
