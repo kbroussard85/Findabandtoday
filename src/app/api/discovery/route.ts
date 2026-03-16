@@ -12,6 +12,7 @@ interface DiscoveryResult {
   availability?: unknown;
   negotiationPrefs?: unknown;
   audioUrlPreview?: string;
+  average_rating?: number;
 }
 
 export async function GET(req: Request) {
@@ -85,18 +86,16 @@ export async function GET(req: Request) {
     }
 
     const gatedResults = results.map(item => {
-      const sanitized = { ...item };
-      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const sanitized: DiscoveryResult = { ...item };
       // Only reveal average_rating to VENUE roles
       if (dbUser?.role !== 'VENUE') {
-        delete (sanitized as any).average_rating;
+        delete sanitized.average_rating;
       }
 
       if (!isPremium) {
-        delete (sanitized as any).availability;
-        delete (sanitized as any).negotiationPrefs;
+        delete sanitized.availability;
+        delete sanitized.negotiationPrefs;
       }
-      /* eslint-enable @typescript-eslint/no-explicit-any */
       return sanitized;
     });
 
