@@ -49,9 +49,14 @@ export function GigOnboardingModal({
         return;
       }
 
+      const isArtistSender = targetRole === 'VENUE';
+      const defaultDesc = isArtistSender
+        ? `Availability Submission for ${selectedDate.toLocaleDateString()}. Open to discuss showtime and load-in specifications with the venue. Proposed Vibe: ${genre}. Requested Setup: ${payType}.`
+        : `Automated Request. Load In: ${loadIn}, Showtime: ${showtime}, Genre/Vibe: ${genre}. Setup: ${payType}.`;
+
       const payload = {
         title: `Offer for ${targetProfileName} on ${selectedDate.toLocaleDateString()}`,
-        description: description || `Automated Request. Load In: ${loadIn}, Showtime: ${showtime}, Genre/Vibe: ${genre}. Setup: ${payType}.`,
+        description: description || defaultDesc,
         date: selectedDate.toISOString(),
         venueId,
         bandId,
@@ -96,7 +101,7 @@ export function GigOnboardingModal({
             initial={{ scale: 0.95, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 30 }}
-            className="relative w-full max-w-xl bg-zinc-950 border border-zinc-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-4xl bg-zinc-950 border border-zinc-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto"
           >
             <button 
               onClick={onClose}
@@ -121,31 +126,33 @@ export function GigOnboardingModal({
             </header>
 
             <div className="space-y-8 flex-1">
-              {/* Timing Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-                    <Clock size={14} className="text-zinc-400" /> Start Load-In
-                  </label>
-                  <input 
-                    type="time" 
-                    value={loadIn} 
-                    onChange={(e) => setLoadIn(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4 text-white text-sm font-bold uppercase transition-all outline-none focus:border-purple-500/50 focus:bg-black hover:border-zinc-700" 
-                  />
+              {/* Timing Grid (Only for Venues specifying terms to an Artist) */}
+              {targetRole === 'BAND' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                      <Clock size={14} className="text-zinc-400" /> Start Load-In
+                    </label>
+                    <input 
+                      type="time" 
+                      value={loadIn} 
+                      onChange={(e) => setLoadIn(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4 text-white text-sm font-bold uppercase transition-all outline-none focus:border-purple-500/50 focus:bg-black hover:border-zinc-700" 
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                      <Clock size={14} className="text-zinc-400" /> Showtime
+                    </label>
+                    <input 
+                      type="time" 
+                      value={showtime} 
+                      onChange={(e) => setShowtime(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4 text-white text-sm font-bold uppercase transition-all outline-none focus:border-purple-500/50 focus:bg-black hover:border-zinc-700" 
+                    />
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-                    <Clock size={14} className="text-zinc-400" /> Showtime
-                  </label>
-                  <input 
-                    type="time" 
-                    value={showtime} 
-                    onChange={(e) => setShowtime(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4 text-white text-sm font-bold uppercase transition-all outline-none focus:border-purple-500/50 focus:bg-black hover:border-zinc-700" 
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Vibe & Style */}
               <div className="space-y-3">

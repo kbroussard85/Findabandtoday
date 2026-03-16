@@ -86,7 +86,10 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
     <div className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-5 flex flex-col gap-5 group hover:border-purple-500/50 transition-all duration-300 backdrop-blur-sm relative overflow-hidden">
       
       {/* Thumbnail Container */}
-      <div className="relative w-full aspect-[4/3] bg-zinc-950 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-zinc-800 flex items-center justify-center group">
+      <Link 
+        href={`/profile/${artist.id || artist.userId!}`}
+        className="relative block w-full aspect-[4/3] bg-zinc-950 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-zinc-800 flex items-center justify-center group"
+      >
         {thumbnail ? (
           <Image 
             src={thumbnail} 
@@ -138,7 +141,7 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
             className="hidden"
           />
         )}
-      </div>
+      </Link>
 
       {/* Artist Info */}
       <div className="space-y-3">
