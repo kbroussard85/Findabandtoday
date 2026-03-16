@@ -1,9 +1,10 @@
 import { handleAuth, handleLogin, handleLogout } from '@auth0/nextjs-auth0';
 
 export const GET = handleAuth({
-  login: handleLogin((req) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  login: handleLogin((req: any) => {
     try {
-      const url = new URL(req.url || '', 'http://localhost');
+      const url = new URL(req.url);
       const role = url.searchParams.get('role');
       const returnTo = url.searchParams.get('returnTo') || '/profile';
 
@@ -19,12 +20,17 @@ export const GET = handleAuth({
       return { returnTo: '/profile' };
     }
   }),
-  logout: handleLogout((req) => {
-    const url = new URL(req.url || '', 'http://localhost');
-    const returnTo = url.searchParams.get('returnTo') || process.env.AUTH0_BASE_URL || '/';
-    return {
-      returnTo,
-    };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  logout: handleLogout((req: any) => {
+    try {
+      const url = new URL(req.url);
+      const returnTo = url.searchParams.get('returnTo') || process.env.AUTH0_BASE_URL || '/';
+      return {
+        returnTo,
+      };
+    } catch {
+      return { returnTo: process.env.AUTH0_BASE_URL || '/' };
+    }
   }),
 });
 
