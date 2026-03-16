@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, Music, CreditCard, Loader2 } from 'lucide-react';
+import { X, Clock, Music, CreditCard, Loader2, Lock } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useProfile } from '@/hooks/useProfile';
+import { useRouter } from 'next/navigation';
 
 interface GigOnboardingModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function GigOnboardingModal({
   onOfferSent 
 }: GigOnboardingModalProps) {
   const { dbUser } = useProfile();
+  const router = useRouter();
   const [loadIn, setLoadIn] = useState('16:00');
   const [showtime, setShowtime] = useState('20:00');
   const [genre, setGenre] = useState('ROCK');
@@ -229,11 +231,18 @@ export function GigOnboardingModal({
 
               <div className="pt-8 mt-auto sticky bottom-0 bg-gradient-to-t from-zinc-950 via-zinc-950 to-transparent pb-4">
                 <button 
-                  onClick={handleSubmit}
+                  onClick={() => dbUser?.isPaid ? handleSubmit() : router.push('/profile')}
                   disabled={isSubmitting}
-                  className="w-full bg-purple-600 hover:bg-purple-500 text-white py-5 rounded-2xl font-black uppercase italic tracking-widest text-sm transition-all shadow-[0_0_40px_rgba(168,85,247,0.3)] hover:shadow-[0_0_60px_rgba(168,85,247,0.5)] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
+                  className={`w-full ${dbUser?.isPaid ? 'bg-purple-600 hover:bg-purple-500' : 'bg-zinc-800 hover:bg-zinc-700'} text-white py-5 rounded-2xl font-black uppercase italic tracking-widest text-sm transition-all shadow-[0_0_40px_rgba(168,85,247,0.3)] hover:shadow-[0_0_60px_rgba(168,85,247,0.5)] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3`}
                 >
-                  {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : 'Send Official Offer'}
+                  {isSubmitting ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <>
+                      {!dbUser?.isPaid && <Lock size={16} className="text-orange-500" />}
+                      {dbUser?.isPaid ? 'Send Official Offer' : 'UPGRADE TO PRO TO OFFER'}
+                    </>
+                  )}
                 </button>
               </div>
             </div>
