@@ -12,23 +12,26 @@ datasource db {
 }
 
 model User {
-  id                 String        @id @default(cuid())
-  auth0Id            String        @unique
-  email              String        @unique
-  role               UserRole
-  stripeCustomerId   String?       @unique
-  isPaid             Boolean       @default(false)
-  subscriptionTier   String?
-  createdAt          DateTime      @default(now())
-  subscriptionStatus String?
-  name               String?
-  stripeAccountId    String?       @unique
-  bandProfile        Band?
-  bandMemberships    BandMember[]
-  venueProfile       Venue?
-  venueMemberships   VenueMember[]
-  artistMedia        ArtistMedia[]
-  vaultAssets        VaultAsset[]
+  id                     String        @id @default(cuid())
+  auth0Id                String        @unique
+  email                  String        @unique
+  role                   UserRole
+  stripeCustomerId       String?       @unique
+  isPaid                 Boolean       @default(false)
+  subscriptionTier       String?
+  createdAt              DateTime      @default(now())
+  subscriptionStatus     String?
+  name                   String?
+  stripeAccountId        String?       @unique
+  identityVerificationId String?       @unique
+  identityStatus         String?       @default("unverified")
+  identityVerified       Boolean       @default(false)
+  bandProfile            Band?
+  bandMemberships        BandMember[]
+  venueProfile           Venue?
+  venueMemberships       VenueMember[]
+  artistMedia            ArtistMedia[]
+  vaultAssets            VaultAsset[]
 }
 
 model ArtistMedia {
@@ -44,58 +47,60 @@ model ArtistMedia {
 }
 
 model Band {
-  id               String                    @id @default(cuid())
-  userId           String                    @unique
-  name             String
-  lat              Float?
-  lng              Float?
-  location         Unsupported("geography")?
-  searchRadius     Int                       @default(50)
-  audioUrlPreview  String?
-  audioUrlFull     String?
-  taxStatus        Boolean                   @default(false)
-  bio              String?
-  media            Json?
-  negotiationPrefs Json?
-  minPayoutRequirement Float @default(0)
-  vaultCompleted   Boolean @default(false)
-  logoUrl          String?
-  socialLinks      Json?                     @default("{\"spotify\": \"\", \"youtube\": \"\", \"tiktok\": \"\", \"instagram\": \"\", \"website\": \"\"}")
-  city             String?
-  availabilities   Availability[]
-  user             User                      @relation(fields: [userId], references: [id])
-  members          BandMember[]
-  gigs             Gig[]
-  ratings          Rating[]
-  genres           Genre[]                   @relation("BandGenres")
+  id                   String                    @id @default(cuid())
+  userId               String                    @unique
+  name                 String
+  lat                  Float?
+  lng                  Float?
+  location             Unsupported("geography")?
+  searchRadius         Int                       @default(50)
+  audioUrlPreview      String?
+  audioUrlFull         String?
+  taxStatus            Boolean                   @default(false)
+  isUnclaimed          Boolean                   @default(false)
+  bio                  String?
+  media                Json?
+  technicalRider       Json?
+  negotiationPrefs     Json?
+  minPayoutRequirement Float                     @default(0)
+  vaultCompleted       Boolean                   @default(false)
+  logoUrl              String?
+  socialLinks          Json?                     @default("{\"spotify\": \"\", \"youtube\": \"\", \"tiktok\": \"\", \"instagram\": \"\", \"website\": \"\"}")
+  city                 String?
+  availabilities       Availability[]
+  user                 User                      @relation(fields: [userId], references: [id])
+  members              BandMember[]
+  gigs                 Gig[]
+  ratings              Rating[]
+  genres               Genre[]                   @relation("BandGenres")
 
   @@index([location], type: Gist)
 }
 
 model Venue {
-  id               String                    @id @default(cuid())
-  userId           String                    @unique
-  name             String
-  lat              Float?
-  lng              Float?
-  location         Unsupported("geography")?
-  capacity         Int?
-  bio              String?
-  media            Json?
-  negotiationPrefs Json?
-  minPayoutRequirement Float @default(0)
-  vaultCompleted   Boolean @default(false)
-  logoUrl          String?
-  socialLinks      Json?                     @default("{\"spotify\": \"\", \"youtube\": \"\", \"tiktok\": \"\", \"instagram\": \"\", \"website\": \"\"}")
-  city             String?
-  availabilities   Availability[]
-  gigs             Gig[]
-  openDates        OpenDate[]
-  givenRatings     Rating[]
-  user             User                      @relation(fields: [userId], references: [id])
-  agreements       VenueAgreement[]
-  members          VenueMember[]
-  genres           Genre[]                   @relation("VenueGenres")
+  id                   String                    @id @default(cuid())
+  userId               String                    @unique
+  name                 String
+  lat                  Float?
+  lng                  Float?
+  location             Unsupported("geography")?
+  capacity             Int?
+  bio                  String?
+  media                Json?
+  negotiationPrefs     Json?
+  minPayoutRequirement Float                     @default(0)
+  vaultCompleted       Boolean                   @default(false)
+  logoUrl              String?
+  socialLinks          Json?                     @default("{\"spotify\": \"\", \"youtube\": \"\", \"tiktok\": \"\", \"instagram\": \"\", \"website\": \"\"}")
+  city                 String?
+  availabilities       Availability[]
+  gigs                 Gig[]
+  openDates            OpenDate[]
+  givenRatings         Rating[]
+  user                 User                      @relation(fields: [userId], references: [id])
+  agreements           VenueAgreement[]
+  members              VenueMember[]
+  genres               Genre[]                   @relation("VenueGenres")
 
   @@index([location], type: Gist)
 }
@@ -175,6 +180,8 @@ model Gig {
   isActive              Boolean           @default(true)
   payoutStatus          PayoutStatus      @default(NOT_APPLICABLE)
   platformFee           Float             @default(0)
+  trustFee              Float             @default(0)
+  scheduledPayoutAt     DateTime?
   stripePaymentIntentId String?           @unique
   title                 String
   totalAmount           Float
@@ -188,6 +195,7 @@ model Gig {
   venue                 Venue             @relation(fields: [venueId], references: [id])
   offers                Offer[]
   offerHistory          OfferHistory[]
+  FinancialLog          FinancialLog[]
 }
 
 model BookingAgreement {
@@ -319,6 +327,13 @@ enum GigStatus {
   SUBMISSION
   REQUEST
   PENDING_APPROVAL
+  DISPUTED
+  PENDING_PAYMENT
+  PAID_ESCROW
+  GIG_ACTIVE
+  POST_GIG_HOLD
+  PAYOUT_PENDING
+  REFUNDED
 }
 
 enum AvailabilityStatus {
@@ -336,6 +351,7 @@ enum EngagementType {
 enum UserRole {
   BAND
   VENUE
+  ADMIN
 }
 
 enum PayoutType {
@@ -364,12 +380,30 @@ enum PaymentMethod {
 model VaultAsset {
   id        String   @id @default(cuid())
   ownerId   String
-  assetType String   // 'i9', 'stage_plot', 'input_list', 'rider', 'agreement_template'
+  assetType String // 'i9', 'stage_plot', 'input_list', 'rider', 'agreement_template'
   fileUrl   String?
   rawText   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
+  @@unique([ownerId, assetType])
   @@index([ownerId])
+}
+
+enum FinancialLogType {
+  CREDIT
+  DEBIT
+}
+
+model FinancialLog {
+  id          String           @id @default(cuid())
+  gigId       String
+  type        FinancialLogType
+  amount      Float
+  description String
+  createdAt   DateTime         @default(now())
+  gig         Gig              @relation(fields: [gigId], references: [id], onDelete: Cascade)
+
+  @@index([gigId])
 }

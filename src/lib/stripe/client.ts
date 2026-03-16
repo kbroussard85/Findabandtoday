@@ -18,13 +18,9 @@ export async function createConnectAccount(email: string, userId: string) {
   if (!stripe) throw new Error('Stripe not configured');
 
   return await stripe.accounts.create({
-    type: 'express',
+    type: 'standard',
     email,
-    metadata: { userId },
-    capabilities: {
-      card_payments: { requested: true },
-      transfers: { requested: true },
-    },
+    metadata: { userId }
   });
 }
 
@@ -39,5 +35,23 @@ export async function createAccountLink(accountId: string) {
     refresh_url: `${process.env.AUTH0_BASE_URL}/profile?stripe=refresh`,
     return_url: `${process.env.AUTH0_BASE_URL}/profile?stripe=success`,
     type: 'account_onboarding',
+  });
+}
+
+/**
+ * Creates a Stripe Identity Verification Session.
+ */
+export async function createVerificationSession(userId: string) {
+  if (!stripe) throw new Error('Stripe not configured');
+
+  return await stripe.identity.verificationSessions.create({
+    type: 'document',
+    options: {
+      document: {
+        require_id_number: true,
+        require_matching_selfie: true,
+      },
+    },
+    metadata: { userId },
   });
 }

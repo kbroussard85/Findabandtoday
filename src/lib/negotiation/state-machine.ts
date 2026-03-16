@@ -5,19 +5,26 @@ import prisma from '@/lib/prisma';
  * Valid transitions for a Gig offer lifecycle.
  */
 export const VALID_TRANSITIONS: Record<GigStatus, GigStatus[]> = {
-  [GigStatus.DRAFT]: [GigStatus.OFFER_SENT, GigStatus.CANCELLED, GigStatus.SUBMISSION, GigStatus.REQUEST],
+  [GigStatus.DRAFT]: [GigStatus.OFFER_SENT, GigStatus.CANCELLED, GigStatus.SUBMISSION, GigStatus.REQUEST, GigStatus.PENDING_PAYMENT],
   [GigStatus.SUBMISSION]: [GigStatus.PENDING_APPROVAL, GigStatus.REJECTED, GigStatus.CANCELLED],
   [GigStatus.REQUEST]: [GigStatus.OFFER_SENT, GigStatus.ACCEPTED, GigStatus.REJECTED, GigStatus.CANCELLED],
   [GigStatus.PENDING_APPROVAL]: [GigStatus.OFFER_SENT, GigStatus.ACCEPTED, GigStatus.REJECTED, GigStatus.CANCELLED],
-  [GigStatus.OFFER_SENT]: [GigStatus.ESCROW_HOLD, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED, GigStatus.ACCEPTED],
-  [GigStatus.COUNTER_OFFER]: [GigStatus.ESCROW_HOLD, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED, GigStatus.ACCEPTED],
-  [GigStatus.ESCROW_HOLD]: [GigStatus.CONFIRMED, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED],
-  [GigStatus.CONFIRMED]: [GigStatus.BOOKED, GigStatus.CANCELLED],
-  [GigStatus.ACCEPTED]: [GigStatus.BOOKED, GigStatus.CANCELLED, GigStatus.ESCROW_HOLD],
-  [GigStatus.REJECTED]: [GigStatus.DRAFT, GigStatus.OFFER_SENT, GigStatus.SUBMISSION, GigStatus.REQUEST], // Allow resending if terms change
-  [GigStatus.BOOKED]: [GigStatus.COMPLETED, GigStatus.CANCELLED],
+  [GigStatus.OFFER_SENT]: [GigStatus.ESCROW_HOLD, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED, GigStatus.ACCEPTED, GigStatus.PENDING_PAYMENT],
+  [GigStatus.COUNTER_OFFER]: [GigStatus.ESCROW_HOLD, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED, GigStatus.ACCEPTED, GigStatus.PENDING_PAYMENT],
+  [GigStatus.ESCROW_HOLD]: [GigStatus.CONFIRMED, GigStatus.REJECTED, GigStatus.COUNTER_OFFER, GigStatus.CANCELLED, GigStatus.PAID_ESCROW],
+  [GigStatus.CONFIRMED]: [GigStatus.BOOKED, GigStatus.CANCELLED, GigStatus.GIG_ACTIVE],
+  [GigStatus.ACCEPTED]: [GigStatus.BOOKED, GigStatus.CANCELLED, GigStatus.ESCROW_HOLD, GigStatus.PENDING_PAYMENT, GigStatus.PAID_ESCROW],
+  [GigStatus.REJECTED]: [GigStatus.DRAFT, GigStatus.OFFER_SENT, GigStatus.SUBMISSION, GigStatus.REQUEST],
+  [GigStatus.BOOKED]: [GigStatus.COMPLETED, GigStatus.CANCELLED, GigStatus.GIG_ACTIVE],
+  [GigStatus.PENDING_PAYMENT]: [GigStatus.PAID_ESCROW, GigStatus.CANCELLED],
+  [GigStatus.PAID_ESCROW]: [GigStatus.GIG_ACTIVE, GigStatus.CANCELLED, GigStatus.POST_GIG_HOLD],
+  [GigStatus.GIG_ACTIVE]: [GigStatus.POST_GIG_HOLD, GigStatus.COMPLETED],
+  [GigStatus.POST_GIG_HOLD]: [GigStatus.PAYOUT_PENDING, GigStatus.DISPUTED],
+  [GigStatus.PAYOUT_PENDING]: [GigStatus.COMPLETED, GigStatus.DISPUTED],
+  [GigStatus.DISPUTED]: [GigStatus.COMPLETED, GigStatus.REFUNDED],
   [GigStatus.COMPLETED]: [],
-  [GigStatus.CANCELLED]: [GigStatus.DRAFT], // Allow restarting from draft
+  [GigStatus.CANCELLED]: [GigStatus.DRAFT],
+  [GigStatus.REFUNDED]: [],
 };
 
 /**

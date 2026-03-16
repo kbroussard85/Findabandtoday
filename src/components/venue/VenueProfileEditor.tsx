@@ -6,12 +6,6 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabase-client';
 import { validateFile } from '@/lib/utils/file-validation';
 
-interface MediaItem {
-  url: string;
-  type: string;
-  name?: string;
-}
-
 interface ProfileData {
   bio?: string | null;
   lat?: number | null;

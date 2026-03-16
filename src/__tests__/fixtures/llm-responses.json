@@ -1,0 +1,115 @@
+{
+  "negotiation_success": {
+    "id": "chatcmpl-123",
+    "object": "chat.completion",
+    "created": 1677652288,
+    "model": "gpt-4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"status\": \"success\", \"message\": \"The negotiation was successful. The final price is $500.\"}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 56,
+      "completion_tokens": 31,
+      "total_tokens": 87
+    }
+  },
+  "negotiation_counter": {
+    "id": "chatcmpl-456",
+    "object": "chat.completion",
+    "created": 1677652289,
+    "model": "gpt-4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"status\": \"counter\", \"message\": \"I can't do $400, but I can do $450.\"}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 60,
+      "completion_tokens": 35,
+      "total_tokens": 95
+    }
+  },
+  "negotiation_rejected": {
+    "id": "chatcmpl-789",
+    "object": "chat.completion",
+    "created": 1677652290,
+    "model": "gpt-4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"status\": \"rejected\", \"message\": \"Sorry, that price is too low for us.\"}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 50,
+      "completion_tokens": 25,
+      "total_tokens": 75
+    }
+  },
+  "error_invalid_api_key": {
+    "error": {
+      "message": "Incorrect API key provided: sk-test-key. You can find your API key at https://platform.openai.com/account/api-keys.",
+      "type": "invalid_request_error",
+      "param": null,
+      "code": "invalid_api_key"
+    }
+  },
+  "liaison_draft": {
+    "id": "chatcmpl-liaison",
+    "object": "chat.completion",
+    "created": 1677652291,
+    "model": "gpt-4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Dear Venue, we are excited to offer our band for your upcoming event. We bring high energy and a great following. Best, The FABT Liaison"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 100,
+      "completion_tokens": 40,
+      "total_tokens": 140
+    }
+  },
+  "maximizer_rank": {
+    "id": "chatcmpl-maximizer",
+    "object": "chat.completion",
+    "created": 1677652292,
+    "model": "gpt-4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "[\"venue-1\", \"venue-2\", \"venue-3\"]"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 150,
+      "completion_tokens": 20,
+      "total_tokens": 170
+    }
+  }
+}

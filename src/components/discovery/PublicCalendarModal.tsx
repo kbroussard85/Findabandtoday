@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { X, Calendar as CalendarIcon, Loader2, Info } from 'lucide-react';
+import { X } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { GigOnboardingModal } from '@/components/booking/GigOnboardingModal';
 import { useProfile } from '@/hooks/useProfile';

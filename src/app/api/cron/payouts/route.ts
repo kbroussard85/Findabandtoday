@@ -14,12 +14,12 @@ export async function GET(req: Request) {
   }
 
   try {
-    // 1. Find all completed gigs that haven't been paid
+    // 1. Find all gigs ready for payout
     const pendingGigs = await prisma.gig.findMany({
       where: {
-        status: GigStatus.COMPLETED,
+        status: { in: [GigStatus.PAID_ESCROW, GigStatus.PAYOUT_PENDING] },
         payoutStatus: PayoutStatus.HELD_IN_ESCROW,
-        // And optionally check if it's been 24 hours since the show date
+        // Check if it's been 24 hours since the show date
         date: {
           lte: new Date(Date.now() - 24 * 60 * 60 * 1000)
         }

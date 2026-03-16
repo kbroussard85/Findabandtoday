@@ -18,7 +18,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
   // Decode the ID in case it was passed encoded
   const decodedId = decodeURIComponent(id);
 
-  logger.info({ err: decodedId }, '[DEBUG] Loading Public Profile for ID:');
+  logger.info({ id: decodedId }, '[DEBUG] Loading Public Profile for ID:');
 
   // Search by either Auth0 ID OR internal Database ID for maximum reliability
   const dbUser = await prisma.user.findFirst({
@@ -41,7 +41,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
   });
 
   if (!dbUser) {
-    logger.error({ err: decodedId }, '[DEBUG] User not found for ID:');
+    logger.error({ id: decodedId }, '[DEBUG] User not found for ID:');
     return notFound();
   }
 

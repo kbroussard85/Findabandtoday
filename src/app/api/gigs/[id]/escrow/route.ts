@@ -9,7 +9,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const session = await getSession();
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { action, amount, method } = await req.json();
+    const { action, amount, method, payoutType } = await req.json();
+    const resolvedMethod = (method || (payoutType === 'FABT_PAY' ? 'PLATFORM' : (payoutType === 'CASH_DOS' ? 'IN_PERSON' : 'PLATFORM'))) as 'PLATFORM' | 'IN_PERSON';
     const { id: gigId } = await params;
 
     // Ownership Verification (IDOR Fix)
@@ -39,7 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       case 'HOLD':
         if (!isVenueOwner) return NextResponse.json({ error: 'Only venues can initialize a hold' }, { status: 403 });
         if (!amount) return NextResponse.json({ error: 'Amount required' }, { status: 400 });
-        const holdResult = await initializeBookingHold(gigId, amount, method || 'PLATFORM');
+        const holdResult = await initializeBookingHold(gigId, amount, resolvedMethod);
         return NextResponse.json(holdResult);
       
       case 'CAPTURE':

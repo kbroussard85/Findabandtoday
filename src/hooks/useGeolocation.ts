@@ -31,7 +31,7 @@ export function useGeolocation() {
       lat: initial.lat,
       lng: initial.lng,
       error: null,
-      loading: initial.lat === null,
+      loading: false, // Default to not loading
       permissionStatus: 'prompt',
     };
   });

@@ -200,7 +200,6 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
         onClose={() => setIsCalendarOpen(false)}
         targetProfileId={artist.id || artist.userId!}
         targetProfileName={artist.name}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         targetRole={('capacity' in artist) ? 'VENUE' : 'BAND'}
       />
 
