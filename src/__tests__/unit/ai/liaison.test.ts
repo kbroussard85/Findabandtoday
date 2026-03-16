@@ -14,6 +14,7 @@ describe('AI Liaison Agent Unit Test', () => {
   });
 
   it('should draft a professional offer for a Band', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (aiClient.invoke as any).mockResolvedValue({
       content: 'Mocked professional pitch from band to venue.',
     });
@@ -40,11 +41,13 @@ describe('AI Liaison Agent Unit Test', () => {
     expect(result).toContain('Mocked professional pitch');
     
     // Verify system prompt contains correct role
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callArgs = (aiClient.invoke as any).mock.calls[0][0];
     expect(callArgs[0].content).toContain('representing the band "The Rockers"');
   });
 
   it('should draft a professional offer for a Venue', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (aiClient.invoke as any).mockResolvedValue({
       content: 'Mocked professional offer from venue to band.',
     });
@@ -69,6 +72,7 @@ describe('AI Liaison Agent Unit Test', () => {
     expect(result).toContain('Mocked professional offer');
     
     // Verify system prompt contains correct role
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callArgs = (aiClient.invoke as any).mock.calls[0][0];
     expect(callArgs[0].content).toContain('talent booker for the venue "The Blue Note"');
   });

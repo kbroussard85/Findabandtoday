@@ -32,6 +32,7 @@ describe('Negotiation Graph Unit Test', () => {
   });
 
   it('should counter-offer if the venue offer is too low', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (aiClient.invoke as any).mockResolvedValue({
       content: 'We need a bit more to cover travel costs.',
     });
@@ -57,6 +58,7 @@ describe('Negotiation Graph Unit Test', () => {
   });
 
   it('should reject if too many turns pass without agreement', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (aiClient.invoke as any).mockResolvedValue({
       content: 'Still too low.',
     });
