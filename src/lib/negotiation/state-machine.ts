@@ -18,6 +18,13 @@ export const VALID_TRANSITIONS: Record<GigStatus, GigStatus[]> = {
   [GigStatus.BOOKED]: [GigStatus.COMPLETED, GigStatus.CANCELLED],
   [GigStatus.COMPLETED]: [],
   [GigStatus.CANCELLED]: [GigStatus.DRAFT], // Allow restarting from draft
+  [GigStatus.DISPUTED]: [GigStatus.PAYOUT_PENDING, GigStatus.REFUNDED],
+  [GigStatus.PENDING_PAYMENT]: [GigStatus.PAID_ESCROW, GigStatus.CANCELLED],
+  [GigStatus.PAID_ESCROW]: [GigStatus.GIG_ACTIVE, GigStatus.CANCELLED],
+  [GigStatus.GIG_ACTIVE]: [GigStatus.POST_GIG_HOLD, GigStatus.DISPUTED],
+  [GigStatus.POST_GIG_HOLD]: [GigStatus.PAYOUT_PENDING, GigStatus.DISPUTED],
+  [GigStatus.PAYOUT_PENDING]: [GigStatus.COMPLETED],
+  [GigStatus.REFUNDED]: [],
 };
 
 /**
