@@ -25,7 +25,9 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
     where: {
       OR: [
         { auth0Id: decodedId },
-        { id: decodedId }
+        { id: decodedId },
+        { bandProfile: { id: decodedId } },
+        { venueProfile: { id: decodedId } }
       ]
     },
     include: {
