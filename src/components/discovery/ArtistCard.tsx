@@ -3,8 +3,10 @@ import React, { useRef, useState, useEffect } from 'react';
 import { BlurredField } from '../ui/BlurredField';
 import { Artist } from '@/types';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Play, Pause, Music, Star } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { PublicCalendarModal } from './PublicCalendarModal';
 
 interface ArtistCardProps {
   artist: Artist;
@@ -18,6 +20,7 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
   const [isPlaying, setIsPlaying] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [isRating, setIsRating] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const handleRate = async (stars: number) => {
     setIsRating(true);
@@ -83,7 +86,10 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
     <div className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-5 flex flex-col gap-5 group hover:border-purple-500/50 transition-all duration-300 backdrop-blur-sm relative overflow-hidden">
       
       {/* Thumbnail Container */}
-      <div className="relative w-full aspect-[4/3] bg-zinc-950 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-zinc-800 flex items-center justify-center group">
+      <Link 
+        href={`/profile/${artist.id || artist.userId!}`}
+        className="relative block w-full aspect-[4/3] bg-zinc-950 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-zinc-800 flex items-center justify-center group"
+      >
         {thumbnail ? (
           <Image 
             src={thumbnail} 
@@ -135,12 +141,12 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
             className="hidden"
           />
         )}
-      </div>
+      </Link>
 
       {/* Artist Info */}
       <div className="space-y-3">
-        <div className="flex justify-between items-start">
-          <h3 className="text-lg font-black uppercase italic tracking-tighter text-white group-hover:text-purple-400 transition-colors leading-none">
+        <Link href={`/profile/${artist.id || artist.userId}`} className="flex justify-between items-start group/link block">
+          <h3 className="text-lg font-black uppercase italic tracking-tighter text-white group-hover/link:text-purple-400 transition-colors leading-none">
             {artist.name}
           </h3>
           <div className="flex gap-1">
@@ -150,7 +156,7 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
               </span>
             ))}
           </div>
-        </div>
+        </Link>
         
         {artist.bio ? (
           <p className="text-zinc-500 text-xs font-bold line-clamp-2 leading-relaxed uppercase italic">
@@ -172,18 +178,30 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
               <span className="text-green-500">AVAILABLE</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <button className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 text-[9px] font-black uppercase italic tracking-widest text-zinc-400 hover:text-white transition-all">
+              <button 
+                onClick={(e) => { e.stopPropagation(); setIsCalendarOpen(true); }}
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 text-[9px] font-black uppercase italic tracking-widest text-zinc-400 hover:text-white transition-all cursor-pointer z-30"
+              >
                 Calendar
               </button>
-              <button 
-                className="bg-purple-600 hover:bg-purple-500 border border-purple-500 rounded-xl py-2.5 text-[9px] font-black uppercase italic tracking-widest text-white transition-all shadow-lg shadow-purple-900/20"
+              <Link 
+                href={`/profile/${artist.id || artist.userId}`}
+                className="bg-purple-600 hover:bg-purple-500 border border-purple-500 rounded-xl py-2.5 text-[9px] font-black uppercase italic tracking-widest text-white transition-all shadow-lg shadow-purple-900/20 flex items-center justify-center z-30"
               >
-                Book Now
-              </button>
+                Profile & Book
+              </Link>
             </div>
           </div>
         </BlurredField>
       </div>
+
+      <PublicCalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        targetProfileId={artist.id || artist.userId!}
+        targetProfileName={artist.name}
+        targetRole={('capacity' in artist) ? 'VENUE' : 'BAND'}
+      />
 
       {/* Hidden Rating Interface (VENUE ONLY) */}
       {showRating && (

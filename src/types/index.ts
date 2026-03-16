@@ -11,6 +11,7 @@ export interface Genre {
 
 export interface Artist {
   id: string;
+  userId?: string;
   name: string;
   bio?: string | null;
   audioUrlPreview?: string | null;

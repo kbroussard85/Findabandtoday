@@ -1,4 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { getMaximizerSuggestions } from '@/lib/ai/agents/maximizer';
 import { getMaximizerMatches } from '@/lib/maximizer';
 import prisma from '@/lib/prisma';

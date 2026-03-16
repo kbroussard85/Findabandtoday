@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { draftLiaisonOffer } from '@/lib/ai/agents/liaison';
 
 describe('AI Liaison Agent', () => {

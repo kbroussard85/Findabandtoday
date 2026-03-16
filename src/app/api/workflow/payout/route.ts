@@ -1,7 +1,7 @@
 import { serve } from "@upstash/workflow/nextjs";
 import prisma from "@/lib/prisma";
 import { triggerGigPayout } from "@/lib/stripe/payouts";
-import { GigStatus, PayoutStatus } from "@prisma/client";
+import { GigStatus } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 interface PayoutWorkflowInput {

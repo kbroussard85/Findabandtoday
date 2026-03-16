@@ -6,6 +6,7 @@ import { MapPin, Instagram, Youtube, Music, Info, Calendar, Share2, Globe } from
 import Image from 'next/image';
 import { MediaItem } from '@/types';
 import { logger } from '@/lib/logger';
+import { ProfileBookingBar } from '@/components/profile/ProfileBookingBar';
 
 interface PublicProfileProps {
   params: Promise<{ id: string }>;
@@ -17,14 +18,16 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
   // Decode the ID in case it was passed encoded
   const decodedId = decodeURIComponent(id);
 
-  logger.info({ err: decodedId }, '[DEBUG] Loading Public Profile for ID:');
+  logger.info({ id: decodedId }, '[DEBUG] Loading Public Profile for ID:');
 
   // Search by either Auth0 ID OR internal Database ID for maximum reliability
   const dbUser = await prisma.user.findFirst({
     where: {
       OR: [
         { auth0Id: decodedId },
-        { id: decodedId }
+        { id: decodedId },
+        { bandProfile: { id: decodedId } },
+        { venueProfile: { id: decodedId } }
       ]
     },
     include: {
@@ -38,7 +41,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
   });
 
   if (!dbUser) {
-    logger.error({ err: decodedId }, '[DEBUG] User not found for ID:');
+    logger.error({ id: decodedId }, '[DEBUG] User not found for ID:');
     return notFound();
   }
 
@@ -176,9 +179,12 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
                 <p className="text-xs text-zinc-600 italic">No specific dates listed.</p>
               )}
             </div>
-            <button className={`w-full py-4 rounded-xl font-black uppercase italic text-sm transition-all transform hover:scale-105 active:scale-95 shadow-xl ${isBand ? 'bg-purple-600 shadow-purple-900/20' : 'bg-blue-600 shadow-blue-900/20'}`}>
-              Check Full Calendar
-            </button>
+            <ProfileBookingBar 
+              targetProfileId={dbUser.id} 
+              targetProfileName={profile.name} 
+              targetRole={isBand ? 'BAND' : 'VENUE'} 
+              variant="full"
+            />
           </section>
 
           <section className="p-8 border border-zinc-800 rounded-3xl space-y-4">
@@ -243,9 +249,11 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
             </a>
           )}
           <div className="h-8 w-[1px] bg-white/10 mx-2" />
-          <button className={`px-8 py-4 rounded-full font-black uppercase italic tracking-widest text-xs transition-all ${isBand ? 'bg-purple-600 hover:bg-purple-500' : 'bg-blue-600 hover:bg-blue-500'}`}>
-            {isBand ? 'Book Now' : 'Request Booking'}
-          </button>
+          <ProfileBookingBar 
+            targetProfileId={profile.id} 
+            targetProfileName={profile.name} 
+            targetRole={isBand ? 'BAND' : 'VENUE'} 
+          />
         </div>
       </footer>
     </div>

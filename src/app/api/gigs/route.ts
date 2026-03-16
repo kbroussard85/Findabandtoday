@@ -68,10 +68,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const dbUser = await prisma.user.findUnique({
+      where: { auth0Id: session.user.sub },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
+    }
+
+    // SUBSCRIPTION GATE: Only paid users (Venue Command or Artist Biz) can initiate official offers
+    if (!dbUser.isPaid && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ 
+        error: 'Subscription Required', 
+        message: 'Upgrade to PRO to send official booking offers.' 
+      }, { status: 403 });
+    }
+
     const body = await req.json();
+    logger.info({ body }, '[DEBUG] Gig Payload:');
+    
     const result = GigCreateSchema.safeParse(body);
 
     if (!result.success) {
+      logger.error({ err: result.error.format() }, '[DEBUG] Validation Failed:');
       return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
     }
 
@@ -88,6 +107,7 @@ export async function POST(req: Request) {
         venueId,
         bandId: bandId || '',
         totalAmount,
+        status: 'OFFER_SENT', // Default to offer sent status
       },
     });
 
