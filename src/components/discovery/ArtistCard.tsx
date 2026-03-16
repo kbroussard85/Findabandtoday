@@ -201,7 +201,7 @@ export function ArtistCard({ artist, isPremium, showRating, index }: ArtistCardP
         targetProfileId={artist.id || artist.userId!}
         targetProfileName={artist.name}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        targetRole={((artist as any).capacity || (artist as any).openDates) ? 'VENUE' : 'BAND'}
+        targetRole={('capacity' in artist) ? 'VENUE' : 'BAND'}
       />
 
       {/* Hidden Rating Interface (VENUE ONLY) */}

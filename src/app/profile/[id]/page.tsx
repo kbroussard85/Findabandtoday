@@ -250,7 +250,7 @@ export default async function PublicProfilePage({ params }: PublicProfileProps) 
           )}
           <div className="h-8 w-[1px] bg-white/10 mx-2" />
           <ProfileBookingBar 
-            targetProfileId={dbUser.id} 
+            targetProfileId={profile.id} 
             targetProfileName={profile.name} 
             targetRole={isBand ? 'BAND' : 'VENUE'} 
           />
