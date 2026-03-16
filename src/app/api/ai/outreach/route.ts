@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     // 3. Draft AI Liaison Offer
     const aiMessage = await draftLiaisonOffer({
-      senderType: sender.role,
+      senderType: isBandSender ? 'BAND' : 'VENUE',
       senderProfile: {
         name: senderProfile.name,
         bio: senderProfile.bio,
