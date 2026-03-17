@@ -1,7 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 
 const prismaClientSingleton = () => {
-  return new PrismaClient().$extends({
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL?.trim(),
+      },
+    },
+  }).$extends({
     model: {
       band: {
         async findNearby(lat: number, lng: number, radiusMeters: number, query?: string, genre?: string, limit: number = 20, offset: number = 0) {
