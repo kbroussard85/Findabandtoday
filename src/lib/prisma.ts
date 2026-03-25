@@ -1,13 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 
+if (process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL.trim();
+}
+if (process.env.DIRECT_URL) {
+  process.env.DIRECT_URL = process.env.DIRECT_URL.trim();
+}
+
 const prismaClientSingleton = () => {
-  return new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL?.trim(),
-      },
-    },
-  }).$extends({
+  return new PrismaClient().$extends({
     model: {
       band: {
         async findNearby(lat: number, lng: number, radiusMeters: number, query?: string, genre?: string, limit: number = 20, offset: number = 0) {
